@@ -5,9 +5,9 @@ import WorkspaceClient from "./workspace-client";
 export default async function Home({
   searchParams,
 }: {
-  searchParams: { prompt?: string };
+  searchParams: Promise<{ prompt?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect("/login");
-  return <WorkspaceClient initialQueryPrompt={searchParams.prompt ?? ""} />;
+  return <WorkspaceClient initialQueryPrompt={(await searchParams).prompt ?? ""} />;
 }

@@ -16,7 +16,8 @@ const pusher =
 
 // PATCH /api/approvals/[id]
 // body: { action: "approve" | "reject", rejectionReason?: string }
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   let userId: string;
   try {
     ({ userId } = await requireRole("ADMIN", "APPROVER"));

@@ -5,7 +5,8 @@ import { linkDirectoryUser, unlinkDirectoryUser } from "@/lib/school-auth/store"
 import { readDirectoryConfig, lookupDirectoryIdentity } from "@/lib/school-auth/directory";
 import { normalizeUsername } from "@/lib/school-auth/password";
 import { z } from "zod";
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   try {
     const { userId } = await requireAccountAdmin(req);
     const input = z.object({ username: z.string().refine(value => !!normalizeUsername(value)) }).strict().parse(await accountBody(req));
@@ -17,7 +18,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ ok: true });
   } catch (error) { return accountFailure(error); }
 }
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   try { const { userId } = await requireAccountAdmin(req); await unlinkDirectoryUser(prisma, userId, params.id); return NextResponse.json({ ok: true }); }
   catch (error) { return accountFailure(error); }
 }

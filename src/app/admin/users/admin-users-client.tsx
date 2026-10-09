@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import AccountProvisioning from "./account-provisioning";
 
@@ -71,7 +72,7 @@ export default function AdminUsersClient() {
           gap:          12,
         }}
       >
-        <a href="/" style={{ textDecoration: "none" }}>
+        <Link href="/" style={{ textDecoration: "none" }}>
           <div
             style={{
               width: 32, height: 32, background: "var(--seal)", color: "#fff",
@@ -82,7 +83,7 @@ export default function AdminUsersClient() {
           >
             智
           </div>
-        </a>
+        </Link>
         <div>
           <div style={{ fontFamily: "var(--serif)", fontWeight: 700, fontSize: 16, color: "var(--ink)" }}>
             用戶管理

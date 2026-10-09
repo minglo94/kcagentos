@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useRef } from "react";
 
 interface Item   { name: string; qty: string }
@@ -184,10 +185,10 @@ export default function QuotationClient() {
     <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "var(--sans)" }}>
       {/* 頁首 */}
       <div style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", padding: "12px 24px", display: "flex", alignItems: "center", gap: 12, position: "sticky", top: 0, zIndex: 50, boxShadow: "0 2px 0 var(--primary-light)" }}>
-        <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
+        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 30, height: 30, background: "var(--seal)", color: "#fff", fontFamily: "var(--serif)", fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "2px 2px 0 var(--primary-light)" }}>智</div>
           <span style={{ fontFamily: "var(--serif)", fontSize: 14, color: "var(--ink2)" }}>基智 Agent OS</span>
-        </a>
+        </Link>
         <span style={{ color: "var(--ink3)" }}>›</span>
         <span style={{ fontFamily: "var(--serif)", fontSize: 15, fontWeight: 700, color: "var(--ink)" }}>按口頭報價採購表格</span>
         <div style={{ marginLeft: "auto", fontSize: 9, fontFamily: "var(--mono)", color: "var(--seal)", border: "1px solid var(--seal)", padding: "2px 7px", borderRadius: 2 }}>基智 · KCSS</div>

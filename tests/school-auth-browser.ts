@@ -11,7 +11,7 @@ async function main() {
   const teacher = await createLocalUser(fixture.db, admin.id, { name: "Synthetic teacher", email: "teacher@example.test", username: "synthetic.teacher", password: "synthetic-teacher-pass" });
   await fixture.db.$disconnect();
   const url = "http://127.0.0.1:3198";
-  const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--hostname", "127.0.0.1", "--port", "3198"], { stdio: "pipe", env: { ...process.env, DATABASE_URL: fixture.url, NEXTAUTH_URL: url, NEXTAUTH_SECRET: randomBytes(32).toString("hex"), GOOGLE_CLIENT_ID: "", GOOGLE_CLIENT_SECRET: "", AGENTOS_LOCAL_AUTH_ENABLED: "true", AGENTOS_AD_AUTH_ENABLED: "false", NEXT_TELEMETRY_DISABLED: "1" } });
+  const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--hostname", "127.0.0.1", "--port", "3198"], { stdio: "pipe", env: { ...process.env, DATABASE_URL: fixture.url, NEXTAUTH_URL: url, NEXTAUTH_SECRET: randomBytes(32).toString("hex"), GOOGLE_CLIENT_ID: "", GOOGLE_CLIENT_SECRET: "", AGENTOS_LOCAL_AUTH_ENABLED: "true", AGENTOS_AD_AUTH_ENABLED: "true", AGENTOS_AD_ID: "synthetic", AGENTOS_AD_URL: "ldaps://127.0.0.1:1", AGENTOS_AD_BASE: "dc=example,dc=test", AGENTOS_AD_BIND_DN: "cn=synthetic", AGENTOS_AD_BIND_PASSWORD: "synthetic-directory-password", AGENTOS_AD_CA_PATH: "", NEXT_TELEMETRY_DISABLED: "1" } });
   let logs = "";
   server.stdout.on("data", data => { logs = (logs + data).slice(-5000); }); server.stderr.on("data", data => { logs = (logs + data).slice(-5000); });
   let browser; let lastPage: import("@playwright/test").Page | undefined;
@@ -28,6 +28,9 @@ async function main() {
     page.on("requestfailed", request => { logs += "\nFailed asset: " + new URL(request.url()).pathname; });
     await page.goto(url + "/login");
     await expect(page.getByLabel("帳號", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("登入方式").locator("option")).toHaveCount(2);
+    await page.getByLabel("登入方式").selectOption("school-ad");
+    await page.getByLabel("登入方式").selectOption("local");
     await page.getByLabel("帳號", { exact: true }).fill("synthetic.teacher"); await page.getByLabel("密碼", { exact: true }).fill("wrong-password");
     await page.getByRole("button", { name: "登入", exact: true }).click(); await expect(page.getByRole("alert").filter({ hasText: "登入失敗" })).toBeVisible();
     await expect(page.getByLabel("密碼", { exact: true })).toHaveValue("");
@@ -40,14 +43,29 @@ async function main() {
     await adminPage.goto(url + "/login"); await adminPage.getByLabel("帳號", { exact: true }).fill("synthetic.admin"); await adminPage.getByLabel("密碼", { exact: true }).fill("synthetic-admin-pass"); await adminPage.getByRole("button", { name: "登入", exact: true }).click();
     await expect(adminPage.getByRole("heading", { name: "Hermes 指揮台", exact: true })).toBeVisible({ timeout: 30000 });
     const users = await adminContext.request.get(url + "/api/admin/users"); assert.equal(users.status(), 200); assert.equal((await users.text()).includes("passwordHash"), false);
+    await adminPage.goto(url + "/admin/users");
+    await adminPage.getByText("建立及管理登入帳號", { exact: true }).click();
+    await adminPage.getByLabel("新用戶姓名", { exact: true }).fill("UI synthetic staff");
+    await adminPage.getByLabel("聯絡電郵", { exact: true }).fill("ui-staff@example.test");
+    await adminPage.getByLabel("登入帳號", { exact: true }).fill("ui.synthetic.staff");
+    await adminPage.getByLabel("新密碼", { exact: true }).fill("synthetic-ui-password");
+    await adminPage.getByRole("button", { name: "建立本地帳號", exact: true }).click();
+    await expect(adminPage.getByRole("status").filter({ hasText: "已保存。" })).toBeVisible();
+    await expect(adminPage.getByLabel("新密碼", { exact: true })).toHaveValue("");
+    const created = await adminContext.request.get(url + "/api/admin/users");
+    assert.ok((await created.json() as Array<{ email: string; role: string }>).some(user => user.email === "ui-staff@example.test" && user.role === "TEACHER"));
     const credentialUrl = `${url}/api/admin/users/${teacher.id}/credentials`;
     assert.equal((await context.request.put(credentialUrl, { headers: { origin: url }, data: { username: "synthetic.teacher", password: "replacement-password" } })).status(), 403);
     assert.equal((await adminContext.request.put(credentialUrl, { headers: { origin: "https://untrusted.example" }, data: { username: "synthetic.teacher", password: "replacement-password" } })).status(), 403);
+    assert.equal((await adminContext.request.put(credentialUrl, { data: { username: "synthetic.teacher", password: "replacement-password" } })).status(), 403);
+    assert.equal((await adminContext.request.put(`${url}/api/admin/users/${teacher.id}/directory`, { headers: { origin: url }, data: { username: "synthetic.teacher", objectGuid: "01".repeat(16) } })).status(), 400);
     assert.equal((await adminContext.request.put(credentialUrl, { headers: { origin: url }, data: { username: "synthetic.teacher", password: "replacement-password" } })).status(), 200);
     assert.equal((await context.request.get(url + "/api/jobs")).status(), 401);
     const disabled = await adminContext.request.patch(`${url}/api/admin/users/${teacher.id}`, { headers: { origin: url }, data: { isActive: false } }); assert.equal(disabled.status(), 200);
     await page.goto(url + "/login"); await page.getByLabel("帳號", { exact: true }).fill("synthetic.teacher"); await page.getByLabel("密碼", { exact: true }).fill("replacement-password"); await page.getByRole("button", { name: "登入", exact: true }).click(); await expect(page.getByRole("alert").filter({ hasText: "登入失敗" })).toBeVisible();
-    console.log("Synthetic browser auth passed: real NextAuth credentials/CSRF/cookies, no Google config, teacher/admin scope, credential privacy, hostile origin, reset revocation, disabled login.");
+    assert.equal((await adminContext.request.patch(`${url}/api/admin/users/${admin.id}`, { headers: { origin: url }, data: { isActive: false } })).status(), 200);
+    assert.equal((await adminContext.request.put(credentialUrl, { headers: { origin: url }, data: { username: "synthetic.teacher", password: "replacement-password" } })).status(), 401);
+    console.log("Synthetic browser auth passed: both provider choices, real local NextAuth credentials/CSRF/cookies, UI provisioning, teacher/admin scope, credential privacy, hostile/missing origin, client GUID rejection, reset revocation, disabled staff/admin. Real AD remains untested.");
   } catch (error) { if (lastPage) console.error((await lastPage.locator("body").innerText()).slice(0,1500)); console.error(logs); throw error; }
   finally { await browser?.close(); server.kill(); await fixture.close(); }
 }

@@ -269,3 +269,11 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Genuine local NextAuth browser exchange, Office browser workflow and synthetic production build passed; real AD remains pending.
 - [x] Concurrent PostgreSQL bootstrap/credential/GUID conflicts and six-worker, 32-job synthetic load passed (12/12); exposed claim/retry contention fixed.
 - [ ] Real school AD and live model/Portal/Spark acceptance require their configured services.
+
+## Dependency qualification — 2026-10-09
+- [x] Next 15.5.27 / matching ESLint config, Tailwind 4.3.3, PostCSS 8.5.29; compatible lockfile updates and scoped ExcelJS UUID 11.1.1 override.
+- [x] Migrate async route/search parameters, PostCSS integration and internal Next links; production build passed.
+- [x] Document pipeline compatibility uncovered existing Archiver 8 factory mismatch; shared ZIP class adapter now passes DOCX extraction/ZIP and spreadsheet round trips.
+- [x] Node 34/34; genuine browser auth now also covers both provider choices, UI provisioning, missing Origin, forged GUID and disabled admin; Office browser passed.
+- [x] Audit reduced 24 → 8 (0 critical, 5 high, 3 moderate). Remaining chains: build-time ESLint/fast-glob/micromatch/braces and Mammoth CLI argparse/sprintf-js. No compatible fixed release established; no unsafe historical downgrades.
+- [ ] Production hardening/real AD and service qualification remain gates.

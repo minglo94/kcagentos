@@ -1,6 +1,6 @@
 # School login setup and qualification
 
-Requires Node.js 22 or newer, PostgreSQL and the additive migrations. Keep the application on loopback while qualifying it. Production access requires HTTPS, a protected `NEXTAUTH_SECRET`, database backup/migration review and school acceptance.
+Requires Node.js 22.13 or newer (Node 24 LTS recommended), PostgreSQL and the additive migrations. Keep the application on loopback while qualifying it. Production access requires HTTPS, a protected `NEXTAUTH_SECRET`, database backup/migration review and school acceptance.
 
 ## Separate AgentOS accounts
 

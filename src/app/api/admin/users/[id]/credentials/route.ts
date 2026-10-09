@@ -4,14 +4,16 @@ import { requireAccountAdmin, accountBody, accountFailure } from "@/lib/school-a
 import { credentialInput, setLocalCredential, clearAttempts } from "@/lib/school-auth/store";
 import { normalizeUsername } from "@/lib/school-auth/password";
 import { z } from "zod";
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   try {
     const { userId } = await requireAccountAdmin(req), input = credentialInput.parse(await accountBody(req));
     await setLocalCredential(prisma, userId, params.id, input.username, input.password);
     return NextResponse.json({ ok: true });
   } catch (error) { return accountFailure(error); }
 }
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   try {
     await requireAccountAdmin(req);
     const input = z.object({ provider: z.enum(["local", "school-ad"]), username: z.string().refine(value => !!normalizeUsername(value)) }).strict().parse(await accountBody(req));

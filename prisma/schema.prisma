@@ -49,6 +49,7 @@ model User {
   tasks       Task[]
   documents   Document[]
   todos       Todo[]
+  officeJobs  OfficeJob[]
 }
 
 model Todo {
@@ -134,4 +135,79 @@ model SubstitutionRequest {
   waStatus        WaStatus @default(NOT_SENT)
   calendarEventId String?
   createdAt       DateTime @default(now())
+}
+
+enum OfficeStatus {
+  PLANNING
+  PENDING_PLAN_APPROVAL
+  QUEUED
+  RUNNING
+  WAITING_INPUT
+  PAUSED
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+model OfficeJob {
+  id              String       @id @default(cuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  goal            String       @db.Text
+  team            String
+  status          OfficeStatus @default(PLANNING)
+  plan            Json?
+  planHash        String?
+  planVersion     Int          @default(0)
+  approvedVersion Int?
+  leaseToken      String?
+  leaseUntil      DateTime?
+  errorCode       String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  steps           OfficeStep[]
+  events          OfficeEvent[]
+  approvals       OfficeApproval[]
+
+  @@index([userId, createdAt])
+  @@index([status, leaseUntil])
+}
+
+model OfficeStep {
+  id          String    @id @default(cuid())
+  jobId       String
+  job         OfficeJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  key         String
+  status      String    @default("QUEUED")
+  attempts    Int       @default(0)
+  result      String?   @db.Text
+  operationId String?
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([jobId, key])
+}
+
+model OfficeEvent {
+  id        Int       @id @default(autoincrement())
+  jobId     String
+  job       OfficeJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  type      String
+  data      Json
+  createdAt DateTime  @default(now())
+
+  @@index([jobId, id])
+}
+
+model OfficeApproval {
+  id          String    @id @default(cuid())
+  jobId       String
+  job         OfficeJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  planVersion Int
+  planHash    String
+  actorId     String
+  decision    String
+  reason      String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([jobId, planVersion])
 }

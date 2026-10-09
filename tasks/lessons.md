@@ -17,3 +17,12 @@
 ## 2026-10-09 — 避免跨項目重複實作
 
 AgentOS及Keichi Local同時規劃時，先確定功能權威與共享契約。總管/業務排程只在AgentOS；學生資料、校務子操作、計分、文件及發送在Portal。不同層級工作紀錄可並存，但不得重複派工或審批權威。
+
+## 2026-10-09 — Implementation verification
+
+- User approved layout A and clarified no local model exists yet. Complete the adapter/test foundation without claiming inference or downloading a model implicitly.
+- Stock Hermes ACP has broad tools; a dedicated profile alone is insufficient. Validate no-tools runtime and keep Worker approval authoritative.
+- Codex read-only filesystem policy alone is insufficient for inherited connectors; use isolated home/environment and disable extra capabilities.
+- PGlite multiplexes one backend; simultaneous Prisma clients can collide in prepared statements. It is a fixture, not proof of real PostgreSQL concurrency.
+- Next dev can normalize request origins; compare state-changing requests to the configured NEXTAUTH_URL and test both legitimate and hostile origins.
+- Windows Prisma DLL generation must run after the app is stopped; do not build while browser tests hold that DLL.

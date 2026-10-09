@@ -217,6 +217,7 @@ User authorized implementation in this session. Work branch: codex/agentos-found
 - [x] Prepare setup, progress and next-session handover documentation.
 - [ ] Configure and validate real local inference (user confirmed no model yet).
 - [ ] Qualify real PostgreSQL multi-worker serialization and school Google SSO.
+- [x] Phase 2 continuation: real PostgreSQL 16.15, independent backends, seven synthetic concurrency/recovery checks; production migration, process crash/load testing and real SSO remain pending.
 - [ ] Portal operation/approval contract integration, full Pixel Agents bridge and business cron.
 - [ ] Dependency security upgrade and production/Spark qualification.
 
@@ -233,3 +234,14 @@ User authorized implementation in this session. Work branch: codex/agentos-found
 - [ ] 建立人工基準，量度老師耗時、修改量、漏項及同事獨立使用。
 
 Review：此次只修訂文檔；檢查跨服務分工、驗收及 Git diff，不代表新增程式測試或功能完成。
+
+## Phase 2 continuation — PostgreSQL qualification (2026-10-09)
+
+- [x] Resume latest foundation handover on isolated branch `codex/agentos-phase2`, based on `de8725c`.
+- [x] Add opt-in `npm run test:postgres` with explicit local disposable database guard and generated-schema cleanup.
+- [x] Deploy and verify both migrations; test independent-backend claims, duplicate/opposing approvals, recovery, reconnect and stale-result fencing (7/7).
+- [x] Existing Node tests (17/17), Python tests (6/6), typecheck and lint (one existing warning).
+- [ ] Publish the concrete Phase 2 test/documentation commit after the repository's required push approval.
+- [ ] Configure dedicated local inference; confirm private Portal API/identity/approval contract before school workflow implementation.
+
+Review: application behavior unchanged; no live model, Portal, school data, email, cron or deployment. See `docs/POSTGRES_QUALIFICATION.md` for reproducible commands and evidence limits. This milestone does not complete the full AgentOS plan.

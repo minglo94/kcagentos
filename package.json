@@ -16,7 +16,8 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "test:browser": "node --import tsx tests/office-browser.ts",
     "office:worker": "node --env-file-if-exists=.env.local --import tsx scripts/office-worker.ts",
-    "db:migrate": "prisma migrate deploy"
+    "db:migrate": "prisma migrate deploy",
+    "test:postgres": "node --import tsx --test tests/office-postgres.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",

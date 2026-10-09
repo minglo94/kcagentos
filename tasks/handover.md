@@ -1,5 +1,7 @@
 # AgentOS 進度交接
 
+> Phase 2 接續（2026-10-09）：本機分支 `codex/agentos-phase2` 基於 foundation `de8725c`，新增正式 PostgreSQL 16.15 的合成雙連線驗證（7/7），並確認 Node 17/17、Python 6/6、typecheck 及 lint（原有一項警告）。尚未 push、合併或部署。詳細命令及限制見 `docs/POSTGRES_QUALIFICATION.md`；本節優先於下方歷史「PostgreSQL 未驗證」描述。
+
 > 最新實施交接（2026-10-09）：首版已在 `codex/agentos-foundation`，見 [草稿 PR #13](https://github.com/minglo94/kcagentos/pull/13)，commit `d05bc1f9ceab1301e0cd6586700178414ba90acd`。尚未合併或部署。
 > 已驗證：17 個 Node／資料庫測試、6 個 Python 測試、瀏覽器 E2E、typecheck 及完整 build；lint 有一個既有警告。模型尚未設定，接駁及測試骨架完成；Portal、完整像素動畫及夜間 cron 待續。PGlite 不代表 PostgreSQL 多 worker 驗證，現有依賴漏洞需另行修復。
 > 下次先讀該分支的 `tasks/handover.md`、`docs/OFFICE_FOUNDATION.md` 及 PR，再接續工作；下方歷史狀態不代表最新實施進度。
@@ -54,3 +56,12 @@
 下一步：完成既有技術前置驗證後，以合成資料驗收班務流程（Portal 工具/權限/權威批准/outbox），再授權真實小批，最後 cron；不以 manual 證據文字或動畫宣稱完成。
 已向 Build private AI teacher portal（01a120d8-4d93-7f70-aa40-fa96902e9bd2）發送用戶授權同步指示，由該聊天更新其本地計劃與交接。Portal private repo 未建立時不得宣稱 GitHub 已同步。
 本次只有計劃文件修訂，沒有新功能、學生資料、發送、部署或排程。首版技術骨架仍見 PR #13；既有測試證據不等於新增流程已驗收。
+
+## Phase 2 接續 — PostgreSQL 驗證（2026-10-09）
+
+- 用戶要求繼續 Phase 2 並提供 repo；按照最新交接先完成現有資料庫行為驗證，沒有增加業務功能。
+- 分支：`codex/agentos-phase2`；起點 `de8725c`，工作區 `/workspace/kcagentos-phase2`。本次 commit 可由 `git log -1` 核實；GitHub 尚未同步這個接續 commit。
+- 已完成：`tests/office-postgres.ts`、`npm run test:postgres`、可重現驗證文件。使用 loopback 專用 `agentos_qualification` DB；每次建立 UUID schema、deploy 兩個 migration、核實 migration 記錄與不同 backend PID，最後只刪自己的 schema。
+- 已驗證：7 項 PostgreSQL 16.15 測試通過（兩 worker claim、批准重複/競爭、批准後單次執行、重複 recovery、client reconnect、取消及 stale-result fencing）；原 Node 17/17、Python 6/6、typecheck 通過；lint 只有既有 approvals-client warning。Teardown 後測試 schema 數量為零。
+- 限制：這是雙 Prisma client 與合成 adapter；不是多 process crash、負載、正式 migration、Google SSO、模型推理或 OS sandbox 驗收。Browser E2E/build 本次未重跑。沒有 Portal、學生資料、發送、cron、部署；既有依賴問題仍待升級。
+- 下一步：先按 repo push/PR 具體批准規則發布這個可 review 的測試/文件 commit；再設定專用本地模型，確認 private Portal capability/身份/operationId/idempotency/權威批准契約後接班務合成流程。不要重建 Portal 計分或 outbox。

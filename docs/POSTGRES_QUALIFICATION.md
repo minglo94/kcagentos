@@ -28,7 +28,7 @@ The runner requires an explicit test URL, rejects non-loopback hosts and other d
 
 ## Verified behavior
 
-Seven checks passed against PostgreSQL 16.15 on Linux:
+Nine checks passed against PostgreSQL 16.15 on Linux:
 
 1. Simultaneous planning claims call one planner and record one claim while its result is blocked.
 2. Duplicate simultaneous approvals create one decision and one decision event.
@@ -37,11 +37,13 @@ Seven checks passed against PostgreSQL 16.15 on Linux:
 5. Simultaneous lease recovery records one recovery; a late planner cannot overwrite the replacement plan.
 6. After a database client reconnects, expired execution pauses without replay; stale evidence is rejected and explicit resume accepts fresh evidence.
 7. Cancellation from the other client prevents the in-flight result from completing the step.
+8. A separate process running the real `runNext` core is killed during planning; its lease persists, recovery is recorded once, and a replacement installs one plan.
+9. A separate process is killed during execution; recovery pauses the job, prevents automatic replay, and staff resume accepts one fresh result.
 
 The existing 17 Node tests, six Python bridge tests and typecheck also passed. Lint reported the existing approvals-client hook dependency warning and no errors. The test schema count was zero after teardown. No runtime source changes were needed.
 
 ## Limits and next gates
 
-This is synthetic, bounded two-client qualification, not a sustained load test, multi-process Worker crash test, OS sandbox test, or production deployment. The database-client reconnect test does not kill a Worker process. Planners and read-only services are fixtures; no model turns, student records, Portal calls, email or cron run. Existing production schema compatibility and school Google SSO remain unverified. Browser E2E and production build were not rerun for this test-only continuation; their earlier foundation results remain historical evidence.
+This is synthetic, bounded concurrency and process-crash qualification, not a sustained load test, OS sandbox test, or production deployment. Crash fixtures run the real `runNext` core and heartbeat in separate Node processes, use `SIGKILL`, then advance the persisted lease expiry to avoid a thirty-second wait. They do not run the full `scripts/office-worker.ts` loop, kill model subprocesses or test a machine reboot. The earlier database-client reconnect test remains separate. Planners and read-only services are fixtures; no model turns, student records, Portal calls, email or cron run. Existing production schema compatibility and school AD/local-account login remain unverified. Browser E2E and production build were not rerun for this test-only continuation; their earlier foundation results remain historical evidence.
 
-Next: configure the dedicated local model profile and validate real planning; confirm the private Portal capability/identity/operation/approval contract, then implement the synthetic class-summary workflow from `AGENTOS_PLAN.md` section 11. Keep production dependency upgrades and real SSO/database migration qualification as separate gates. Full Pixel Agents and business schedules follow verified execution.
+Next: implement the reviewed school AD/local-account design; configure the dedicated local model profile and validate real planning; confirm the private Portal capability/identity/operation/approval contract, then implement the synthetic class-summary workflow from `AGENTOS_PLAN.md` section 11. Keep production dependency upgrades and real authentication/database migration qualification as separate gates. Full Pixel Agents and business schedules follow verified execution.

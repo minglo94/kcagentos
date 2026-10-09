@@ -1,5 +1,7 @@
 # AgentOS 進度交接
 
+> 最新接續：PostgreSQL 合成驗證已擴展至 9/9，新增真實 subprocess SIGKILL 的 planning/execution recovery 測試。用戶已確認學校為本機 Windows AD，並要求同時支援 AD 及獨立 AgentOS 帳號；用戶已批准書面設計 `docs/SCHOOL_AUTH_DESIGN.md`；implementation plan 見 `docs/superpowers/plans/2026-10-09-school-auth.md`，等待 review/執行方式，尚未實作。下方 Google SSO 假設及七項驗證數字為歷史紀錄。
+
 > Phase 2 接續（2026-10-09）：本機分支 `codex/agentos-phase2` 基於 foundation `de8725c`，新增正式 PostgreSQL 16.15 的合成雙連線驗證（7/7），並確認 Node 17/17、Python 6/6、typecheck 及 lint（原有一項警告）。用戶已批准 commit/push，已發布 `9a7e221` 及 [草稿 PR #14](https://github.com/minglo94/kcagentos/pull/14)（base：`codex/agentos-foundation`）；尚未合併或部署。詳細命令及限制見 `docs/POSTGRES_QUALIFICATION.md`；本節優先於下方歷史「PostgreSQL 未驗證」描述。
 
 > 最新實施交接（2026-10-09）：首版已在 `codex/agentos-foundation`，見 [草稿 PR #13](https://github.com/minglo94/kcagentos/pull/13)，commit `d05bc1f9ceab1301e0cd6586700178414ba90acd`。尚未合併或部署。
@@ -65,3 +67,12 @@
 - 已驗證：7 項 PostgreSQL 16.15 測試通過（兩 worker claim、批准重複/競爭、批准後單次執行、重複 recovery、client reconnect、取消及 stale-result fencing）；原 Node 17/17、Python 6/6、typecheck 通過；lint 只有既有 approvals-client warning。Teardown 後測試 schema 數量為零。
 - 限制：這是雙 Prisma client 與合成 adapter；不是多 process crash、負載、正式 migration、Google SSO、模型推理或 OS sandbox 驗收。Browser E2E/build 本次未重跑。沒有 Portal、學生資料、發送、cron、部署；既有依賴問題仍待升級。
 - 下一步：本次用戶已批准並完成 commit/push 與草稿 PR；接著設定專用本地模型，確認 private Portal capability/身份/operationId/idempotency/權威批准契約後接班務合成流程。不要重建 Portal 計分或 outbox。
+
+## Worker-core process crashes and school login — 2026-10-09
+
+- 用戶要求繼續未完成工作，確認登入須支援本機 Windows AD 與獨立 AgentOS 帳號。
+- 已完成：增加 `tests/fixtures/office-worker-process.ts`；planner/executor 進入真實 `runNext` 後 SIGKILL，核實持久化租約、單次 recovery、執行暫停、不盲重跑及人工 resume。正式 PostgreSQL 合成測試 9/9，typecheck 通過，lint 只有既有警告。
+- 技術限制：子程序用合成 blocked service；不是完整 office-worker CLI、模型子程序、主機 reboot 或負載驗收。持久化 lease expiry 由測試調前，不等候自然 30 秒。Application source 未修改。
+- 登入：現有只有 Google provider；寫成具體 AD/local credentials/identity linking/throttle/revocation/provisioning 設計並已获用戶批准；實施計劃已寫成，等待 review/執行方式。不得把已確認「兩種登入」當成已完成 AD 接駁；沒有學校 AD 位址、帳密或內網連線。
+- 依賴：此次 npm audit 仍為 24（7 moderate / 15 high / 2 critical），沒有做強制升級；raw JSON 留 `/workspace/scratch`。現有 Next 14/NextAuth 4 需分別評估升級，不能宣稱 production ready。
+- 下一步：完成 `docs/superpowers/plans/2026-10-09-school-auth.md` review，按選定方式實作已批准的登入設計；模型、Portal scoped operation/identity/批准契約及班務流程仍待接續。沒有新增學校資料、發送、部署或 cron。

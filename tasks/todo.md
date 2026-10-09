@@ -245,3 +245,17 @@ Review：此次只修訂文檔；檢查跨服務分工、驗收及 Git diff，�
 - [ ] Configure dedicated local inference; confirm private Portal API/identity/approval contract before school workflow implementation.
 
 Review: application behavior unchanged; no live model, Portal, school data, email, cron or deployment. See `docs/POSTGRES_QUALIFICATION.md` for reproducible commands and evidence limits. This milestone does not complete the full AgentOS plan.
+
+## Continued verification and school authentication — 2026-10-09
+
+- [x] User confirmed both AD and separate AgentOS accounts; AD is a local Windows domain.
+- [x] Extend real PostgreSQL qualification to kill separate worker-core processes during planning/execution; 9/9 checks passed.
+- [x] Prepare written authentication design in `docs/SCHOOL_AUTH_DESIGN.md`; user approved the written design. Login implementation has not started.
+- [x] User approved written authentication design; self-reviewed implementation plan saved at `docs/superpowers/plans/2026-10-09-school-auth.md`.
+- [ ] User review of the written implementation plan and execution method before product changes.
+- [ ] Implement/test AD over verified LDAPS, local credentials, administrator provisioning, shared attempt budgets and session revocation.
+- [ ] Validate school-controlled AD connection and staff test accounts after authorization and private configuration.
+- [x] Recheck dependency audit: still 24 advisories (7 moderate, 15 high, 2 critical); raw audit output is local scratch, not committed.
+- [ ] Test dependency upgrades separately; do not use automatic forced upgrades as production evidence.
+
+Review: the new process tests execute the real worker core with synthetic blocked services and accelerated persisted lease expiry. Full worker-loop/model process crashes, load, machine reboot, school authentication, Portal and deployment remain unverified. Typecheck passed after adding the test subprocess's required `NODE_ENV`; lint retains the existing warning.

@@ -1,7 +1,8 @@
 import { after, before, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { spawnSync } from "node:child_process";
+import { fork, spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
 import { approvePlan, controlJob, createJob, owned } from "../src/lib/office/store";
 import { type OfficePlan } from "../src/lib/office/plan";
@@ -48,6 +49,35 @@ async function approvedJob() {
   const job = await readyJob();
   await approvePlan(db, job.id, user, job.planVersion, job.planHash!, "approve");
   return job;
+}
+
+async function blockedProcess(phase: "planning" | "executing") {
+  const child = fork(fileURLToPath(new URL("./fixtures/office-worker-process.ts", import.meta.url)), [], {
+    execArgv: ["--import", "tsx"], silent: true,
+    env: { NODE_ENV: "test", PATH: process.env.PATH, AGENTOS_TEST_DATABASE_URL: url.toString() },
+  });
+  // Fixture errors are intentionally sanitized; no connection strings are logged.
+  child.stdout?.resume(); child.stderr?.resume();
+  const exited = new Promise<NodeJS.Signals | null>(resolve => child.once("exit", (_, signal) => resolve(signal)));
+  let backendPid: number | undefined;
+  const entered = new Promise<void>((resolve, reject) => {
+    child.on("error", () => reject(new Error("Qualification subprocess could not start")));
+    child.once("exit", () => reject(new Error("Qualification subprocess exited before entering its service")));
+    child.on("message", message => {
+      const value = message as { backendPid?: number; phase?: string; error?: string };
+      if (value.backendPid) backendPid = value.backendPid;
+      if (value.phase === phase) resolve();
+      if (value.error) reject(new Error(value.error));
+    });
+  });
+  const stop = async () => {
+    if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL");
+    return bounded(exited);
+  };
+  try { await bounded(entered); }
+  catch (error) { await stop(); throw error; }
+  assert.ok(backendPid);
+  return { backendPid, stop };
 }
 
 before(async () => {
@@ -188,4 +218,56 @@ test("a second client cancelling execution fences the in-flight result", async (
   assert.equal((await owned(db, job.id, user)).status, "CANCELLED");
   assert.equal((await db.officeStep.findFirstOrThrow({ where: { jobId: job.id } })).result, null);
   assert.equal(await db.officeEvent.count({ where: { jobId: job.id, type: "step.completed" } }), 0);
+});
+
+test("killed planner process leaves a durable lease and a replacement can plan once", async () => {
+  const job = await createJob(db, user, "Synthetic planner crash", "development");
+  const worker = await blockedProcess("planning");
+  try {
+    const [{ pid }] = await db.$queryRaw<Array<{ pid: number }>>`SELECT pg_backend_pid() AS pid`;
+    assert.notEqual(worker.backendPid, pid);
+    const claimed = await owned(db, job.id, user);
+    assert.equal(claimed.status, "PLANNING");
+    assert.ok(claimed.leaseToken);
+    assert.equal(await worker.stop(), "SIGKILL");
+    assert.equal((await owned(db, job.id, user)).leaseToken, claimed.leaseToken);
+    // Advance the persisted expiry; do not wait 30s or alter the worker clock.
+    await db.officeJob.update({ where: { id: job.id }, data: { leaseUntil: new Date(0) } });
+    assert.equal(await recoverExpired(peer), 1);
+    assert.equal(await recoverExpired(db), 0);
+    await runNext(peer, { plan: async () => ({ ...plan, summary: "Post-crash replacement" }) });
+    const current = await owned(db, job.id, user);
+    assert.equal(current.status, "PENDING_PLAN_APPROVAL");
+    assert.equal(current.planVersion, 1);
+    assert.equal(await db.officeEvent.count({ where: { jobId: job.id, type: "plan.ready" } }), 1);
+  } finally { await worker.stop(); }
+});
+
+test("killed execution process pauses on recovery until staff explicitly resume", async () => {
+  const job = await approvedJob();
+  const worker = await blockedProcess("executing");
+  try {
+    assert.equal((await owned(db, job.id, user)).status, "RUNNING");
+    assert.equal((await db.officeStep.findFirstOrThrow({ where: { jobId: job.id } })).attempts, 1);
+    assert.equal(await worker.stop(), "SIGKILL");
+    await db.officeJob.update({ where: { id: job.id }, data: { leaseUntil: new Date(0) } });
+    assert.equal(await recoverExpired(peer), 1);
+    const paused = await owned(db, job.id, user);
+    assert.equal(paused.status, "PAUSED");
+    assert.equal(paused.errorCode, "WORKER_INTERRUPTED");
+    let executions = 0;
+    const services = { plan: async () => plan, readOnly: async () => { executions++; return "Post-crash evidence"; } };
+    assert.equal(await runNext(peer, services), false);
+    assert.equal(executions, 0);
+    assert.equal((await db.officeStep.findFirstOrThrow({ where: { jobId: job.id } })).result, null);
+    await controlJob(db, job.id, user, "resume");
+    await runNext(peer, services);
+    assert.equal(executions, 1);
+    const step = await db.officeStep.findFirstOrThrow({ where: { jobId: job.id } });
+    assert.equal(step.attempts, 2);
+    assert.equal(step.result, "Post-crash evidence");
+    await runNext(peer, services);
+    assert.equal((await owned(db, job.id, user)).status, "SUCCEEDED");
+    assert.equal(await db.officeEvent.count({ where: { jobId: job.id, type: "step.completed" } }), 1);
+  } finally { await worker.stop(); }
 });

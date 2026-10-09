@@ -12,6 +12,7 @@
 - 沿用 kcagentos 的 Next.js 14、TypeScript、PostgreSQL/Prisma、登入與學校工具。
 - 配合另一個私隱優先 Teacher Portal；Portal 管理學生資料及權限，AgentOS 管理工作及審批。
 - Hermes Agent 是執行框架，不等於 Hermes 本地模型；模型供應器另行設定。
+- 學校登入修訂（2026-10-09）：用戶確認使用本機 Windows AD，並要求同時支援獨立 AgentOS 帳號/密碼。現有 Google-only 登入不足；新設計見 docs/SCHOOL_AUTH_DESIGN.md，實施仍待書面設計/計劃驗收。AD 密碼不保存，身份不按名稱/電郵自動合併；Portal 仍獨立核權。
 - Spark 為後續持續開機部署目標；首版本機接駁與驗證先行。硬件、連線及部署資訊仍待確認。
 
 ## 2. 使用者介面

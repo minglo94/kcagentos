@@ -26,3 +26,9 @@ AgentOS及Keichi Local同時規劃時，先確定功能權威與共享契約。�
 - PGlite multiplexes one backend; simultaneous Prisma clients can collide in prepared statements. It is a fixture, not proof of real PostgreSQL concurrency.
 - Next dev can normalize request origins; compare state-changing requests to the configured NEXTAUTH_URL and test both legitimate and hostile origins.
 - Windows Prisma DLL generation must run after the app is stopped; do not build while browser tests hold that DLL.
+
+## 2026-10-09 — School authentication correction
+
+- User clarified that school login uses local Windows AD and explicitly requested both AD and separate AgentOS accounts. Do not carry the old Google-only school-login assumption into acceptance tests.
+- Keep AD identities and local credentials explicitly provisioned; a similar username/email is not evidence of account ownership. Never store AD passwords or silently fall back to local login after AD failure.
+- Process-crash qualification must kill a separate process. A database-client reconnect alone is not a worker-process restart test; record accelerated lease expiry and synthetic service limits explicitly.

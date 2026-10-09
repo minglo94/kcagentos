@@ -45,11 +45,37 @@ model User {
   subjects    String[]
   isActive    Boolean    @default(true)
   lastLoginAt DateTime?
+  authRevision Int       @default(0)
   createdAt   DateTime   @default(now())
   tasks       Task[]
   documents   Document[]
   todos       Todo[]
   officeJobs  OfficeJob[]
+  localCredential LocalCredential?
+  directoryIdentities DirectoryIdentity[]
+}
+
+model LocalCredential {
+  userId       String @id
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username     String @unique
+  passwordHash String
+}
+
+model DirectoryIdentity {
+  id          String @id @default(cuid())
+  directoryId String
+  objectGuid  String
+  userId      String
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([directoryId, objectGuid])
+  @@index([userId])
+}
+
+model LoginAttempt {
+  key String @id
+  windowStartedAt DateTime
+  attempts Int
 }
 
 model Todo {

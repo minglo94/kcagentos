@@ -76,3 +76,8 @@
 - 登入：現有只有 Google provider；寫成具體 AD/local credentials/identity linking/throttle/revocation/provisioning 設計並已获用戶批准；實施計劃已寫成，等待 review/執行方式。不得把已確認「兩種登入」當成已完成 AD 接駁；沒有學校 AD 位址、帳密或內網連線。
 - 依賴：此次 npm audit 仍為 24（7 moderate / 15 high / 2 critical），沒有做強制升級；raw JSON 留 `/workspace/scratch`。現有 Next 14/NextAuth 4 需分別評估升級，不能宣稱 production ready。
 - 下一步：完成 `docs/superpowers/plans/2026-10-09-school-auth.md` review，按選定方式實作已批准的登入設計；模型、Portal scoped operation/identity/批准契約及班務流程仍待接續。沒有新增學校資料、發送、部署或 cron。
+
+## School authentication implementation started
+- User reiterated continuation of all unfinished milestones after the concrete plan; proceeding directly, without another authorization request.
+- Tested milestone: additive auth migration, scrypt password primitives, local credentials/provisioning/session-revision store and explicit directory identity records. Password/store tests passed (2+4); PostgreSQL qualification now 10/10 including a shared five-attempt budget across independent backends.
+- Existing User IDs and Office ownership remain unchanged. Real AD, credentials browser integration and final release validation are not yet accepted; do not claim full login completion from these store tests.

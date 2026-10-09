@@ -259,3 +259,11 @@ Review: application behavior unchanged; no live model, Portal, school data, emai
 - [ ] Test dependency upgrades separately; do not use automatic forced upgrades as production evidence.
 
 Review: the new process tests execute the real worker core with synthetic blocked services and accelerated persisted lease expiry. Full worker-loop/model process crashes, load, machine reboot, school authentication, Portal and deployment remain unverified. Typecheck passed after adding the test subprocess's required `NODE_ENV`; lint retains the existing warning.
+
+## School authentication implementation — in progress
+- [x] User continued after the written-plan handoff; proceed directly with the reviewed design.
+- [x] Additive credential/AD-identity/attempt-budget schema and bounded scrypt primitives (password tests 2/2).
+- [x] Local authentication, active-admin provisioning, bootstrap guard, reset revision and explicit identity store checks (4/4).
+- [x] Real PostgreSQL shared login budget: ten concurrent reservations allow exactly five; total PostgreSQL qualification 10/10.
+- [ ] Complete AD/provider/admin/browser integration and final review; real local-login browser flow is still being verified.
+- [ ] Real school AD and live model/Portal/Spark acceptance require their configured services.

@@ -7,6 +7,7 @@ import { PrismaClient } from "@prisma/client";
 import { approvePlan, controlJob, createJob, owned } from "../src/lib/office/store";
 import { type OfficePlan } from "../src/lib/office/plan";
 import { recoverExpired, runNext } from "../src/lib/office/worker";
+import { reserveAttempt } from "../src/lib/school-auth/store";
 
 // Deliberately separate from npm test: requires a disposable, local PostgreSQL.
 const supplied = process.env.AGENTOS_TEST_DATABASE_URL;
@@ -88,7 +89,7 @@ before(async () => {
   // Do not echo command output: a connection error may contain credentials.
   assert.equal(migration.status, 0, "Isolated schema migration failed; check local PostgreSQL readiness");
   const migrations = await db.$queryRaw<Array<{ migration_name: string }>>`SELECT migration_name FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL ORDER BY migration_name`;
-  assert.deepEqual(migrations.map(row => row.migration_name), ["20261009000000_baseline", "20261009000100_office"]);
+  assert.deepEqual(migrations.map(row => row.migration_name), ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth"]);
   const versions = await db.$queryRaw<Array<{ version: string }>>`SELECT version()`;
   assert.match(versions[0].version, /^PostgreSQL /);
   const pids = await Promise.all([db, peer].map(connection => connection.$queryRaw<Array<{ pid: number }>>`SELECT pg_backend_pid() AS pid`));
@@ -270,4 +271,11 @@ test("killed execution process pauses on recovery until staff explicitly resume"
     assert.equal((await owned(db, job.id, user)).status, "SUCCEEDED");
     assert.equal(await db.officeEvent.count({ where: { jobId: job.id, type: "step.completed" } }), 1);
   } finally { await worker.stop(); }
+});
+
+test("independent backends atomically share the five-attempt login budget", async () => {
+  const reservations = await Promise.all(Array.from({ length: 10 }, (_, i) => reserveAttempt(i % 2 ? db : peer, "local", "race.budget")));
+  assert.equal(reservations.filter(Boolean).length, 5);
+  assert.equal(await reserveAttempt(peer, "local", "race.budget"), false);
+  assert.equal(await reserveAttempt(peer, "school-ad", "race.budget"), true);
 });

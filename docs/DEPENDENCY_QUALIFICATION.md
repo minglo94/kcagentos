@@ -12,7 +12,7 @@ Compatible dependency updates are recorded in the lockfile. Two narrow overrides
 - Real local NextAuth browser exchange: passes both login-choice discovery, administrator UI provisioning, teacher scope, hostile/missing Origin rejection, submitted GUID rejection, password reset revocation and disabled staff/admin rejection. AD configuration is synthetic; no successful real AD bind is claimed.
 - Office browser: authenticated APIs, cross-account denial, plan approval, manual evidence, SSE and reload pass.
 - Production build and typecheck pass. Lint retains the existing approvals hook warning; `next lint` is deprecated upstream.
-- PostgreSQL qualification: 12/12, including auth conflicts and six workers/32 synthetic approved jobs. This is not a production soak.
+- PostgreSQL qualification: 13/13, including auth conflicts and six workers/32 synthetic approved jobs. This is not a production soak.
 
 ## Remaining audit results
 
@@ -24,3 +24,5 @@ Compatible dependency updates are recorded in the lockfile. Two narrow overrides
 | Mammoth → argparse → sprintf-js | Mammoth CLI argument formatting; AgentOS imports its document library, not the CLI. No compatible patched sprintf-js release was established. Do not use obsolete Mammoth downgrades or incompatible argparse major overrides to make the audit count disappear. |
 
 An audit count is dependency evidence, not proof that every advisory is exploitable in this app or that production is safe. TLS, actual school AD, deployment/migration review, runtime isolation and live-service qualification remain required. Raw audit JSON stays in local scratch; rerun the audit before release because advisories change.
+
+Production-only `npm audit --omit=dev` reports 3 moderate affected packages/chains and no high/critical advisories, all in the Mammoth CLI argparse/sprintf-js chain. The full dependency audit remains 8.

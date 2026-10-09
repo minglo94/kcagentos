@@ -277,3 +277,10 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Node 34/34; genuine browser auth now also covers both provider choices, UI provisioning, missing Origin, forged GUID and disabled admin; Office browser passed.
 - [x] Audit reduced 24 → 8 (0 critical, 5 high, 3 moderate). Remaining chains: build-time ESLint/fast-glob/micromatch/braces and Mammoth CLI argparse/sprintf-js. No compatible fixed release established; no unsafe historical downgrades.
 - [ ] Production hardening/real AD and service qualification remain gates.
+
+## Migration/deployment continuation — 2026-10-09
+- [x] Real PostgreSQL pre-auth migration rehearsal preserves users, owned jobs, plan hashes/versions and approvals; repeated deploy is a no-op. Suite 13/13.
+- [x] Prepare non-root production Docker image definition, loopback Compose with explicit migration profile, optional verified school CA mount and host-worker unit; Compose quiet validation and systemd syntax verification passed.
+- [x] Production Linux/AMD64 image built; disposable-container browser qualification passed (non-root/read-only web, real local login, scope, persistence, revocation, runtime loader without dev tooling). No actual Spark deployment or service activation.
+- [x] Record concrete remaining dependencies and verified Pixel upstream limitations in docs/PHASE2_STATUS.md. Portal implementation still requires its authoritative contract; no invented API, duplicate outbox or business cron.
+- [x] Production-only audit: 3 moderate, zero high/critical; full tree remains 8.

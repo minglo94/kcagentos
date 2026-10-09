@@ -5,7 +5,7 @@ import { fork, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
 import { approvePlan, controlJob, createJob, owned } from "../src/lib/office/store";
-import { type OfficePlan } from "../src/lib/office/plan";
+import { hashPlan, type OfficePlan } from "../src/lib/office/plan";
 import { recoverExpired, runNext } from "../src/lib/office/worker";
 import { reserveAttempt, bootstrapLocalAdmin, createLocalUser, linkDirectoryUser } from "../src/lib/school-auth/store";
 
@@ -330,4 +330,39 @@ test("six independent workers drain 32 approved jobs without duplicate execution
     assert.equal(await db.officeEvent.count({ where: { type: "job.completed" } }), 32);
     assert.equal(await recoverExpired(db), 0);
   } finally { await Promise.all(workers.map(connection => connection.$disconnect())); }
+});
+
+test("pre-auth installation upgrades without changing owned jobs or approvals", async () => {
+  const legacySchema = `${schema}_upgrade`, legacyUrl = new URL(url);
+  legacyUrl.searchParams.set("schema", legacySchema);
+  const legacy = new PrismaClient({ datasources: { db: { url: legacyUrl.toString() } } });
+  const cli = (args: string[]) => {
+    const result = spawnSync(process.execPath, ["node_modules/prisma/build/index.js", ...args], { env: { ...process.env, DATABASE_URL: legacyUrl.toString() }, encoding: "utf8", timeout: 30000 });
+    assert.equal(result.status, 0, "Isolated legacy migration command failed; output deliberately sanitized");
+  };
+  await db.$executeRawUnsafe(`CREATE SCHEMA "${legacySchema}"`);
+  try {
+    for (const migration of ["20261009000000_baseline", "20261009000100_office"]) {
+      cli(["db", "execute", "--file", `prisma/migrations/${migration}/migration.sql`, "--url", legacyUrl.toString()]);
+      cli(["migrate", "resolve", "--applied", migration]);
+    }
+    const oldUser = "synthetic-legacy-user", oldJob = "synthetic-legacy-job", oldApproval = "synthetic-legacy-approval", planHash = hashPlan(plan);
+    await legacy.$executeRaw`INSERT INTO "User" ("id", "email", "name", "subjects") VALUES (${oldUser}, 'legacy@example.test', 'Synthetic legacy', ARRAY[]::TEXT[])`;
+    await legacy.$executeRaw`INSERT INTO "OfficeJob" ("id", "userId", "goal", "team", "status", "plan", "planHash", "planVersion", "approvedVersion", "updatedAt") VALUES (${oldJob}, ${oldUser}, 'Synthetic retained goal', 'development', 'QUEUED', ${JSON.stringify(plan)}::JSONB, ${planHash}, 1, 1, CURRENT_TIMESTAMP)`;
+    await legacy.$executeRaw`INSERT INTO "OfficeApproval" ("id", "jobId", "planVersion", "planHash", "actorId", "decision") VALUES (${oldApproval}, ${oldJob}, 1, ${planHash}, ${oldUser}, 'approve')`;
+    await legacy.$disconnect();
+    cli(["migrate", "deploy"]);
+    const preserved = await legacy.user.findUniqueOrThrow({ where: { id: oldUser } });
+    assert.equal(preserved.googleEnabled, true); assert.equal(preserved.authRevision, 0);
+    assert.equal(await legacy.localCredential.count(), 0); assert.equal(await legacy.directoryIdentity.count(), 0);
+    const job = await owned(legacy, oldJob, oldUser);
+    assert.equal(job.userId, oldUser); assert.equal(job.goal, "Synthetic retained goal");
+    assert.equal(job.status, "QUEUED"); assert.equal(job.planHash, planHash); assert.equal(job.approvedVersion, 1);
+    assert.equal((await legacy.officeApproval.findUniqueOrThrow({ where: { id: oldApproval } })).planHash, planHash);
+    await legacy.$disconnect();
+    cli(["migrate", "deploy"]); // Retry is a no-op, not a reset.
+    assert.equal(await legacy.user.count(), 1); assert.equal(await legacy.officeJob.count(), 1);
+    const records = await legacy.$queryRaw<Array<{ count: bigint }>>`SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`;
+    assert.equal(Number(records[0].count), 4);
+  } finally { await legacy.$disconnect(); await db.$executeRawUnsafe(`DROP SCHEMA "${legacySchema}" CASCADE`); }
 });

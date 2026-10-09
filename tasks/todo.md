@@ -284,3 +284,4 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Production Linux/AMD64 image built; disposable-container browser qualification passed (non-root/read-only web, real local login, scope, persistence, revocation, runtime loader without dev tooling). No actual Spark deployment or service activation.
 - [x] Record concrete remaining dependencies and verified Pixel upstream limitations in docs/PHASE2_STATUS.md. Portal implementation still requires its authoritative contract; no invented API, duplicate outbox or business cron.
 - [x] Production-only audit: 3 moderate, zero high/critical; full tree remains 8.
+- [x] Published 0626b94, 1822436, ceeb9cf, cb70031 and synchronized draft PR #14; remaining live/Portal/Pixel/schedule/Spark gates stay unchecked.

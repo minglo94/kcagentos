@@ -217,3 +217,14 @@ User authorized implementation in this session. Work branch: codex/agentos-found
 
 ### Foundation review
 17 Node/Prisma tests + 6 Python bridge tests pass; browser E2E passes with real Next APIs and synthetic sessions/plans. No live model, student data, email or deployment. This is an implementation foundation, not full product completion; see latest handover and docs/OFFICE_FOUNDATION.md.
+
+## 學校流程優先修訂 — 2026-10-09
+- [x] 用戶批准六項計劃修訂並要求同步 Portal 聊天。
+- [x] 記錄流程優先順序、版本契約、知識庫、證據、正式行動狀態及成效指標。
+- [ ] 實作 workflow 版本契約及 Portal 強制核對/權限；不要只靠文字 prompt。
+- [ ] 合成資料驗收班務完整流程及停止/批准失效/防重複/未知發送結果。
+- [ ] 授權真實小批驗證後再啟用唯一業務 cron。
+- [ ] 班務驗收後依次活動文件包、會議決議跟進；再擴展 IEP/問卷/關顧。
+- [ ] 建立人工基準，量度老師耗時、修改量、漏項及同事獨立使用。
+
+Review：此次只修訂文檔；檢查跨服務分工、驗收及 Git diff，不代表新增程式測試或功能完成。

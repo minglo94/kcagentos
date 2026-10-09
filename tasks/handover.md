@@ -42,3 +42,10 @@
 3. 在獨立PostgreSQL驗證migration、兩個Worker claims、批准競爭、重啟及fencing；已有DB先備份核實baseline，禁止reset。
 4. 再接Portal scoped operationId/idempotency/權威批准，之後接Pixel Agents及唯一業務cron。模型未設定前維持明示不可用，勿生成假結果。
 5. 每個驗收里程碑及結束更新todo/交接並同步GitHub；保持學生/個案/憑證與測試artifact不進Git。
+
+## 學校流程修訂交接 — 2026-10-09
+用戶批准更新 GitHub plan 並同步 Teacher Portal 聊天。完整新增規格見 docs/AGENTOS_PLAN.md 第11節。
+優先班務完整流程，再活動文件包、會議決議跟進；新增版本化流程契約、受控知識庫、結構化證據、草稿/內容批准/發送批准/正式結果與老師使用成效規格。
+下一步：完成既有技術前置驗證後，以合成資料驗收班務流程（Portal 工具/權限/權威批准/outbox），再授權真實小批，最後 cron；不以 manual 證據文字或動畫宣稱完成。
+已向 Build private AI teacher portal（01a120d8-4d93-7f70-aa40-fa96902e9bd2）發送用戶授權同步指示，由該聊天更新其本地計劃與交接。Portal private repo 未建立時不得宣稱 GitHub 已同步。
+本次只有計劃文件修訂，沒有新功能、學生資料、發送、部署或排程。首版技術骨架仍見 PR #13；既有測試證據不等於新增流程已驗收。

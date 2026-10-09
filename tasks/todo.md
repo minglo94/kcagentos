@@ -207,6 +207,22 @@ _Phase 3 任務清單建立於 2026-06-11，等待確認後開始實施_
 
 Review：本次為文件修訂；未執行產品測試、未啟用排程或部署。
 
+## Foundation implementation — 2026-10-09
+User authorized implementation in this session. Work branch: codex/agentos-foundation.
+- [x] Verify installed protocol handshakes and isolated no-tools planning/read-only adapters (live inference pending).
+- [x] Add durable parent job schema, version-bound plan approval and authenticated APIs.
+- [x] Add background worker lease/recovery and restricted executor interface; unsupported operations fail closed.
+- [x] Verify transport, version/idempotency, cancellation/recovery and ownership tests on isolated fixtures.
+- [x] Implement user-selected layout A and pass synthetic browser E2E.
+- [x] Prepare setup, progress and next-session handover documentation.
+- [ ] Configure and validate real local inference (user confirmed no model yet).
+- [ ] Qualify real PostgreSQL multi-worker serialization and school Google SSO.
+- [ ] Portal operation/approval contract integration, full Pixel Agents bridge and business cron.
+- [ ] Dependency security upgrade and production/Spark qualification.
+
+### Foundation review
+17 Node/Prisma tests + 6 Python bridge tests pass; browser E2E passes with real Next APIs and synthetic sessions/plans. No live model, student data, email or deployment. This is an implementation foundation, not full product completion; see latest handover and docs/OFFICE_FOUNDATION.md.
+
 ## 學校流程優先修訂 — 2026-10-09
 - [x] 用戶批准六項計劃修訂並要求同步 Portal 聊天。
 - [x] 記錄流程優先順序、版本契約、知識庫、證據、正式行動狀態及成效指標。

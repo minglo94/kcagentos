@@ -24,6 +24,6 @@
 
   /* 字體 */
   --serif: 'Noto Serif TC', serif;
-  --sans:  'DM Sans', 'Noto Sans TC', system-ui;
-  --mono:  'DM Mono', monospace;
+  --sans:  var(--font-dm-sans), var(--font-sans-tc), system-ui;
+  --mono:  var(--font-dm-mono), monospace;
 }

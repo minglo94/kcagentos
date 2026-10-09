@@ -13,3 +13,7 @@
 - **@types/archiver 冇 default export**：TypeScript strict 下 `import archiver from "archiver"` 報錯，改用 `import type` + `require()` 取值。
 - **tsx 測試腳本喺 /tmp 時 `@/` alias 唔生效**：要用絕對路徑 import，或日後加 vitest 配 tsconfig paths。
 - **Agent 工具迴圈設計**：`[NEED_TOOL:x]{json}` 喺串流完成後先解析，將結果以 user message 回饋再串流第二輪（上限 2 輪），避免阻塞首輪輸出。
+
+## 2026-10-09 — 避免跨項目重複實作
+
+AgentOS及Keichi Local同時規劃時，先確定功能權威與共享契約。總管/業務排程只在AgentOS；學生資料、校務子操作、計分、文件及發送在Portal。不同層級工作紀錄可並存，但不得重複派工或審批權威。

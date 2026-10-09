@@ -1,7 +1,7 @@
 # KC AgentOS 完整實施計劃
 
 更新：2026-10-09（香港時間）
-狀態：計劃已整理；功能實作尚未批准及開始。
+狀態：計劃已整理；2026-10-09 已確認跨服務責任劃分；功能實作尚未批准及開始。
 
 ## 1. 目標與已確認決定
 
@@ -55,14 +55,14 @@ Dashboard → Hermes adapter → 持久化 Job/審批 → 背景 Worker → 專�
 - 使用 TypeScript 持久化狀態機及 PostgreSQL 工作佇列；首版不引入 LangGraph/AutoGen/RAG 向量庫。
 - Job 狀態：DRAFT、PENDING_PLAN_APPROVAL、QUEUED、RUNNING、WAITING_APPROVAL、PAUSED、SUCCEEDED、FAILED、CANCELLED。
 - Step 保存依賴、專員、嘗試次數、心跳、輸入/結果引用；成功须有產出或驗證證據。
-- 新增 Job、JobStep、JobEvent、JobApproval、Artifact、Schedule、ScheduleRun；保留既有 Task/Document 審批兼容。
+- AgentOS 新增父層 Job、JobStep、JobEvent、計劃/開發 JobApproval、Schedule、ScheduleRun；學校執行、產出及業務審批沿用 Portal，AgentOS 保存引用。保留既有非 Portal Task/Document 審批兼容。
 - 接口：/api/jobs（建立/列表）、/api/jobs/:id（詳情）、messages、control、approvals、events；/api/schedules（CRUD/啟停）、run、runs。
 - SSE 事件含 jobId、stepId、agentId、時間、事件序號及狀態；斷線按序號續讀。頁面刷新先載入資料庫快照。
 - Hermes 使用獨立 AgentOS profile及受控工具：提計劃、派工、讀進度、提交證據及請求批准。禁任意 shell/網絡繞過審批。
 - 首個技術驗證：修復現有 Hermes CLI uv trampoline 路徑錯誤；核實 installed interface、工作階段、事件與中斷方式，再固定 adapter。
 - Codex 使用獨立 app-server 工作階段，不控制既有桌面聊天；把其事件及批准請求映射至工作層。
 - Pixel Agents 以獨立本機視圖及事件橋接呈現，保留 MIT 授權與資產標示；確認資產授權，不假設已支援 Codex/Hermes。
-- Portal 工具只接受授權工作及資料範圍；返回受控摘要/產出引用。開發 worktree 與學生資料存儲隔離。
+- Portal 工具只接受授權工作及資料範圍；返回 operationId、受控摘要及產出引用。Portal 是唯一學生資料與校務執行來源；AgentOS 不重建問卷計分、學生分析或發送引擎。開發 worktree 與學生資料存儲隔離。
 - 模型沿用已驗證設定，顯示供應器與連線狀態；不静默切換或假設 Ollama 已安裝。
 
 ## 5. 權限與審批
@@ -78,7 +78,7 @@ Dashboard → Hermes adapter → 持久化 Job/審批 → 背景 Worker → 專�
 
 ## 6. 非辦公時間排程
 
-- 每個排程保存 Asia/Hong_Kong、時間/cron、工作模板版本、資料範圍、校曆、啟用狀態、批准策略及漏跑策略。
+- AgentOS 是唯一校務業務排程中心；每個排程保存 Asia/Hong_Kong、時間/cron、工作模板版本、資料範圍引用、校曆、啟用狀態、批准策略及漏跑策略。Portal 不另建同一 cron，只保存執行佇列、租約與重試。
 - 新增/修改排程須確認設定卡。經批准的重複計劃可自動執行資料整理與草稿；對外操作每次等待批准。
 - 上課日晚上：Clerk → Andy → Carla，出席/欠交摘要；每週：Donna/Flora 週報；有新問卷才啟動 Quinn；每月 Iris 檢討提醒；Bob 備份及健康檢查。
 - 上述為模板例子，尚未啟用；實際時間、校曆、來源及收件人要在啟用前確定。
@@ -123,3 +123,16 @@ Dashboard → Hermes adapter → 持久化 Job/審批 → 背景 Worker → 專�
 GitHub文件提供接續提醒，不是主動推送提醒。尚未建立Codex定時automation或任何校務cron；只有用戶提供具體排程後才啟用。
 
 參考：https://github.com/minglo94/kcagentos 、https://github.com/pixel-agents-hq/pixel-agents 、https://hermes-agent.nousresearch.com/docs/user-guide/cli 、https://developers.openai.com/blog/codex-as-a-platform
+
+## 10. 已確認整合決定（2026-10-09）
+
+整合使用、分開repo/服務/資料庫。完整責任、任務關聯及審批協議見 docs/INTEGRATION_DECISION.md；本節及該決定優先於舊有可能重疊的描述。
+
+- AgentOS：Hermes總管、父任務、唯一業務排程、計劃批准、統一待批介面、開發團隊。
+- Keichi Local：學生資料/權限、子操作執行、eClass、確定性計算、IEP/問卷/個案、產出及電郵outbox。
+- 学校專員只調Portal工具；不複製資料與分析pipeline。Portal本地模型及私隱gate不被AgentOS模型設定覆蓋。
+- 一次批准操作由權威服務記錄；Portal業務批准在Portal強制執行，AgentOS只呈現及同步引用。計劃/內容/發送仍是不同決定。
+- parentJobId＋operationId＋idempotencyKey串聯；服務重啟或回放不重複收集/發送。
+- Portal在AgentOS離線時仍提供手動校務；恢復後排程按漏跑規則處理。
+- 同Spark部署是後續目標，首版仍本機验证；私密資料不存公開repo或OneDrive工作文件夾。
+- 首批只驗收夜間出席/欠交→Excel及班主任摘要→翌日批發送，再擴展IEP/問卷/關顧。

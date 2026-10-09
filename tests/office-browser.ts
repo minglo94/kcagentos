@@ -15,7 +15,7 @@ import type { OfficePlan } from "../src/lib/office/plan";
 
 async function main() {
   const pg = await PGlite.create();
-  for (const dir of ["20261009000000_baseline", "20261009000100_office"]) await pg.exec(await readFile(`prisma/migrations/${dir}/migration.sql`, "utf-8"));
+  for (const dir of ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review"]) await pg.exec(await readFile(`prisma/migrations/${dir}/migration.sql`, "utf-8"));
   const socket = new PGLiteSocketServer({ db: pg, port: 0, host: "127.0.0.1", maxConnections: 1 });
   await socket.start();
   // PGlite multiplexes one backend; disable per-connection prepared statements.
@@ -57,9 +57,13 @@ async function main() {
     const context = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
     const anonymous = await context.request.get(url + "/api/jobs");
     assert.equal(anonymous.status(), 401);
-    const token = await encode({ secret, token: { email: user.email, name: user.name, userId: user.id, role: "TEACHER" } });
+    const token = await encode({ secret, token: { email: user.email, name: user.name, userId: user.id, role: "TEACHER", authRevision: 0, signInExpiresAt: Date.now() + 8 * 3600000 } });
     await context.addCookies([{ name: "next-auth.session-token", value: token, url }]);
     const page = await context.newPage();
+    page.on("pageerror", error => { logs += `\nBrowser error: ${error.message}`; });
+    page.on("requestfailed", request => { logs += `\nFailed request: ${new URL(request.url()).pathname}`; });
+    page.on("console", message => { if (message.type() === "error") logs += `\nConsole error: ${message.text()}`; });
+    page.on("response", response => { if (response.status() >= 400) logs += `\nHTTP ${response.status()}: ${new URL(response.url()).pathname}`; });
     await page.goto(url + "/office");
     await expect(page.getByRole("heading", { name: "Hermes 指揮台", exact: true })).toBeVisible({ timeout: 60_000 });
     const jobButton = page.getByRole("button", { name: /規劃一份合成資料班主任摘要/ });
@@ -84,7 +88,7 @@ async function main() {
     await expect(manualButton).toContainText("已排隊");
     await manualButton.click();
     await expect(page.getByText("已核對合成日期及資料，沒有缺漏。", { exact: true })).toBeVisible();
-    const otherToken = await encode({ secret, token: { email: other.email, userId: other.id, role: "TEACHER" } });
+    const otherToken = await encode({ secret, token: { email: other.email, userId: other.id, role: "TEACHER", authRevision: 0, signInExpiresAt: Date.now() + 8 * 3600000 } });
     await context.addCookies([{ name: "next-auth.session-token", value: otherToken, url }]);
     assert.equal((await context.request.get(`${url}/api/jobs/${job.id}`)).status(), 404);
     await context.addCookies([{ name: "next-auth.session-token", value: token, url }]);

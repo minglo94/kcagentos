@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AccountProvisioning from "./account-provisioning";
 
 interface User {
   id:          string;
@@ -93,6 +94,7 @@ export default function AdminUsersClient() {
       </div>
 
       <div style={{ padding: "24px", maxWidth: 1100, margin: "0 auto" }}>
+        <AccountProvisioning users={users} onChange={fetchUsers} />
         {loading ? (
           <p style={{ color: "var(--ink3)", textAlign: "center", padding: 40 }}>載入中…</p>
         ) : (

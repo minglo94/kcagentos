@@ -24,7 +24,7 @@ AGENTOS_TEST_DATABASE_URL='postgresql://agentos_test:synthetic-test-only@127.0.0
 docker stop agentos-qualification
 ```
 
-The runner requires an explicit test URL, rejects non-loopback hosts and other database names, and overrides the schema with a generated `qualification_<uuid>` name. It deploys both checked-in migrations into that schema, checks their completed migration records, and removes only that schema on teardown. It never resets or baselines an existing application database. Abruptly killing the test process can leave a generated schema; remove only that test schema after checking its identity, or discard the disposable container.
+The runner requires an explicit test URL, rejects non-loopback hosts and other database names, and overrides the schema with a generated `qualification_<uuid>` name. It deploys all four checked-in migrations into that schema, checks their completed migration records, and removes only that schema on teardown. It never resets or baselines an existing application database. Abruptly killing the test process can leave a generated schema; remove only that test schema after checking its identity, or discard the disposable container.
 
 ## Verified behavior
 
@@ -47,3 +47,9 @@ The existing 17 Node tests, six Python bridge tests and typecheck also passed. L
 This is synthetic, bounded concurrency and process-crash qualification, not a sustained load test, OS sandbox test, or production deployment. Crash fixtures run the real `runNext` core and heartbeat in separate Node processes, use `SIGKILL`, then advance the persisted lease expiry to avoid a thirty-second wait. They do not run the full `scripts/office-worker.ts` loop, kill model subprocesses or test a machine reboot. The earlier database-client reconnect test remains separate. Planners and read-only services are fixtures; no model turns, student records, Portal calls, email or cron run. Existing production schema compatibility and school AD/local-account login remain unverified. Browser E2E and production build were not rerun for this test-only continuation; their earlier foundation results remain historical evidence.
 
 Next: implement the reviewed school AD/local-account design; configure the dedicated local model profile and validate real planning; confirm the private Portal capability/identity/operation/approval contract, then implement the synthetic class-summary workflow from `AGENTOS_PLAN.md` section 11. Keep production dependency upgrades and real authentication/database migration qualification as separate gates. Full Pixel Agents and business schedules follow verified execution.
+
+## Authentication races and bounded load — 2026-10-09
+
+Qualification now includes shared five-attempt login limits, concurrent first-administrator creation, credential username conflicts and unique AD GUID linking. Six independent PostgreSQL backends plan and execute 32 synthetic approved jobs; each planner/executor runs once, all jobs finish, and no leases remain. This exposed immediate retry exhaustion under contention. Queue claims now use read-committed `FOR UPDATE SKIP LOCKED`, while version/token state changes retain serializable transactions with bounded backoff (eight attempts). The first successful rerun passed 12/12.
+
+This is a small synthetic concurrency qualification, not production capacity, prolonged soak, a host reboot or a live model/Portal load test. Process SIGKILL checks still use the real worker core with synthetic blocked adapters and accelerated lease expiry.

@@ -1,7 +1,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { authDb } from "./helpers/auth-db";
-import { authenticateLocal, reserveAttempt, setLocalCredential, createLocalUser, bootstrapLocalAdmin, linkDirectoryUser, unlinkDirectoryUser } from "../src/lib/school-auth/store";
+import { authenticateLocal, reserveAttempt, setLocalCredential, createLocalUser, bootstrapLocalAdmin, linkDirectoryUser, unlinkDirectoryUser, updateAccount } from "../src/lib/school-auth/store";
 let fixture: Awaited<ReturnType<typeof authDb>>, admin: string, teacher: string;
 before(async () => {
   fixture = await authDb();
@@ -49,4 +49,22 @@ test("directory identity linking is explicit and cannot transfer jobs or existin
   const response = await createLocalUser(db, admin, { username: "safe.teacher", password: "synthetic-safe-pass", name: "Safe", email: "safe@example.test", role: "TEACHER" });
   assert.equal(JSON.stringify(response).includes("password"), false);
   assert.equal(JSON.stringify(await db.auditLog.findMany()).includes("synthetic-safe-pass"), false);
+});
+test("attempt reservations prune expired identifiers without deleting current budgets", async () => {
+  const now = new Date();
+  await fixture.db.loginAttempt.createMany({ data: [{ key: "old-unused-identifier", windowStartedAt: new Date(+now - 900001), attempts: 5 }, { key: "recent-identifier", windowStartedAt: now, attempts: 5 }] });
+  await reserveAttempt(fixture.db, "local", "prune.trigger", now);
+  assert.equal(await fixture.db.loginAttempt.count({ where: { key: "old-unused-identifier" } }), 0);
+  assert.equal(await fixture.db.loginAttempt.count({ where: { key: "recent-identifier" } }), 1);
+});
+test("account mutation rechecks active ADMIN after request parsing and audits atomically", async () => {
+  const db = fixture.db;
+  await db.user.update({ where: { id: admin }, data: { role: "TEACHER" } });
+  await assert.rejects(() => updateAccount(db, admin, teacher, { role: "ADMIN" }), /ADMIN_REQUIRED/);
+  assert.equal((await db.user.findUniqueOrThrow({ where: { id: teacher } })).role, "TEACHER");
+  await db.user.update({ where: { id: admin }, data: { role: "ADMIN" } });
+  const before = (await db.user.findUniqueOrThrow({ where: { id: teacher } })).authRevision;
+  await updateAccount(db, admin, teacher, { isActive: false });
+  assert.equal((await db.user.findUniqueOrThrow({ where: { id: teacher } })).authRevision, before + 1);
+  assert.equal(await db.auditLog.count({ where: { userId: admin, action: "ACCOUNT_UPDATED" } }), 1);
 });

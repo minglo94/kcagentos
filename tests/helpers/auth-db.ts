@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
 import { PrismaClient } from "@prisma/client";
-export const migrations = ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth"];
+export const migrations = ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review"];
 export async function authDb() {
   const pg = await PGlite.create();
   for (const migration of migrations) await pg.exec(await readFile(`prisma/migrations/${migration}/migration.sql`, "utf8"));

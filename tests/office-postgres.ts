@@ -7,7 +7,7 @@ import { PrismaClient } from "@prisma/client";
 import { approvePlan, controlJob, createJob, owned } from "../src/lib/office/store";
 import { type OfficePlan } from "../src/lib/office/plan";
 import { recoverExpired, runNext } from "../src/lib/office/worker";
-import { reserveAttempt } from "../src/lib/school-auth/store";
+import { reserveAttempt, bootstrapLocalAdmin, createLocalUser, linkDirectoryUser } from "../src/lib/school-auth/store";
 
 // Deliberately separate from npm test: requires a disposable, local PostgreSQL.
 const supplied = process.env.AGENTOS_TEST_DATABASE_URL;
@@ -89,7 +89,7 @@ before(async () => {
   // Do not echo command output: a connection error may contain credentials.
   assert.equal(migration.status, 0, "Isolated schema migration failed; check local PostgreSQL readiness");
   const migrations = await db.$queryRaw<Array<{ migration_name: string }>>`SELECT migration_name FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL ORDER BY migration_name`;
-  assert.deepEqual(migrations.map(row => row.migration_name), ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth"]);
+  assert.deepEqual(migrations.map(row => row.migration_name), ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review"]);
   const versions = await db.$queryRaw<Array<{ version: string }>>`SELECT version()`;
   assert.match(versions[0].version, /^PostgreSQL /);
   const pids = await Promise.all([db, peer].map(connection => connection.$queryRaw<Array<{ pid: number }>>`SELECT pg_backend_pid() AS pid`));
@@ -278,4 +278,56 @@ test("independent backends atomically share the five-attempt login budget", asyn
   assert.equal(reservations.filter(Boolean).length, 5);
   assert.equal(await reserveAttempt(peer, "local", "race.budget"), false);
   assert.equal(await reserveAttempt(peer, "school-ad", "race.budget"), true);
+});
+test("concurrent bootstrap, credential and directory conflicts preserve one identity", async () => {
+  const attempts = await Promise.allSettled([db, peer].map((connection, index) => bootstrapLocalAdmin(connection, { name: "Synthetic admin", email: `bootstrap${index}@example.test`, username: `bootstrap.admin.${index}`, password: "synthetic-admin-password" })));
+  assert.equal(attempts.filter(result => result.status === "fulfilled").length, 1);
+  assert.equal(await db.user.count({ where: { role: "ADMIN" } }), 1);
+  const admin = await db.user.findFirstOrThrow({ where: { role: "ADMIN" } });
+  const duplicates = await Promise.allSettled([db, peer].map((connection, index) => createLocalUser(connection, admin.id, { name: "Synthetic teacher", email: `duplicate${index}@example.test`, username: "duplicate.teacher", password: "synthetic-teacher-password" })));
+  assert.equal(duplicates.filter(result => result.status === "fulfilled").length, 1);
+  assert.equal(await db.localCredential.count({ where: { username: "duplicate.teacher" } }), 1);
+  const identity = { directoryId: "qualification", objectGuid: "23".repeat(16) };
+  const links = await Promise.allSettled([linkDirectoryUser(db, admin.id, user, identity), linkDirectoryUser(peer, admin.id, admin.id, identity)]);
+  assert.equal(links.filter(result => result.status === "fulfilled").length, 1);
+  assert.equal(await db.directoryIdentity.count({ where: identity }), 1);
+});
+
+test("six independent workers drain 32 approved jobs without duplicate execution", async () => {
+  const workers = Array.from({ length: 6 }, client);
+  const planning = new Map<string, number>(), execution = new Map<string, number>();
+  const services = {
+    plan: async (goal: string) => {
+      planning.set(goal, (planning.get(goal) ?? 0) + 1);
+      await new Promise(done => setTimeout(done, 10));
+      return { ...plan, steps: [{ ...plan.steps[0], instructions: goal }] };
+    },
+    readOnly: async (instructions: string) => {
+      execution.set(instructions, (execution.get(instructions) ?? 0) + 1);
+      await new Promise(done => setTimeout(done, 10));
+      return "Synthetic load evidence";
+    },
+  };
+  const drain = async () => {
+    const outcomes = await Promise.allSettled(workers.map(async connection => { while (await runNext(connection, services)) { /* real claims/leases */ } }));
+    for (const outcome of outcomes) if (outcome.status === "rejected") throw outcome.reason;
+  };
+  try {
+    const pids = await Promise.all(workers.map(connection => connection.$queryRaw<Array<{ pid: number }>>`SELECT pg_backend_pid() AS pid`));
+    assert.equal(new Set(pids.map(rows => rows[0].pid)).size, 6);
+    for (let index = 0; index < 32; index++) await createJob(db, user, `Synthetic load goal ${index}`, "development");
+    await drain();
+    const jobs = await db.officeJob.findMany();
+    assert.equal(jobs.length, 32);
+    assert.ok(jobs.every(job => job.status === "PENDING_PLAN_APPROVAL"));
+    for (const job of jobs) await approvePlan(db, job.id, user, job.planVersion, job.planHash!, "approve");
+    await drain();
+    assert.equal(await db.officeJob.count({ where: { status: "SUCCEEDED", leaseToken: null } }), 32,
+      JSON.stringify(await db.officeJob.findMany({ where: { status: { not: "SUCCEEDED" } }, select: { status: true, errorCode: true } })));
+    assert.equal(planning.size, 32); assert.ok(Array.from(planning.values()).every(count => count === 1));
+    assert.equal(execution.size, 32); assert.ok(Array.from(execution.values()).every(count => count === 1));
+    assert.equal(await db.officeEvent.count({ where: { type: "step.completed" } }), 32);
+    assert.equal(await db.officeEvent.count({ where: { type: "job.completed" } }), 32);
+    assert.equal(await recoverExpired(db), 0);
+  } finally { await Promise.all(workers.map(connection => connection.$disconnect())); }
 });

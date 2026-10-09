@@ -46,6 +46,7 @@ model User {
   isActive    Boolean    @default(true)
   lastLoginAt DateTime?
   authRevision Int       @default(0)
+  googleEnabled Boolean  @default(false)
   createdAt   DateTime   @default(now())
   tasks       Task[]
   documents   Document[]
@@ -76,6 +77,7 @@ model LoginAttempt {
   key String @id
   windowStartedAt DateTime
   attempts Int
+  @@index([windowStartedAt])
 }
 
 model Todo {

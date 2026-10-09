@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireRole, AuthError } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -20,3 +20,15 @@ export async function GET() {
 
   return NextResponse.json(users);
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const { userId } = await requireAccountAdmin(req);
+    const input = localInput.parse(await accountBody(req));
+    const user = await createLocalUser(prisma, userId, input);
+    return NextResponse.json(user, { status: 201 });
+  } catch (error) { return accountFailure(error); }
+}
+
+import { requireAccountAdmin, accountBody, accountFailure } from "@/lib/school-auth/admin-http";
+import { localInput, createLocalUser } from "@/lib/school-auth/store";

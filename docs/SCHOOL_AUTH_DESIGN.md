@@ -1,6 +1,6 @@
 # School AD and local-account authentication design
 
-2026-10-09 · Written design approved by the user in this session; not implemented.
+2026-10-09 · Written design approved by the user; implementation passed synthetic qualification. Real school AD acceptance remains pending.
 
 ## Confirmed requirement
 
@@ -19,6 +19,7 @@ This makes both required methods usable through the current app without requirin
 - Add `DirectoryIdentity`, with a unique directory ID plus canonical AD objectGUID and a User reference. An administrator deliberately links this identity after directory verification. Never link by display name, username or email resemblance.
 - Add an integer session revision to User. Password reset, identity unlink/relink and account deactivation increment it. Tokens bind the revision issued at sign-in; stale tokens fail authentication. Role changes are still read from the database on authenticated requests.
 - Existing Google sessions/users have no new credentials automatically. Existing Office records retain their User IDs. Before enabling new providers, deploy an additive migration and provision accounts.
+- Review clarification: a server-managed `googleEnabled` marker preserves legacy pre-credential email authentication. New local/AD users default to false; contact email cannot silently add Google access. Verified school Google registration creates a new teacher only when that email is unassigned. Older tokens without the new revision/deadline are invalidated.
 - No public registration, shared/default passwords or automatic AD-to-local password fallback.
 
 ## Local login
@@ -28,6 +29,8 @@ Admin-created usernames are case-insensitive ASCII, 3–64 characters from lette
 Passwords are 12–128 characters with no trimming, normalization or silent truncation. Store a versioned Node scrypt hash with random salt and an explicit parameter set (N=65536, r=8, p=1, 64-byte key, bounded memory). Verify with a timing-safe comparison; unknown usernames use a precomputed dummy hash so they still perform verification work. Do not rehash on ordinary failed requests.
 
 Use a database-backed attempt budget shared across app instances: reserve an attempt atomically before expensive password verification or AD binds. Key by provider and a hash of the normalized submitted account identifier. Allow at most five attempts in a fifteen-minute window; expired windows reset. Invalid usernames, nonexistent users and wrong passwords use the same public error. Successful login does not reset the active window, avoiding races that reopen a budget. Administrators may clear a lock when managing an account. Limit request and credential lengths before allocating hash memory. Do not trust arbitrary forwarded IP headers as a throttle bypass key.
+
+Local and directory login each admit at most four concurrent operations per application instance before creating attempt rows or opening directory clients. Indexed, bounded cleanup removes up to 1,000 expired attempt rows per admitted reservation; PostgreSQL remains the shared per-account authority.
 
 Local login resolves an active User and credential before issuing a session. Changing a local password revokes that User's sessions. Password recovery is an authenticated administrator action in this slice; email reset, self-service recovery and MFA are separate future work.
 
@@ -41,7 +44,7 @@ The staff-facing AD input is `sAMAccountName` for the single configured domain. 
 
 Resolve the object's GUID to its admin-provisioned DirectoryIdentity and active AgentOS User. Authenticate the entered password by binding as the returned directory DN on a separate TLS-verified client. Never persist or log the supplied AD password; always close clients and bound connect/search/bind durations. AD objectGUID normalization must be consistent in lookup, linking and tests. Directory errors are sanitized before returning to the browser.
 
-AD disablement is checked on each new sign-in. Existing AgentOS sessions expire after eight hours; synchronizing AD disablement immediately across already-issued sessions would require a separate revocation/sync mechanism. AgentOS deactivation and revision changes invalidate sessions on subsequent authenticated requests.
+AD disablement is checked on each new sign-in. Existing AgentOS sessions expire eight hours after sign-in, with an immutable deadline that refresh cannot extend; synchronizing AD disablement immediately across already-issued sessions would require a separate revocation/sync mechanism. AgentOS deactivation and revision changes invalidate sessions on subsequent authenticated requests.
 
 ## Administrative setup and management
 
@@ -70,4 +73,4 @@ Real school AD acceptance requires a school-controlled LDAPS endpoint, trusted C
 
 ## Delivery boundary
 
-This authentication change precedes the first Portal school workflow. It does not implement Portal data, outbox, questionnaire scoring, schedules, live models or deployment. The written design is approved; implementation remains pending review of its concrete implementation plan and execution method.
+This authentication change precedes the first Portal school workflow. It does not implement Portal data, outbox, questionnaire scoring, schedules, live models or deployment. The written design is approved; the implementation passed synthetic qualification, with school-controlled AD and production acceptance pending.

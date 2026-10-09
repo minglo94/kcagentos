@@ -7,6 +7,7 @@ import { dummyHash, hashPassword, normalizeUsername, validPassword, verifyPasswo
 export const safeUser = { id: true, email: true, name: true, role: true, department: true, isActive: true, authRevision: true } as const;
 export const localInput = z.object({ name: z.string().trim().min(1).max(100), email: z.string().email().max(254).transform(value => value.toLowerCase()), username: z.string().refine(value => !!normalizeUsername(value)), password: z.string().refine(validPassword), role: z.enum(["ADMIN", "APPROVER", "DEPT_HEAD", "TEACHER", "OFFICE"]).default("TEACHER") }).strict();
 export const credentialInput = localInput.pick({ username: true, password: true });
+export const accountUpdateInput = z.object({ role: z.enum(["ADMIN", "APPROVER", "DEPT_HEAD", "TEACHER", "OFFICE"]).optional(), department: z.string().max(100).optional(), isActive: z.boolean().optional() }).strict().refine(value => Object.keys(value).length > 0);
 type Tx = Prisma.TransactionClient;
 export async function accountAdmin(tx: Tx | PrismaClient, actorId: string) {
   const actor = await tx.user.findFirst({ where: { id: actorId, role: "ADMIN", isActive: true } });
@@ -15,6 +16,9 @@ export async function accountAdmin(tx: Tx | PrismaClient, actorId: string) {
 const attemptKey = (provider: string, username: string) => `${provider}:${createHash("sha256").update(username.toLowerCase()).digest("hex")}`;
 export async function reserveAttempt(db: PrismaClient, provider: "local" | "school-ad", username: string, now = new Date()) {
   const key = attemptKey(provider, username), expired = new Date(+now - 900000);
+  // Bounded indexed cleanup removes abandoned identifiers as well as reused ones.
+  await db.$executeRaw`DELETE FROM "LoginAttempt" WHERE "windowStartedAt" <= ${expired} AND "key" IN
+    (SELECT "key" FROM "LoginAttempt" WHERE "windowStartedAt" <= ${expired} ORDER BY "windowStartedAt" LIMIT 1000)`;
   const rows = await db.$queryRaw<Array<{ attempts: number }>>`
     INSERT INTO "LoginAttempt" ("key", "windowStartedAt", "attempts") VALUES (${key}, ${now}, 1)
     ON CONFLICT ("key") DO UPDATE SET
@@ -27,7 +31,14 @@ export async function reserveAttempt(db: PrismaClient, provider: "local" | "scho
 export async function clearAttempts(db: PrismaClient, provider: "local" | "school-ad", username: string) {
   await db.loginAttempt.deleteMany({ where: { key: attemptKey(provider, username) } });
 }
+let activeLocal = 0;
 export async function authenticateLocal(db: PrismaClient, submitted: string, password: string) {
+  if (activeLocal >= 4) return null;
+  activeLocal++;
+  try { return await localLogin(db, submitted, password); }
+  finally { activeLocal--; }
+}
+async function localLogin(db: PrismaClient, submitted: string, password: string) {
   const username = normalizeUsername(submitted);
   if (!username || !validPassword(password) || !await reserveAttempt(db, "local", username)) return null;
   const credential = await db.localCredential.findUnique({ where: { username }, include: { user: true } });
@@ -38,6 +49,15 @@ export async function authenticateLocal(db: PrismaClient, submitted: string, pas
   return live ? { id: credential.userId, authRevision: credential.user.authRevision } : null;
 }
 const audit = (tx: Tx, actorId: string, target: string, action: string) => tx.auditLog.create({ data: { userId: actorId, engine: "n/a", action, docType: `target:${target}` } });
+export async function updateAccount(db: PrismaClient, actorId: string, userId: string, input: unknown) {
+  const parsed = accountUpdateInput.parse(input);
+  return serial(db, async tx => {
+    await accountAdmin(tx, actorId);
+    const user = await tx.user.update({ where: { id: userId }, data: { ...parsed, ...(parsed.isActive !== undefined ? { authRevision: { increment: 1 } } : {}) }, select: safeUser });
+    await audit(tx, actorId, userId, "ACCOUNT_UPDATED");
+    return user;
+  });
+}
 export async function setLocalCredential(db: PrismaClient, actorId: string, userId: string, submitted: string, password: string) {
   const parsed = credentialInput.parse({ username: submitted, password });
   await accountAdmin(db, actorId);

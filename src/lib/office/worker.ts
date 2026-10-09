@@ -24,13 +24,18 @@ export async function recoverExpired(db: PrismaClient) {
 
 export async function runNext(db: PrismaClient, services: WorkerServices, shutdown?: AbortSignal): Promise<boolean> {
   const token = randomUUID();
-  const job = await serial(db, async tx => {
-    const candidate = await tx.officeJob.findFirst({ where: { status: { in: ["PLANNING", "QUEUED"] }, leaseToken: null }, orderBy: { createdAt: "asc" } });
-    if (!candidate) return null;
+  const job = await db.$transaction(async tx => {
+    // Lock one available row without forcing every worker to retry the oldest
+    // candidate. All later writes retain their token/version fencing.
+    const rows = await tx.$queryRaw<Array<{ id: string }>>`SELECT "id" FROM "OfficeJob"
+      WHERE "status" IN ('PLANNING', 'QUEUED') AND "leaseToken" IS NULL
+      ORDER BY "createdAt", "id" LIMIT 1 FOR UPDATE SKIP LOCKED`;
+    if (!rows.length) return null;
+    const candidate = await tx.officeJob.findUniqueOrThrow({ where: { id: rows[0].id } });
     const updated = await tx.officeJob.update({ where: { id: candidate.id }, data: { leaseToken: token, leaseUntil: new Date(Date.now() + leaseMs), ...(candidate.status === "QUEUED" ? { status: "RUNNING" } : {}) } });
     await emit(tx, updated.id, "worker.claimed", { status: updated.status });
     return updated;
-  });
+  }, { isolationLevel: "ReadCommitted" });
   if (!job) return false;
   const controller = new AbortController();
   const abort = () => controller.abort();

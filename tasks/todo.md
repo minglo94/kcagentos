@@ -252,7 +252,7 @@ Review: application behavior unchanged; no live model, Portal, school data, emai
 - [x] Extend real PostgreSQL qualification to kill separate worker-core processes during planning/execution; 9/9 checks passed.
 - [x] Prepare written authentication design in `docs/SCHOOL_AUTH_DESIGN.md`; user approved the written design. Login implementation has not started.
 - [x] User approved written authentication design; self-reviewed implementation plan saved at `docs/superpowers/plans/2026-10-09-school-auth.md`.
-- [ ] User review of the written implementation plan and execution method before product changes.
+- [x] User reiterated continuation after plan handoff; inline implementation authorized.
 - [ ] Implement/test AD over verified LDAPS, local credentials, administrator provisioning, shared attempt budgets and session revocation.
 - [ ] Validate school-controlled AD connection and staff test accounts after authorization and private configuration.
 - [x] Recheck dependency audit: still 24 advisories (7 moderate, 15 high, 2 critical); raw audit output is local scratch, not committed.
@@ -265,5 +265,7 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Additive credential/AD-identity/attempt-budget schema and bounded scrypt primitives (password tests 2/2).
 - [x] Local authentication, active-admin provisioning, bootstrap guard, reset revision and explicit identity store checks (4/4).
 - [x] Real PostgreSQL shared login budget: ten concurrent reservations allow exactly five; total PostgreSQL qualification 10/10.
-- [ ] Complete AD/provider/admin/browser integration and final review; real local-login browser flow is still being verified.
+- [x] AD/local provider, provisioning, login/admin UI, absolute session revocation and first-admin CLI implemented; fresh review findings fixed with failing-then-passing tests.
+- [x] Genuine local NextAuth browser exchange, Office browser workflow and synthetic production build passed; real AD remains pending.
+- [x] Concurrent PostgreSQL bootstrap/credential/GUID conflicts and six-worker, 32-job synthetic load passed (12/12); exposed claim/retry contention fixed.
 - [ ] Real school AD and live model/Portal/Spark acceptance require their configured services.

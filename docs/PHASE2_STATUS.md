@@ -2,6 +2,10 @@
 
 Branch: `codex/agentos-phase2`. [Draft PR #14](https://github.com/minglo94/kcagentos/pull/14) is stacked on `codex/agentos-foundation`; neither PR is merged. User authorized continuation and commit/push. Production migration, deployment and actual school business operations remain separate approvals.
 
+## Synthetic Zeabur review image — 2026-10-10
+
+`Dockerfile.zeabur` and [the review runbook](ZEABUR_REVIEW.md) prepare a separate preview service using a fresh PostgreSQL database and persistent private audit volume. Startup enforces synthetic mode, local-only authentication, no AD, and a mounted `/data` volume; a one-off command creates a local administrator and pending manual-only sample Office plan. `/api/review/health` becomes ready only after migration, protected storage and an active admin exist. A disposable Docker/PostgreSQL/Chromium rehearsal passed migration, volume ownership, unprivileged runtime, one-time bootstrap, readiness, login and audit access. This image has no worker or live service integration; the earlier unfinished work below remains open. No Zeabur project/service has been deployed from this workspace.
+
 | Requested work | Delivered evidence | Remaining requirement |
 | --- | --- | --- |
 | Live local-model planning/execution | Restricted Hermes/Codex adapters, protocol/approval/cancellation tests; explicit unavailable states | No configured model runtime/profile here. Need runtime/model choice and dedicated local configuration; then actual inference and approved read-only execution. |

@@ -319,3 +319,10 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Add `npm run demo:school` with disposable PGlite, fake loopback model, approved parent job, scoped file read/private output and auditable attempts; publish exact test steps in docs/DEMO_TEST_GUIDE.md.
 - [ ] Implement and qualify the class-summary operation, authoritative approvals, durable outbox and service identity in Keichi; then add the AgentOS client and cross-service tests. No direct student database credentials in AgentOS.
 - [ ] Qualify actual school Ollama, LDAPS, NAS, production backup/migration, full Pixel source/assets, schedule/calendar and Spark host before activating live student processing.
+
+## Synthetic Zeabur review preview — 2026-10-10
+- [x] Add a dedicated synthetic-only Zeabur image, mounted private audit storage, explicit first-admin/sample-plan bootstrap and public ready/unready endpoint.
+- [x] Rehearse disposable PostgreSQL migration, non-root container startup, one-time bootstrap, protected audit path and real local browser login.
+- [x] Write copy-paste Zeabur setup and reviewer checks in `docs/ZEABUR_REVIEW.md`.
+- [ ] Connect this branch to a separate Zeabur project/database/volume and inspect its actual HTTPS URL; platform project access is not available in this workspace.
+- [ ] Complete the separately listed live Portal, Ollama, AD, NAS, production migration, full Pixel, scheduling and Spark acceptance work.

@@ -1,5 +1,7 @@
 # AgentOS 進度交接
 
+> 2026-10-10 synthetic Zeabur review: `codex/agentos-phase2` now includes `Dockerfile.zeabur`, explicit one-off review bootstrap, mounted `/data/audit` protection and a readiness endpoint. Disposable Docker/PostgreSQL/Chromium qualification passed migration, non-root runtime, bootstrap, local login and audit access. Node 66/66, Python 6/6, guarded PostgreSQL 13/13, typecheck and image build passed; lint retains one pre-existing hook warning. Exact setup is `docs/ZEABUR_REVIEW.md`; no Zeabur service or school system was deployed. Next: deploy this branch to a **separate** Zeabur project/database/volume for staff review, then continue the still-open live school gates in `docs/PHASE2_STATUS.md`.
+
 > 最新接續：PostgreSQL 合成驗證已擴展至 9/9，新增真實 subprocess SIGKILL 的 planning/execution recovery 測試。用戶已確認學校為本機 Windows AD，並要求同時支援 AD 及獨立 AgentOS 帳號；用戶已批准書面設計 `docs/SCHOOL_AUTH_DESIGN.md`；implementation plan 見 `docs/superpowers/plans/2026-10-09-school-auth.md`，等待 review/執行方式，尚未實作。下方 Google SSO 假設及七項驗證數字為歷史紀錄。
 
 > Phase 2 接續（2026-10-09）：本機分支 `codex/agentos-phase2` 基於 foundation `de8725c`，新增正式 PostgreSQL 16.15 的合成雙連線驗證（7/7），並確認 Node 17/17、Python 6/6、typecheck 及 lint（原有一項警告）。用戶已批准 commit/push，已發布 `9a7e221` 及 [草稿 PR #14](https://github.com/minglo94/kcagentos/pull/14)（base：`codex/agentos-foundation`）；尚未合併或部署。詳細命令及限制見 `docs/POSTGRES_QUALIFICATION.md`；本節優先於下方歷史「PostgreSQL 未驗證」描述。

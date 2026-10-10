@@ -1,6 +1,6 @@
 ## Hermes office foundation
 
-The authenticated `/office` dashboard adds persistent jobs, version-bound plan approvals and a separate Worker. This is the first implementation milestone; real local inference, Portal integration, cron and full Pixel Agents visualization are still pending.
+The authenticated `/office` dashboard adds persistent jobs, version-bound plan approvals and a separate Worker. A synthetic-only Zeabur review image and setup guide are available in [docs/ZEABUR_REVIEW.md](docs/ZEABUR_REVIEW.md). Real local inference, Portal integration, cron and full Pixel Agents visualization are still pending.
 
 See [setup and verification](docs/OFFICE_FOUNDATION.md), [Hermes bridge](docs/HERMES_BRIDGE.md), [integration ownership](docs/INTEGRATION_DECISION.md), and [current handover](tasks/handover.md).
 

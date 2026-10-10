@@ -22,7 +22,9 @@
     "test:auth:browser": "node --import tsx tests/school-auth-browser.ts",
     "test:container": "node --import tsx tests/container-browser.ts",
     "test:audit:browser": "node --import tsx tests/school-auth-browser.ts",
-    "demo:school": "node --import tsx scripts/demo-school.ts"
+    "demo:school": "node --import tsx tests/demo-school-cli.ts",
+    "review:bootstrap": "node --import tsx scripts/bootstrap-review.ts",
+    "test:zeabur:container": "node --import tsx tests/zeabur-container.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",

@@ -27,7 +27,7 @@
 
 ## File responsibilities
 
-`src/lib/office/portal-class-summary-contract.ts` defines a proposed, bounded wire shape without production transport. `tests/fixtures/synthetic-portal.ts` holds fixture-owned synthetic calculations/approvals/unknown-delivery state. `tests/portal-class-summary.test.ts` validates the contract boundary. `scripts/demo-school.ts` orchestrates a disposable AgentOS approval/local-model/file-audit flow using the existing test database fixture; `tests/demo-school.test.ts` validates its report. `docs/DEMO_TEST_GUIDE.md` gives commands and explains which checks are synthetic versus live gates. Status/todo/handover follow each milestone.
+`src/lib/office/portal-class-summary-contract.ts` defines a proposed, bounded wire shape without production transport. `tests/fixtures/synthetic-portal.ts` holds fixture-owned synthetic calculations/approvals/unknown-delivery state. `tests/portal-class-summary.test.ts` validates the contract boundary. `tests/demo-school-cli.ts` orchestrates a disposable AgentOS approval/local-model/file-audit flow using the existing test database fixture; `tests/demo-school.test.ts` validates its report. `docs/DEMO_TEST_GUIDE.md` gives commands and explains which checks are synthetic versus live gates. Status/todo/handover follow each milestone.
 
 ## Task 1: Offline Portal class-summary contract
 

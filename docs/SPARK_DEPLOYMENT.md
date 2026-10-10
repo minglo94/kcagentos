@@ -1,5 +1,7 @@
 # Deployment preparation and Spark acceptance
 
+For an isolated browser preview on Zeabur using synthetic data, follow [ZEABUR_REVIEW.md](ZEABUR_REVIEW.md). That image and database are separate from this Spark production qualification path.
+
 Status: deployment files built and locally qualified on Linux/AMD64. **No school host deployment, production migration, service activation or business cron is authorized by publishing these files.** Spark hardware/OS and live services still need confirmation.
 
 ## Prepared files

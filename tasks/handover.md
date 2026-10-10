@@ -121,3 +121,9 @@
 - Added docs/SCHOOL_DATA_POLICY_DESIGN.md and integration/status clarification. Recommended shared application policy plus host isolation, protected payload references, locally generated embeddings and independently scoped database views. No product code, credentials, student data or live service changes.
 - Next: written-design review then implementation plan. Brainstorming skill explicitly requires written-spec approval before implementation planning; prior school-auth approval covers a different design. Actual Portal views/scope/vector schema, mounted roots, model runtime and retention remain deployment inputs.
 - Verification: documentation-only diff and whitespace review; runtime tests not rerun. Commit/push authorized by existing user instruction.
+
+## Approved data design and implementation plan — 2026-10-10
+- User “Ok / How to do it” approves the presented written design and asks how to proceed. No separate approval button or command is needed.
+- Prepared and self-reviewed docs/superpowers/plans/2026-10-10-school-policy-audit.md: server policy/local routing, durable attempt payloads, worker/chat coverage, admin inspection and legacy entry-point qualification. Preserve prior native/inline execution choice.
+- Separate later stages cover NAS adapters, Portal PostgreSQL/vector queries and OS isolation. First stage fails closed for unsupported restricted paths; real student processing remains disabled until storage/retention/host qualification.
+- Writing-plans skill requires written-plan review before implementation. No product changes or runtime tests in this documentation-only turn; diff/whitespace checked before publication.

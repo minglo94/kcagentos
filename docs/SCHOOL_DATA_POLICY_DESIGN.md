@@ -1,6 +1,6 @@
 # School data access and task audit design
 
-2026-10-10 — proposed implementation design; runtime enforcement is pending.
+2026-10-10 — user approved this written design with “Ok”; runtime enforcement is pending. Implementation plan: `docs/superpowers/plans/2026-10-10-school-policy-audit.md`.
 
 ## Confirmed requirements
 

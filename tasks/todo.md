@@ -291,3 +291,8 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Write reviewable design in docs/SCHOOL_DATA_POLICY_DESIGN.md, preserving Portal authority and protected sensitive audit payloads.
 - [ ] Review written design, then prepare implementation plan and implement policy/audit coverage across workers and chat.
 - [ ] Qualify controlled folders, local inference/embeddings and scoped PostgreSQL vector retrieval; real configuration remains private and unavailable.
+
+## School policy implementation planning — 2026-10-10
+- [x] User approved written design with “Ok”; explain that no separate approval UI is required.
+- [x] Write and self-review first-stage policy/audit implementation plan at docs/superpowers/plans/2026-10-10-school-policy-audit.md.
+- [ ] Written-plan review, then native implementation; controlled files, Portal vector adapter and host isolation remain subsequent stages.

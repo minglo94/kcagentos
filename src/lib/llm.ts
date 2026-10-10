@@ -1,4 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { assertCapability, type ExecutionPolicy } from "./task-policy/policy";
+import { localModelConfig } from "./task-policy/local-model";
 
 export type Engine = "claude" | "ollama" | "lmstudio";
 
@@ -8,6 +9,8 @@ export interface LLMMessage {
 }
 
 export interface LLMOptions {
+  policy?: ExecutionPolicy;
+  signal?: AbortSignal;
   system?: string;
   model?: string;
   maxTokens?: number;
@@ -15,7 +18,7 @@ export interface LLMOptions {
   baseUrl?: string; // 本地引擎自訂 URL（覆蓋環境變數）
 }
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
 
 export async function* streamLLM(
   engine: Engine,
@@ -24,30 +27,11 @@ export async function* streamLLM(
 ): AsyncGenerator<string> {
   const { system, maxTokens = 4096 } = opts;
 
-  if (engine === "claude") {
-    const stream = await anthropic.messages.stream({
-      model: opts.model ?? "claude-sonnet-4-5",
-      max_tokens: maxTokens,
-      system: system ?? "",
-      messages,
-    });
-    for await (const chunk of stream) {
-      if (
-        chunk.type === "content_block_delta" &&
-        chunk.delta.type === "text_delta"
-      ) {
-        yield chunk.delta.text;
-      }
-    }
-    return;
-  }
-
-  if (engine === "ollama" || engine === "lmstudio") {
-    const baseUrl =
-      opts.baseUrl ||
-      (engine === "ollama"
-        ? (process.env.OLLAMA_URL ?? "http://localhost:11434")
-        : (process.env.LMSTUDIO_URL ?? "http://localhost:1234"));
+  assertCapability(opts.policy, engine === "claude" ? "cloudInference" : "localInference");
+  if (opts.baseUrl || opts.model || !["ollama", "lmstudio"].includes(engine)) throw new Error("POLICY_DENIED");
+  const config = localModelConfig();
+  {
+    const baseUrl = config.url;
 
     const apiMessages = system
       ? [{ role: "system", content: system }, ...messages]
@@ -55,35 +39,40 @@ export async function* streamLLM(
 
     const res = await fetch(`${baseUrl}/v1/chat/completions`, {
       method: "POST",
+      redirect: "error",
+      signal: opts.signal ? AbortSignal.any([opts.signal, AbortSignal.timeout(120_000)]) : AbortSignal.timeout(120_000),
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: opts.model ?? "llama3",
+        model: config.model,
         messages: apiMessages,
         stream: true,
+        max_tokens: maxTokens,
       }),
     });
 
     if (!res.ok || !res.body)
-      throw new Error(`${engine} API error: ${res.status}`);
+      throw new Error("LOCAL_MODEL_UNAVAILABLE");
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-    let buf = "";
-    while (true) {
+    let buf = "", completed = false;
+    try { while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
+      if (done) { if (!completed) throw new Error("LOCAL_MODEL_STREAM_INCOMPLETE"); break; }
       buf += decoder.decode(value, { stream: true });
+      if (Buffer.byteLength(buf) > 1024 * 1024) throw new Error("LOCAL_MODEL_STREAM_INVALID");
       const lines = buf.split("\n");
       buf = lines.pop() ?? "";
       for (const line of lines) {
-        if (!line.startsWith("data: ") || line === "data: [DONE]") continue;
+        if (line === "data: [DONE]") { completed = true; return; }
+        if (!line.startsWith("data: ")) continue;
         try {
           const json = JSON.parse(line.slice(6));
           const text = json.choices?.[0]?.delta?.content ?? "";
           if (text) yield text;
-        } catch {}
+        } catch { throw new Error("LOCAL_MODEL_STREAM_INVALID"); }
       }
-    }
+    } } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
   }
 }
 

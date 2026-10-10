@@ -1,8 +1,10 @@
+import { assertCapability, type ExecutionPolicy } from "../task-policy/policy";
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { planSchema, type OfficePlan } from "./plan";
 
-export function planWithHermes(goal: string, team: string, signal: AbortSignal): Promise<OfficePlan> {
+export function planWithHermes(goal: string, team: string, signal: AbortSignal, policy?: ExecutionPolicy): Promise<OfficePlan> {
+  assertCapability(policy, "codexReadonly"); // Profile-owned inference is not qualified for school data.
   const python = process.env.HERMES_PYTHON;
   const source = process.env.HERMES_SOURCE_DIR;
   const profile = process.env.AGENTOS_HERMES_HOME;

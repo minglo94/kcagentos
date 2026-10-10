@@ -217,6 +217,7 @@ User authorized implementation in this session. Work branch: codex/agentos-found
 - [x] Prepare setup, progress and next-session handover documentation.
 - [ ] Configure and validate real local inference (user confirmed no model yet).
 - [ ] Qualify real PostgreSQL multi-worker serialization and school Google SSO.
+- [x] Phase 2 continuation: real PostgreSQL 16.15, independent backends, seven synthetic concurrency/recovery checks; production migration, process crash/load testing and real SSO remain pending.
 - [ ] Portal operation/approval contract integration, full Pixel Agents bridge and business cron.
 - [ ] Dependency security upgrade and production/Spark qualification.
 
@@ -233,3 +234,95 @@ User authorized implementation in this session. Work branch: codex/agentos-found
 - [ ] 建立人工基準，量度老師耗時、修改量、漏項及同事獨立使用。
 
 Review：此次只修訂文檔；檢查跨服務分工、驗收及 Git diff，不代表新增程式測試或功能完成。
+
+## Phase 2 continuation — PostgreSQL qualification (2026-10-09)
+
+- [x] Resume latest foundation handover on isolated branch `codex/agentos-phase2`, based on `de8725c`.
+- [x] Add opt-in `npm run test:postgres` with explicit local disposable database guard and generated-schema cleanup.
+- [x] Deploy and verify both migrations; test independent-backend claims, duplicate/opposing approvals, recovery, reconnect and stale-result fencing (7/7).
+- [x] Existing Node tests (17/17), Python tests (6/6), typecheck and lint (one existing warning).
+- [x] User approved commit/push; published `9a7e221` on `codex/agentos-phase2` and opened [draft PR #14](https://github.com/minglo94/kcagentos/pull/14), targeting `codex/agentos-foundation`. No merge or deployment.
+- [ ] Configure dedicated local inference; confirm private Portal API/identity/approval contract before school workflow implementation.
+
+Review: application behavior unchanged; no live model, Portal, school data, email, cron or deployment. See `docs/POSTGRES_QUALIFICATION.md` for reproducible commands and evidence limits. This milestone does not complete the full AgentOS plan.
+
+## Continued verification and school authentication — 2026-10-09
+
+- [x] User confirmed both AD and separate AgentOS accounts; AD is a local Windows domain.
+- [x] Extend real PostgreSQL qualification to kill separate worker-core processes during planning/execution; 9/9 checks passed.
+- [x] Prepare written authentication design in `docs/SCHOOL_AUTH_DESIGN.md`; user approved the written design. Login implementation has not started.
+- [x] User approved written authentication design; self-reviewed implementation plan saved at `docs/superpowers/plans/2026-10-09-school-auth.md`.
+- [x] User reiterated continuation after plan handoff; inline implementation authorized.
+- [ ] Implement/test AD over verified LDAPS, local credentials, administrator provisioning, shared attempt budgets and session revocation.
+- [ ] Validate school-controlled AD connection and staff test accounts after authorization and private configuration.
+- [x] Recheck dependency audit: still 24 advisories (7 moderate, 15 high, 2 critical); raw audit output is local scratch, not committed.
+- [ ] Test dependency upgrades separately; do not use automatic forced upgrades as production evidence.
+
+Review: the new process tests execute the real worker core with synthetic blocked services and accelerated persisted lease expiry. Full worker-loop/model process crashes, load, machine reboot, school authentication, Portal and deployment remain unverified. Typecheck passed after adding the test subprocess's required `NODE_ENV`; lint retains the existing warning.
+
+## School authentication implementation — in progress
+- [x] User continued after the written-plan handoff; proceed directly with the reviewed design.
+- [x] Additive credential/AD-identity/attempt-budget schema and bounded scrypt primitives (password tests 2/2).
+- [x] Local authentication, active-admin provisioning, bootstrap guard, reset revision and explicit identity store checks (4/4).
+- [x] Real PostgreSQL shared login budget: ten concurrent reservations allow exactly five; total PostgreSQL qualification 10/10.
+- [x] AD/local provider, provisioning, login/admin UI, absolute session revocation and first-admin CLI implemented; fresh review findings fixed with failing-then-passing tests.
+- [x] Genuine local NextAuth browser exchange, Office browser workflow and synthetic production build passed; real AD remains pending.
+- [x] Concurrent PostgreSQL bootstrap/credential/GUID conflicts and six-worker, 32-job synthetic load passed (12/12); exposed claim/retry contention fixed.
+- [ ] Real school AD and live model/Portal/Spark acceptance require their configured services.
+
+## Dependency qualification — 2026-10-09
+- [x] Next 15.5.27 / matching ESLint config, Tailwind 4.3.3, PostCSS 8.5.29; compatible lockfile updates and scoped ExcelJS UUID 11.1.1 override.
+- [x] Migrate async route/search parameters, PostCSS integration and internal Next links; production build passed.
+- [x] Document pipeline compatibility uncovered existing Archiver 8 factory mismatch; shared ZIP class adapter now passes DOCX extraction/ZIP and spreadsheet round trips.
+- [x] Node 34/34; genuine browser auth now also covers both provider choices, UI provisioning, missing Origin, forged GUID and disabled admin; Office browser passed.
+- [x] Audit reduced 24 → 8 (0 critical, 5 high, 3 moderate). Remaining chains: build-time ESLint/fast-glob/micromatch/braces and Mammoth CLI argparse/sprintf-js. No compatible fixed release established; no unsafe historical downgrades.
+- [ ] Production hardening/real AD and service qualification remain gates.
+
+## Migration/deployment continuation — 2026-10-09
+- [x] Real PostgreSQL pre-auth migration rehearsal preserves users, owned jobs, plan hashes/versions and approvals; repeated deploy is a no-op. Suite 13/13.
+- [x] Prepare non-root production Docker image definition, loopback Compose with explicit migration profile, optional verified school CA mount and host-worker unit; Compose quiet validation and systemd syntax verification passed.
+- [x] Production Linux/AMD64 image built; disposable-container browser qualification passed (non-root/read-only web, real local login, scope, persistence, revocation, runtime loader without dev tooling). No actual Spark deployment or service activation.
+- [x] Record concrete remaining dependencies and verified Pixel upstream limitations in docs/PHASE2_STATUS.md. Portal implementation still requires its authoritative contract; no invented API, duplicate outbox or business cron.
+- [x] Production-only audit: 3 moderate, zero high/critical; full tree remains 8.
+- [x] Published 0626b94, 1822436, ceeb9cf, cb70031 and synchronized draft PR #14; remaining live/Portal/Pixel/schedule/Spark gates stay unchecked.
+
+## School data policy — 2026-10-10
+- [x] Inspect worker, Codex/Hermes adapters, legacy LLM routing and audit schema; record user requirements and PostgreSQL vector clarification.
+- [x] Write reviewable design in docs/SCHOOL_DATA_POLICY_DESIGN.md, preserving Portal authority and protected sensitive audit payloads.
+- [x] Review written design, prepare implementation plan and implement synthetic policy/audit coverage across workers and chat.
+- [ ] Qualify controlled folders, local inference/embeddings and scoped PostgreSQL vector retrieval; real configuration remains private and unavailable.
+
+## School policy implementation planning — 2026-10-10
+- [x] User approved written design with “Ok”; explain that no separate approval UI is required.
+- [x] Write and self-review first-stage policy/audit implementation plan at docs/superpowers/plans/2026-10-10-school-policy-audit.md.
+- [x] Review written plan and implement synthetic policy/audit stage; controlled files have a later synthetic stage, while Portal vector adapter and host isolation remain live gates.
+
+## School policy/audit first implementation — 2026-10-10
+- [x] Server-owned synthetic restricted policy, local-only loopback inference, configured model, cloud/client override/redirect denial and policy-bound job snapshots.
+- [x] Durable task attempts and protected input/output files with lease/version/ancestor fencing; worker planning/manual/Codex and chat paths covered.
+- [x] Admin list/detail/input/output viewer; active-role checks, inspection audit and literal HTML rendering. Unqualified legacy external/source routes and helper connectors denied.
+- [x] Fix fresh-review Important findings with failing-then-passing nested-stream and Codex-partial-output tests. Resolve six-worker audit contention with row-locked ReadCommitted transactions.
+- [ ] Qualify protected live audit storage/retention and model host isolation; controlled NAS/read-only inputs, separate outputs and scoped Portal PostgreSQL vector adapter.
+- [ ] Finish live AD, Spark migration/deployment, class-summary, Pixel provider and approved schedules.
+- [x] Final first-stage verification: Node 55/55, PostgreSQL 13/13, Python 6/6, both browser flows, typecheck/lint/build; ignored audit fixtures and generated schemas cleaned by tests.
+
+## Controlled-file synthetic stage — 2026-10-10
+- [x] Add private named input/output root configuration and per-actor grants to policy hash; deny overlap, traversal, symlinks, wrong actors, unsupported file types and oversized reads.
+- [x] Add audited read and atomic private staged output bundle (one <=1 MiB file per attempt); generic chat tools remain journaled and denied even with folder grants.
+- [x] Synthetic folder/audit tests, typecheck, Node/Python suites, browser auth/Office flows and production build verified. Reproduced intermittent `P2034` in six-worker step completion; narrowed that transaction to `ReadCommitted` with an explicit job row lock and retained lease/audit fencing. Five consecutive guarded PostgreSQL runs passed 13/13 after the fix.
+- [ ] Bind file tools to approved Office/Portal jobs, enforce per-job aggregate quotas, reconcile staged crash orphans and promote outputs only after authorized completion. Qualify actual read-only NAS mounts, protected storage/retention and host isolation before real data.
+- [ ] Get authoritative Portal views, teacher-scope and vector model contract before named read-only PostgreSQL queries; real AD/model/Spark/Pixel/scheduling gates remain.
+
+## Demo-first class-summary qualification — 2026-10-10
+- [x] Inspect the provided Keichi Portal source at `58f6ff6`; record its existing class/homework permissions, local student-data embedding path and missing AgentOS class-summary operation boundary.
+- [x] Add a strict proposed opaque request/status contract and test-only Portal fixture. Cover changed idempotency replay, staff/class/date scope, incomplete/ambiguous sources, separate approvals, impossible status claims and unknown delivery.
+- [x] Add `npm run demo:school` with disposable PGlite, fake loopback model, approved parent job, scoped file read/private output and auditable attempts; publish exact test steps in docs/DEMO_TEST_GUIDE.md.
+- [ ] Implement and qualify the class-summary operation, authoritative approvals, durable outbox and service identity in Keichi; then add the AgentOS client and cross-service tests. No direct student database credentials in AgentOS.
+- [ ] Qualify actual school Ollama, LDAPS, NAS, production backup/migration, full Pixel source/assets, schedule/calendar and Spark host before activating live student processing.
+
+## Synthetic Zeabur review preview — 2026-10-10
+- [x] Add a dedicated synthetic-only Zeabur image, mounted private audit storage, explicit first-admin/sample-plan bootstrap and public ready/unready endpoint.
+- [x] Rehearse disposable PostgreSQL migration, non-root container startup, one-time bootstrap, protected audit path and real local browser login.
+- [x] Write copy-paste Zeabur setup and reviewer checks in `docs/ZEABUR_REVIEW.md`.
+- [ ] Connect this branch to a separate Zeabur project/database/volume and inspect its actual HTTPS URL; platform project access is not available in this workspace.
+- [ ] Complete the separately listed live Portal, Ollama, AD, NAS, production migration, full Pixel, scheduling and Spark acceptance work.

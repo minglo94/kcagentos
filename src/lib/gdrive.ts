@@ -1,7 +1,9 @@
+import { assertCapability } from "./task-policy/policy";
 import { google } from "googleapis";
 import { Readable } from "stream";
 
 function getAuth() {
+  assertCapability(undefined, "externalPublish"); // No qualified publication context in this release.
   const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   if (!raw) throw new Error("GOOGLE_SERVICE_ACCOUNT_JSON not set");
   const key = JSON.parse(

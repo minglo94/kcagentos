@@ -1,8 +1,10 @@
+import { denyUnsupportedTask } from "@/lib/task-policy/deny-route";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { generateQuotationDocx } from "@/lib/tools/quotation-docx";
 
 export async function POST(req: NextRequest) {
+  const blocked = await denyUnsupportedTask("tools/quotation/generate:POST"); if (blocked) return blocked;
   const session = await getSession();
   if (!session?.user?.id) return NextResponse.json({ error: "未登入" }, { status: 401 });
 

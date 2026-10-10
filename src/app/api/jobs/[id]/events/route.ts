@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { officeFailure, officeUser } from "@/lib/office/http";
 import { owned } from "@/lib/office/store";
 export const dynamic = "force-dynamic";
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   try {
     const userId = await officeUser(req);
     await owned(prisma, params.id, userId);

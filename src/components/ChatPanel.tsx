@@ -36,7 +36,7 @@ interface ChatPanelProps {
   engineConfig?: { baseUrl?: string; model?: string };
 }
 
-export default function ChatPanel({ onAgentStatus, initialPrompt, engine = "claude", engineConfig }: ChatPanelProps) {
+export default function ChatPanel({ onAgentStatus, initialPrompt, engine = "ollama", engineConfig }: ChatPanelProps) {
   const [messages, setMessages]     = useState<Message[]>([]);
   const [input, setInput]           = useState("");
   const [loading, setLoading]       = useState(false);

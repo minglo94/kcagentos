@@ -1,13 +1,12 @@
+import { denyUnsupportedTask } from "@/lib/task-policy/deny-route";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { generateNoticeDocx, generateTutorSignIn } from "@/lib/tools/notice-docx";
 import { generateAttendanceXlsx, generateFad8Xlsx } from "@/lib/tools/notice-xlsx";
-import type { Archiver, ArchiverOptions } from "archiver";
-// archiver is webpack-externalized (see next.config.mjs) so require works at runtime
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const archiverCreate: (format: string, opts?: ArchiverOptions) => Archiver = require("archiver");
+import { createZipArchive } from "@/lib/tools/archive";
 
 export async function POST(req: NextRequest) {
+  const blocked = await denyUnsupportedTask("tools/notice/generate:POST"); if (blocked) return blocked;
   const session = await getSession();
   if (!session?.user?.id) return NextResponse.json({ error: "未登入" }, { status: 401 });
 
@@ -22,7 +21,7 @@ export async function POST(req: NextRequest) {
     // 打包成 ZIP
     const zipBuf = await new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
-      const archive = archiverCreate("zip", { zlib: { level: 6 } });
+      const archive = createZipArchive({ zlib: { level: 6 } });
       archive.on("data", (c: Buffer) => chunks.push(c));
       archive.on("end", () => resolve(Buffer.concat(chunks)));
       archive.on("error", reject);

@@ -1,0 +1,48 @@
+# Phase 2 continuation — 2026-10-09
+
+Branch: `codex/agentos-phase2`. [Draft PR #14](https://github.com/minglo94/kcagentos/pull/14) is stacked on `codex/agentos-foundation`; neither PR is merged. User authorized continuation and commit/push. Production migration, deployment and actual school business operations remain separate approvals.
+
+## Synthetic Zeabur review image — 2026-10-10
+
+`Dockerfile.zeabur` and [the review runbook](ZEABUR_REVIEW.md) prepare a separate preview service using a fresh PostgreSQL database and persistent private audit volume. Startup enforces synthetic mode, local-only authentication, no AD, and a mounted `/data` volume; a one-off command creates a local administrator and pending manual-only sample Office plan. `/api/review/health` becomes ready only after migration, protected storage and an active admin exist. A disposable Docker/PostgreSQL/Chromium rehearsal passed migration, volume ownership, unprivileged runtime, one-time bootstrap, readiness, login and audit access. This image has no worker or live service integration; the earlier unfinished work below remains open. No Zeabur project/service has been deployed from this workspace.
+
+| Requested work | Delivered evidence | Remaining requirement |
+| --- | --- | --- |
+| Live local-model planning/execution | Restricted Hermes/Codex adapters, protocol/approval/cancellation tests; explicit unavailable states | No configured model runtime/profile here. Need runtime/model choice and dedicated local configuration; then actual inference and approved read-only execution. |
+| Portal/class summary | Ownership and workflow requirements preserved; AgentOS parent jobs/approval foundation. Public Keichi source inspected and an offline proposed contract/fixture added. | Keichi has class/homework role checks, pgvector knowledge chunks and a single document approval, but no class-summary child-operation/service-auth/outbox API. Add and verify that contract in Portal before an AgentOS live adapter. |
+| School login | Local and AD providers, verified LDAPS adapter, explicit GUID linking, provisioning UI/CLI, shared limits and revocable absolute sessions; real local browser exchange passes | School-controlled LDAPS/CA/test staff and authorized network connection. Synthetic LDAP tests do not qualify real AD. |
+| Migration and worker qualification | Four additive migrations; pre-auth upgrade preserves IDs/jobs/approvals and no-op replay. Real PostgreSQL 13/13 includes process SIGKILL and six workers/32 approved jobs | Production backup/restore/migration window, full worker-loop/live-model crashes, long load, host reboot and actual capacity. |
+| Dependencies | Next 15.5.27, Tailwind 4.3.3, PostCSS 8.5.29, NextAuth 4.24.15, compatible updates; 34 Node tests, two browser suites, build/typecheck/lint | Eight audit packages/chains remain, without established compatible fixes: development braces chain and Mammoth CLI sprintf-js chain. Recheck before release. |
+| Full Pixel Agents | Upstream source/interface inspected at `d1e007a9fdf3003c252d2973abe1999ae59aec33`; MIT source, standalone CLI and typed provider boundary confirmed | Upstream registers only Claude and the CLI constructs a Claude runtime. Add a dedicated AgentOS provider and pin/build its standalone integration; retain licensing/asset attribution, disable launch/hooks/private transcript scanning, map real approved worker events and verify reconnect/replay. Current seats are not full Pixel Agents. |
+| Scheduling | Approved ownership/settings requirements documented; no new business cron enabled | After Portal/class-summary acceptance, implement template/version/calendar/timezone/nonoverlap/missed-run policy and verify unique schedule/slot dispatch. Actual settings/notifications need user confirmation before activation. |
+| Spark | Container/Compose, optional school CA mount and host-worker unit prepared; actual Linux/AMD64 production-container browser test passes; deployment/migration runbook | Confirm hardware/OS/architecture, qualify actual host/model/backup/HTTPS, then approve concrete deployment. Local container results do not establish Spark compatibility. |
+
+## Portal/class-summary contract to verify with its owner
+
+The authoritative Portal interface must establish these semantics before AgentOS ships a school executor. No endpoint paths or capabilities have been invented in code:
+
+1. A requesting staff identity mapped deliberately to Portal, independently checked against class/date/data scope. AgentOS contact email or a successful AgentOS login cannot grant Portal access.
+2. An immutable workflow ID/version and exact source/scope references bound to parent job plan version/hash. Raw student records stay in Portal; AgentOS receives permitted status/evidence/artifact references.
+3. A durable `operationId` returned for the stable `idempotencyKey`; identical replay reconciles to the same child, changed payload rejects instead of silently reusing approval.
+4. Unique ordered/replayable events carrying parent and operation IDs. Reconnection cannot duplicate a child or accept a stale version as completion.
+5. Distinct draft/content/send states; Portal alone records and enforces approvals bound to artifact version, content and recipients. AgentOS plan approval cannot replace them.
+6. Stop/incomplete-source/out-of-scope/cancel/changed-content cases fail closed. Unknown delivery is reconciled through Portal's durable outbox, never blindly resent by AgentOS.
+7. Synthetic pilot: validated attendance/homework inputs → coverage/identity/duplicate/total checks → class summary, follow-up and permitted artifact references → staff content/recipient approval → authoritative delivery result. No real sends during fixture acceptance.
+
+Schedules and full school workflow must use that boundary rather than rebuilding Portal student tables, calculations, approval authority or email delivery. Current code still supports manual and approved Codex read-only steps only.
+
+## Demo-first qualification — 2026-10-10
+
+`npm run demo:school` now exercises an approved synthetic Office job, a loopback fake OpenAI-compatible model, named input read, private staged output and protected task input/output attempts in a disposable database. The demo verifies every AgentOS attempt's input/output through the administrator payload reader before cleanup. The Portal child fixture simulates complete and incomplete source states, scoped idempotent submission, plan/artifact/recipient-bound approvals and uncertain delivery, with its own in-memory admin-only action log. It is test-only and cannot claim delivery; its `DELIVERY_UNKNOWN` status never counts as delivered. See `DEMO_TEST_GUIDE.md` for copy-paste commands and the harmless Ollama check.
+
+The provided [Keichi source](https://github.com/minglo94/keichi) at `58f6ff6` has authenticated, class-scoped classroom/homework routes and `vector(1024)` knowledge chunks. Existing AgentDocument approval is one admin approval, and `/api/ai/query` requires Anthropic; neither is the requested two-stage class-summary operation. No Portal endpoint was guessed or called. Live integration must be implemented and accepted on the Portal side, with explicit cross-service staff identity, independent class/data scope, durable idempotency, event replay and delivery reconciliation. Real AD, production migration, full Pixel, scheduling and Spark deployment remain open.
+
+Setup and evidence: `SCHOOL_AUTH_SETUP.md`, `DEPENDENCY_QUALIFICATION.md`, `POSTGRES_QUALIFICATION.md`, `HERMES_BRIDGE.md`, `SPARK_DEPLOYMENT.md`, and the latest task handover. Public files contain no staff credentials, private endpoints, student records or real backups.
+
+## New school data requirements — 2026-10-10
+
+Approved enforcement design: `docs/SCHOOL_DATA_POLICY_DESIGN.md`. User confirmed PostgreSQL vector for online Teacher Portal retrieval. Synthetic audit/local routing and private controlled-folder staging are now implemented as described below. Scoped read-only Portal queries, local embeddings, host isolation and live student-data acceptance are not implemented; the existing chat has no school file/Portal tool surface.
+
+## Synthetic task policy and audit implementation — 2026-10-10
+
+Server policy now defaults school/unknown tasks to restricted, routes chat to a configured loopback model, persists protected task inputs/outputs/attempt status, and provides an active-admin viewer. Unqualified legacy retrieval and external publication paths fail closed. The Office worker has a local-model manual planner; explicit development Codex access requires a server actor allowlist and persists partial deltas. Deployment remains synthetic-only; see `TASK_POLICY_COVERAGE.md` for route inventory and limits. A synthetic controlled-folder read/private-output-staging library with actor grants, hashes, manifests and audit wrappers has been added; no chat or Office workflow activates it yet. NAS mount/OS qualification, approved output promotion, Portal PostgreSQL vector adapter, real student storage/retention, network isolation, local-model qualification, real AD and Spark remain separate gates.

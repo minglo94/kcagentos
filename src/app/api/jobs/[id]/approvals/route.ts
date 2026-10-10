@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { officeFailure, officeUser } from "@/lib/office/http";
 import { approvePlan } from "@/lib/office/store";
 const schema = z.object({ version: z.number().int().positive(), hash: z.string().regex(/^[a-f0-9]{64}$/), decision: z.enum(["approve", "reject"]), reason: z.string().trim().max(1000).optional() }).strict();
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const params = await routeParams;
   try {
     const userId = await officeUser(req);
     const input = schema.parse(await req.json());

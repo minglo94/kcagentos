@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import AccountProvisioning from "./account-provisioning";
 
 interface User {
   id:          string;
@@ -70,7 +72,7 @@ export default function AdminUsersClient() {
           gap:          12,
         }}
       >
-        <a href="/" style={{ textDecoration: "none" }}>
+        <Link href="/" style={{ textDecoration: "none" }}>
           <div
             style={{
               width: 32, height: 32, background: "var(--seal)", color: "#fff",
@@ -81,7 +83,7 @@ export default function AdminUsersClient() {
           >
             智
           </div>
-        </a>
+        </Link>
         <div>
           <div style={{ fontFamily: "var(--serif)", fontWeight: 700, fontSize: 16, color: "var(--ink)" }}>
             用戶管理
@@ -93,6 +95,7 @@ export default function AdminUsersClient() {
       </div>
 
       <div style={{ padding: "24px", maxWidth: 1100, margin: "0 auto" }}>
+        <AccountProvisioning users={users} onChange={fetchUsers} />
         {loading ? (
           <p style={{ color: "var(--ink3)", textAlign: "center", padding: 40 }}>載入中…</p>
         ) : (

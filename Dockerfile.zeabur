@@ -1,0 +1,27 @@
+# syntax=docker/dockerfile:1
+# Review-only image; deploy as a separate synthetic AgentOS service.
+FROM node:24-bookworm-slim AS build
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -r /var/lib/apt/lists/*
+COPY package.json package-lock.json ./
+COPY prisma ./prisma
+RUN --mount=type=secret,id=proxy_ca \
+    if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
+    npm ci --strict-ssl=true --no-audit
+COPY . .
+RUN --mount=type=secret,id=proxy_ca \
+    if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
+    DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build \
+    NEXTAUTH_URL=http://localhost:3000 NEXTAUTH_SECRET=synthetic-build-only \
+    ANTHROPIC_API_KEY=synthetic-build-only NEXT_TELEMETRY_DISABLED=1 npm run build && \
+    npm prune --omit=dev --ignore-scripts --no-audit
+
+FROM node:24-bookworm-slim AS runtime
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates gosu && rm -r /var/lib/apt/lists/* && \
+    mkdir -p /data
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
+COPY --from=build --chown=node:node /app ./
+RUN chmod 0755 /app/scripts/zeabur-entrypoint.sh
+EXPOSE 3000
+ENTRYPOINT ["/app/scripts/zeabur-entrypoint.sh"]

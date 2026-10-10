@@ -1,10 +1,11 @@
+import { denyUnsupportedTask } from "@/lib/task-policy/deny-route";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import Anthropic from "@anthropic-ai/sdk";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const mammoth = require("mammoth") as typeof import("mammoth");
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
 
 const SCHEMA_HINT = `JSON 格式（只回傳有效 JSON，無任何 Markdown 或解釋文字）：
 {
@@ -48,6 +49,7 @@ function isDocx(mime: string, name: string) {
 const MAX_FILE_MB = 20;
 
 export async function POST(req: NextRequest) {
+  const blocked = await denyUnsupportedTask("tools/quotation/parse:POST"); if (blocked) return blocked;
   const session = await getSession();
   if (!session?.user?.id) return NextResponse.json({ error: "未登入" }, { status: 401 });
 
@@ -55,6 +57,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "伺服器未設定 ANTHROPIC_API_KEY" }, { status: 503 });
   }
 
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const formData = await req.formData();
   const file = formData.get("file");
   if (!(file instanceof File)) {

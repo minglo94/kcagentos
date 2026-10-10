@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   if (searchParams.get("activateAll") === "true") {
     const { count } = await prisma.user.updateMany({
       where: { isActive: false },
-      data:  { isActive: true },
+      data:  { isActive: true, authRevision: { increment: 1 } },
     });
     return new NextResponse(
       `<!DOCTYPE html><html lang="zh-HK"><head><meta charset="utf-8">
@@ -51,8 +51,8 @@ export async function GET(req: NextRequest) {
 
   const user = await prisma.user.upsert({
     where:  { email },
-    update: { role: "ADMIN", isActive: true },
-    create: { email, name: email.split("@")[0], role: "ADMIN" },
+    update: { role: "ADMIN", isActive: true, authRevision: { increment: 1 } },
+    create: { email, name: email.split("@")[0], role: "ADMIN", googleEnabled: true },
   });
 
   return new NextResponse(

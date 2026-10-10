@@ -1,3 +1,4 @@
+import { denyUnsupportedTask } from "@/lib/task-policy/deny-route";
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole, AuthError } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -16,7 +17,9 @@ const pusher =
 
 // PATCH /api/approvals/[id]
 // body: { action: "approve" | "reject", rejectionReason?: string }
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const blocked = await denyUnsupportedTask("approvals/[id]:PATCH"); if (blocked) return blocked;
+  const params = await routeParams;
   let userId: string;
   try {
     ({ userId } = await requireRole("ADMIN", "APPROVER"));

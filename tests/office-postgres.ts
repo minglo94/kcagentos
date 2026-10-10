@@ -1,3 +1,4 @@
+import "./helpers/task-env";
 import { after, before, beforeEach, test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -55,7 +56,7 @@ async function approvedJob() {
 async function blockedProcess(phase: "planning" | "executing") {
   const child = fork(fileURLToPath(new URL("./fixtures/office-worker-process.ts", import.meta.url)), [], {
     execArgv: ["--import", "tsx"], silent: true,
-    env: { NODE_ENV: "test", PATH: process.env.PATH, AGENTOS_TEST_DATABASE_URL: url.toString() },
+    env: { AGENTOS_AUDIT_ROOT:process.env.AGENTOS_AUDIT_ROOT, AGENTOS_TASK_DATA_MODE:"synthetic", AGENTOS_DEVELOPMENT_ACTORS:process.env.AGENTOS_DEVELOPMENT_ACTORS, AGENTOS_CODEX_WORKSPACE:process.cwd(), NODE_ENV: "test", PATH: process.env.PATH, AGENTOS_TEST_DATABASE_URL: url.toString() },
   });
   // Fixture errors are intentionally sanitized; no connection strings are logged.
   child.stdout?.resume(); child.stderr?.resume();
@@ -89,12 +90,13 @@ before(async () => {
   // Do not echo command output: a connection error may contain credentials.
   assert.equal(migration.status, 0, "Isolated schema migration failed; check local PostgreSQL readiness");
   const migrations = await db.$queryRaw<Array<{ migration_name: string }>>`SELECT migration_name FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL ORDER BY migration_name`;
-  assert.deepEqual(migrations.map(row => row.migration_name), ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review"]);
+  assert.deepEqual(migrations.map(row => row.migration_name), ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review", "20261010000000_task_audit"]);
   const versions = await db.$queryRaw<Array<{ version: string }>>`SELECT version()`;
   assert.match(versions[0].version, /^PostgreSQL /);
   const pids = await Promise.all([db, peer].map(connection => connection.$queryRaw<Array<{ pid: number }>>`SELECT pg_backend_pid() AS pid`));
   assert.notEqual(pids[0][0].pid, pids[1][0].pid, "Tests require independent PostgreSQL backends");
   user = (await db.user.create({ data: { email: "qualification@example.test", name: "Synthetic tester", subjects: [] } })).id;
+  process.env.AGENTOS_DEVELOPMENT_ACTORS=user;
 });
 beforeEach(async () => { await db.officeJob.deleteMany(); });
 after(async () => {
@@ -319,7 +321,7 @@ test("six independent workers drain 32 approved jobs without duplicate execution
     await drain();
     const jobs = await db.officeJob.findMany();
     assert.equal(jobs.length, 32);
-    assert.ok(jobs.every(job => job.status === "PENDING_PLAN_APPROVAL"));
+    assert.ok(jobs.every(job => job.status === "PENDING_PLAN_APPROVAL"), JSON.stringify(jobs.filter(j=>j.status!=="PENDING_PLAN_APPROVAL").map(j=>({status:j.status,errorCode:j.errorCode}))));
     for (const job of jobs) await approvePlan(db, job.id, user, job.planVersion, job.planHash!, "approve");
     await drain();
     assert.equal(await db.officeJob.count({ where: { status: "SUCCEEDED", leaseToken: null } }), 32,
@@ -363,6 +365,6 @@ test("pre-auth installation upgrades without changing owned jobs or approvals", 
     cli(["migrate", "deploy"]); // Retry is a no-op, not a reset.
     assert.equal(await legacy.user.count(), 1); assert.equal(await legacy.officeJob.count(), 1);
     const records = await legacy.$queryRaw<Array<{ count: bigint }>>`SELECT count(*) FROM "_prisma_migrations" WHERE finished_at IS NOT NULL AND rolled_back_at IS NULL`;
-    assert.equal(Number(records[0].count), 4);
+    assert.equal(Number(records[0].count), 5);
   } finally { await legacy.$disconnect(); await db.$executeRawUnsafe(`DROP SCHEMA "${legacySchema}" CASCADE`); }
 });

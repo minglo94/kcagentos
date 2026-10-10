@@ -1,3 +1,4 @@
+import "./helpers/task-env";
 // Synthetic-only end-to-end test: real Next routes, sessions, Prisma and browser;
 // planner output is a fixture, not a claim of live Hermes inference.
 import { spawn, spawnSync } from "node:child_process";
@@ -15,7 +16,7 @@ import type { OfficePlan } from "../src/lib/office/plan";
 
 async function main() {
   const pg = await PGlite.create();
-  for (const dir of ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review"]) await pg.exec(await readFile(`prisma/migrations/${dir}/migration.sql`, "utf-8"));
+  for (const dir of ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review", "20261010000000_task_audit"]) await pg.exec(await readFile(`prisma/migrations/${dir}/migration.sql`, "utf-8"));
   const socket = new PGLiteSocketServer({ db: pg, port: 0, host: "127.0.0.1", maxConnections: 1 });
   await socket.start();
   // PGlite multiplexes one backend; disable per-connection prepared statements.

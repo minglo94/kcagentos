@@ -1,299 +1,69 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
-import { streamLLM, completeLLM, type Engine, type LLMMessage } from "@/lib/llm";
-import {
-  loadCharter,
-  parseRoute,
-  parseDocReady,
-  parseDocType,
-  parseNeedsApproval,
-  parseDocTitle,
-  agentId,
-  inferTitleFromContent,
-  parseNeedTool,
-  stripToolMarkers,
-  AGENT_DOC_TYPES,
-  type AgentKey,
-} from "@/lib/agents";
-import { runAgentTool } from "@/lib/agent-tools";
-import { prisma } from "@/lib/prisma";
-import Pusher from "pusher";
-
-// Pusher 可選 — 未設環境變數時靜默忽略
-const pusher =
-  process.env.PUSHER_APP_ID && process.env.PUSHER_KEY && process.env.PUSHER_SECRET
-    ? new Pusher({
-        appId:   process.env.PUSHER_APP_ID,
-        key:     process.env.PUSHER_KEY,
-        secret:  process.env.PUSHER_SECRET,
-        cluster: process.env.PUSHER_CLUSTER ?? "ap1",
-        useTLS:  true,
-      })
-    : null;
-
-async function pushEvent(channel: string, event: string, data: object) {
-  try {
-    if (pusher) await pusher.trigger(channel, event, data);
-  } catch {}
-}
-
-export async function POST(req: NextRequest) {
-  const session = await getSession();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "未登入" }, { status: 401 });
-  }
-
-  const { messages, engine = "claude", engineConfig = {} } = (await req.json()) as {
-    messages: LLMMessage[];
-    engine?: Engine;
-    engineConfig?: { baseUrl?: string; model?: string };
-  };
-
-  // Claude 引擎需要 API key；本地引擎唔需要
-  if (engine === "claude" && !process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: "伺服器未設定 ANTHROPIC_API_KEY，請聯絡 IT 主任，或喺設定切換本地引擎。" },
-      { status: 503 },
-    );
-  }
-
-  const llmOpts = {
-    baseUrl: engineConfig.baseUrl  || undefined,
-    model:   engineConfig.model    || undefined,
-  };
-
-  const userId      = session.user.id;
-  const channelName = `user-${userId}`;
-  const encoder     = new TextEncoder();
-
-  const stream = new ReadableStream({
-    async start(controller) {
-      const send = (data: object) => {
-        try {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
-        } catch {}
-      };
-
-      // 專員開工時即建 RUNNING 任務，dashboard 進度板先見到「處理中」
-      let runningTaskId: string | null = null;
-
-      try {
-        // ── Stage 1: Dispatcher (A01) ──────────────────────────────────
-        await pushEvent(channelName, "agent-status", { agentId: "A01", status: "running" });
-        send({ agentId: "A01", status: "running" });
-
-        const dispatcherSystem = loadCharter("dispatcher");
-        const dispatcherReply  = await completeLLM(engine, messages, {
-          ...llmOpts,
-          system:    dispatcherSystem,
-          maxTokens: 512,
-        });
-
-        await pushEvent(channelName, "agent-status", { agentId: "A01", status: "done" });
-
-        const routeKey = parseRoute(dispatcherReply);
-
-        // Dispatcher 問清楚階段 → 直接回傳純文字
-        if (!routeKey) {
-          const cleanReply = dispatcherReply
-            .replace(/\[ROUTE:\w+\]/g, "")
-            .replace(/\[NEED_TOOL:\w+\]/g, "")
-            .trim();
-          // chunk:true 確保 ChatPanel 用 accumulated 路徑處理
-          send({ agentId: "A01", text: cleanReply, chunk: true });
-          send({ agentId: "A01", status: "done", final: true });
-          controller.close();
-          return;
-        }
-
-        // ── Stage 2: Specialist Agent ───────────────────────────────────
-        const specAgentId = agentId(routeKey);
-        // A06 成績分析 + 雲端引擎 → 提示建議切換本地引擎
-        const privacyHint = routeKey === "donna" && engine === "claude";
-        await pushEvent(channelName, "agent-status", { agentId: specAgentId, status: "running" });
-        send({ agentId: specAgentId, status: "running", route: routeKey, privacyHint });
-
-        // 即時建立 RUNNING 任務（完成後更新；純對話回合會刪走）
-        try {
-          const lastUserMsg = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
-          const runningTask = await prisma.task.create({
-            data: {
-              userId,
-              title:   lastUserMsg.trim().slice(0, 50) || "新任務",
-              agentId: specAgentId,
-              status:  "RUNNING",
-            },
-          });
-          runningTaskId = runningTask.id;
-          await pushEvent(channelName, "task-update", {
-            taskId:  runningTask.id,
-            status:  "RUNNING",
-            agentId: specAgentId,
-            title:   runningTask.title,
-          });
-        } catch (dbErr) {
-          console.error("[api/chat] create running task:", dbErr);
-        }
-
-        // Inject any default templates for this agent's docTypes
-        let specialistSystem = loadCharter(routeKey);
-        try {
-          const relevantTypes = AGENT_DOC_TYPES[routeKey as AgentKey] ?? [];
-          if (relevantTypes.length > 0) {
-            const defaultTemplates = await prisma.template.findMany({
-              where: { docType: { in: relevantTypes }, isDefault: true },
-            });
-            if (defaultTemplates.length > 0) {
-              const sections = defaultTemplates.map((t) =>
-                `【${t.name}】（類型：${t.docType}）\n${t.content}`
-              ).join("\n\n---\n\n");
-              specialistSystem += `\n\n---\n[範本庫]\n以下是管理員設定的預設範本，請參考其格式和結構生成文件。使用 {{}} 佔位符標示的位置請根據對話內容填充實際資訊。\n\n${sections}`;
-            }
-          }
-        } catch {
-          // 範本查詢失敗不影響正常生成
-        }
-
-        // 雲端模式下成績數據匿名化：學生姓名以學號代替
-        if (privacyHint) {
-          specialistSystem += "\n\n---\n[私隱保護]\n現時使用雲端引擎。分析及輸出時，學生一律以班別+學號表示（如 3A-12），不得在輸出中複述學生全名。並在回覆開頭提醒用戶：處理敏感成績數據建議切換本地引擎（設定 → 引擎）。";
-        }
-        let fullText = "";
-        let workingMessages = [...messages];
-
-        for await (const chunk of streamLLM(engine, workingMessages, {
-          ...llmOpts,
-          system:    specialistSystem,
-          maxTokens: 4096,
-        })) {
-          fullText += chunk;
-          send({ agentId: specAgentId, text: chunk, chunk: true });
-        }
-
-        // ── 工具調用迴圈：[NEED_TOOL:x]{params} → 執行 → 結果回饋再生成 ──
-        let toolCall  = parseNeedTool(fullText);
-        let toolRound = 0;
-        while (toolCall && toolRound < 2) {
-          toolRound++;
-          send({ agentId: specAgentId, status: "running", tool: toolCall.tool });
-          await pushEvent(channelName, "agent-status", {
-            agentId: specAgentId, status: "running", tool: toolCall.tool,
-          });
-
-          const toolResult = await runAgentTool(toolCall, { userId });
-
-          workingMessages = [
-            ...workingMessages,
-            { role: "assistant" as const, content: fullText },
-            { role: "user" as const, content: `[系統：工具 ${toolCall.tool} 執行結果]\n${toolResult}\n\n請根據以上結果回覆用戶。` },
-          ];
-
-          fullText = "";
-          send({ agentId: specAgentId, text: "\n\n", chunk: true });
-          for await (const chunk of streamLLM(engine, workingMessages, {
-            ...llmOpts,
-            system:    specialistSystem,
-            maxTokens: 4096,
-          })) {
-            fullText += chunk;
-            send({ agentId: specAgentId, text: chunk, chunk: true });
-          }
-          toolCall = parseNeedTool(fullText);
-        }
-
-        await pushEvent(channelName, "agent-status", { agentId: specAgentId, status: "done" });
-
-        const docReady      = parseDocReady(fullText);
-        const docType       = parseDocType(fullText);
-        const needsApproval = parseNeedsApproval(fullText);
-        const docTitleTag   = parseDocTitle(fullText);
-
-        const cleanContent = stripToolMarkers(
-          fullText
-            .replace(/\[DOCREADY\]/g, "")
-            .replace(/\[DOCTYPE:[^\]]+\]/g, "")
-            .replace(/\[TITLE:[^\]]+\]/g, "")
-            .replace(/\[NEEDS_APPROVAL\]/g, ""),
-        ).trim();
-
-        // 檔案名稱：優先用 [TITLE:xxx]，其次從內容首行提取
-        const docTitle = docTitleTag ?? inferTitleFromContent(docType, cleanContent);
-
-        let documentId: string | null = null;
-
-        if (docReady) {
-          try {
-            const taskData = {
-              title:  docTitle,
-              status: (needsApproval ? "PENDING_APPROVAL" : "DONE") as "PENDING_APPROVAL" | "DONE",
-            };
-            const task = runningTaskId
-              ? await prisma.task.update({ where: { id: runningTaskId }, data: taskData })
-              : await prisma.task.create({ data: { userId, agentId: specAgentId, ...taskData } });
-            const doc = await prisma.document.create({
-              data: {
-                taskId:         task.id,
-                userId,
-                title:          docTitle,
-                docType,
-                content:        cleanContent,
-                approvalStatus: needsApproval ? "PENDING" : "NOT_REQUIRED",
-              },
-            });
-            documentId = doc.id;
-
-            await prisma.auditLog.create({
-              data: { userId, action: "GENERATE", agentId: specAgentId, engine, docType },
-            });
-
-            await pushEvent(channelName, "task-update", {
-              taskId:  task.id,
-              status:  task.status,
-              agentId: specAgentId,
-              title:   task.title,
-            });
-          } catch (dbErr) {
-            console.error("[api/chat] DB error:", dbErr);
-            // DB 錯誤唔阻止回傳文字內容，只係唔儲存
-          }
-        } else if (runningTaskId) {
-          // 純對話回合（無生成文件）— 刪走臨時任務，免進度板積塵
-          try {
-            await prisma.task.delete({ where: { id: runningTaskId } });
-          } catch {}
-          runningTaskId = null;
-        }
-
-        send({
-          agentId: specAgentId,
-          status:  "done",
-          docReady,
-          documentId,
-          docType,
-          needsApproval,
-          final:   true,
-        });
-
-        controller.close();
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error("[api/chat]", err);
-        if (runningTaskId) {
-          try {
-            await prisma.task.update({ where: { id: runningTaskId }, data: { status: "FAILED" } });
-          } catch {}
-        }
-        send({ error: `處理失敗：${msg.slice(0, 120)}` });
-        controller.close();
-      }
-    },
+import {NextRequest,NextResponse} from 'next/server';
+import {randomUUID} from 'node:crypto';
+import {z} from 'zod';
+import {getSession} from '@/lib/auth';
+import {prisma} from '@/lib/prisma';
+import {accountBody,requireSameOrigin} from '@/lib/school-auth/admin-http';
+import {resolvePolicy,requireSyntheticExecution,assertCapability} from '@/lib/task-policy/policy';
+import {localModelConfig} from '@/lib/task-policy/local-model';
+import {beginAttempt,finishAttempt,finishInTransaction} from '@/lib/task-audit/store';
+import {recordOutput} from '@/lib/task-audit/invoke';
+import {auditedCompletion,auditedLLM} from '@/lib/task-audit/llm';
+import {loadCharter,parseRoute,agentId,parseNeedTool,parseDocReady,parseDocType,parseNeedsApproval,parseDocTitle,inferTitleFromContent,stripToolMarkers} from '@/lib/agents';
+import {runAgentTool} from '@/lib/agent-tools';
+import {serial} from '@/lib/office/store';
+const bodySchema=z.object({messages:z.array(z.object({role:z.enum(['user','assistant']),content:z.string().max(12000)}).strict()).min(1).max(100),engine:z.enum(['claude','ollama','lmstudio']).default('ollama'),engineConfig:z.object({baseUrl:z.string().optional(),model:z.string().optional()}).strict().optional()}).strict();
+export async function POST(req:NextRequest) {
+ const session=await getSession();if(!session?.user?.id)return NextResponse.json({error:'NOT_AUTHENTICATED'},{status:401});
+ let attemptId:string|undefined;
+ try {
+  requireSameOrigin(req);requireSyntheticExecution();
+  const body=bodySchema.parse(await accountBody(req));const policy=await resolvePolicy(prisma,session.user.id);
+  const attempt=await beginAttempt(prisma,{actorId:policy.actorId,policy,invocationKey:randomUUID(),executor:'chat',input:Buffer.from(JSON.stringify(body.messages))});attemptId=attempt.id;
+  assertCapability(policy,body.engine==='claude'?'cloudInference':'localInference');
+  if(body.engineConfig?.baseUrl || body.engineConfig?.model)throw new Error('POLICY_DENIED');
+  localModelConfig();
+  const stop=new AbortController();const signal=AbortSignal.any([req.signal,stop.signal]);
+  const opts={policy,signal,parentId:attempt.id};const encoder=new TextEncoder();
+  const stream=new ReadableStream({
+   async start(controller) {
+    const send=(value:object)=>{if(signal.aborted)throw new Error('JOB_INTERRUPTED');controller.enqueue(encoder.encode(`data: ${JSON.stringify(value)}\n\n`));};
+    try {
+     send({agentId:'A01',status:'running'});
+     const dispatch=await auditedCompletion(prisma,body.engine,body.messages,{...opts,system:loadCharter('dispatcher'),maxTokens:512});
+     const route=parseRoute(dispatch);
+     if(!route) {
+      const content=stripToolMarkers(dispatch.replace(/\[ROUTE:\w+\]/g,''));
+      await recordOutput(prisma,attempt.id,Buffer.from(content));await finishAttempt(prisma,attempt.id,'SUCCEEDED');
+      send({agentId:'A01',text:content,chunk:true});send({agentId:'A01',status:'done',final:true});controller.close();return;
+     }
+     const specialist=agentId(route);send({agentId:specialist,status:'running',route,privacyHint:false});let content='';
+     for await(const chunk of auditedLLM(prisma,body.engine,body.messages,{...opts,system:loadCharter(route)})){content+=chunk;send({agentId:specialist,text:chunk,chunk:true});}
+     const tool=parseNeedTool(content);
+     if(tool)await runAgentTool(tool,{userId:policy.actorId,policy,parentId:attempt.id}); // Unqualified sources fail closed and are journaled.
+     const docReady=parseDocReady(content),docType=parseDocType(content),needsApproval=parseNeedsApproval(content);
+     const clean=stripToolMarkers(content.replace(/\[DOCREADY\]|\[DOCTYPE:[^\]]+\]|\[TITLE:[^\]]+\]|\[NEEDS_APPROVAL\]/g,''));
+     await recordOutput(prisma,attempt.id,Buffer.from(clean));
+     if(signal.aborted)throw new Error('JOB_INTERRUPTED');
+     const documentId=await serial(prisma,async tx=>{
+      await finishInTransaction(tx,attempt.id,'SUCCEEDED');
+      if(!docReady)return null;
+      const title=parseDocTitle(content)??inferTitleFromContent(docType,clean);
+      const task=await tx.task.create({data:{userId:policy.actorId,agentId:specialist,title,status:needsApproval?'PENDING_APPROVAL':'DONE'}});
+      return (await tx.document.create({data:{taskId:task.id,userId:policy.actorId,title,docType,content:clean,approvalStatus:needsApproval?'PENDING':'NOT_REQUIRED'}})).id;
+     });
+     send({agentId:specialist,status:'done',docReady,documentId,docType,needsApproval,final:true});controller.close();
+    }catch {
+     await finishAttempt(prisma,attempt.id,signal.aborted?'CANCELLED':'FAILED','EXECUTION_FAILED').catch(()=>{});
+     if(!signal.aborted){try{send({error:'TASK_FAILED: inspect the protected task log.'});controller.close();}catch{stop.abort();}}
+    }
+   },
+   cancel(){stop.abort();},
   });
-
-  return new Response(stream, {
-    headers: {
-      "Content-Type":  "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection:      "keep-alive",
-    },
-  });
+  return new Response(stream,{headers:{'Content-Type':'text/event-stream','Cache-Control':'no-store','Connection':'keep-alive'}});
+ }catch(error) {
+  if(attemptId)await finishAttempt(prisma,attemptId,'DENIED','POLICY_DENIED').catch(()=>{});
+  const code=error instanceof Error && ['POLICY_DENIED','SCHOOL_EXECUTION_NOT_READY','LOCAL_MODEL_NOT_CONFIGURED','AUDIT_STORAGE_UNAVAILABLE'].includes(error.message)?error.message:'INVALID_REQUEST';
+  return NextResponse.json({error:code},{status:code==='POLICY_DENIED'?403:code==='INVALID_REQUEST'?400:503});
+ }
 }

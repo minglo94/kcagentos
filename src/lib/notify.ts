@@ -1,3 +1,4 @@
+import { assertCapability } from "./task-policy/policy";
 // n8n webhook client — WhatsApp 推送
 // 環境變數：N8N_WEBHOOK_URL（n8n workflow webhook）、N8N_WEBHOOK_SECRET（雙向驗證）
 
@@ -13,6 +14,7 @@ export function isNotifyConfigured(): boolean {
 }
 
 export async function sendWhatsApp(payload: NotifyPayload): Promise<{ ok: boolean; error?: string }> {
+  assertCapability(undefined, "externalPublish"); // No qualified publication context in this release.
   const url = process.env.N8N_WEBHOOK_URL;
   if (!url) return { ok: false, error: "伺服器未設定 N8N_WEBHOOK_URL" };
 

@@ -1,3 +1,4 @@
+import { denyUnsupportedTask } from "@/lib/task-policy/deny-route";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isNotifyConfigured, sendWhatsApp } from "@/lib/notify";
@@ -6,6 +7,7 @@ import { isNotifyConfigured, sendWhatsApp } from "@/lib/notify";
 // Called by external cron (Zeabur / GitHub Actions / cron-job.org)
 // Authorization: Bearer <CRON_SECRET>
 export async function GET(req: NextRequest) {
+  const blocked = await denyUnsupportedTask("cron/weekly-summary:GET"); if (blocked) return blocked;
   const secret = process.env.CRON_SECRET;
   if (!secret) return NextResponse.json({ error: "CRON_SECRET 未設定" }, { status: 503 });
   if (req.headers.get("authorization") !== `Bearer ${secret}`) {

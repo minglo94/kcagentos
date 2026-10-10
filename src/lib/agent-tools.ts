@@ -1,3 +1,6 @@
+import { assertCapability, type ExecutionPolicy } from "./task-policy/policy";
+import { beginAttempt, finishAttempt } from "./task-audit/store";
+import { randomUUID } from "node:crypto";
 import type { ToolCall } from "@/lib/agents";
 import { prisma } from "@/lib/prisma";
 import {
@@ -14,11 +17,18 @@ import {
 
 export interface ToolContext {
   userId: string;
+  policy?: ExecutionPolicy;
+  parentId?: string;
 }
 
 // 執行 Agent 工具調用，回傳廣東話描述俾 Agent 引用
 // 錯誤（搵唔到老師、未上載時間表）都以文字回傳，由 Agent 向用戶解釋
 export async function runAgentTool(call: ToolCall, ctx: ToolContext): Promise<string> {
+  if (!ctx.policy) throw new Error("POLICY_DENIED");
+  const attempt = await beginAttempt(prisma, {actorId:ctx.userId,policy:ctx.policy,parentId:ctx.parentId,invocationKey:randomUUID(),executor:"tool",input:Buffer.from(JSON.stringify(call))});
+  try { assertCapability(ctx.policy, "sourceRead"); }
+  catch { await finishAttempt(prisma, attempt.id, "DENIED", "POLICY_DENIED"); throw new Error("POLICY_DENIED"); }
+
   try {
     switch (call.tool) {
       case "timetable_query":  return await runTimetableQuery(call.params);

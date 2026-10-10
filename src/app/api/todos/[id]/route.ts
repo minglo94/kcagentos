@@ -1,3 +1,4 @@
+import { denyUnsupportedTask } from "@/lib/task-policy/deny-route";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -5,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 // PATCH /api/todos/[id] — body: { done?, text? }
 // updateMany + { id, userId } 確保只可以改自己嘅待辦
 export async function PATCH(req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const blocked = await denyUnsupportedTask("todos/[id]:PATCH"); if (blocked) return blocked;
   const params = await routeParams;
   const session = await getSession();
   if (!session?.user?.id) return NextResponse.json({ error: "未登入" }, { status: 401 });
@@ -27,6 +29,7 @@ export async function PATCH(req: NextRequest, { params: routeParams }: { params:
 
 // DELETE /api/todos/[id]
 export async function DELETE(_req: NextRequest, { params: routeParams }: { params: Promise<{ id: string }> }) {
+  const blocked = await denyUnsupportedTask("todos/[id]:DELETE"); if (blocked) return blocked;
   const params = await routeParams;
   const session = await getSession();
   if (!session?.user?.id) return NextResponse.json({ error: "未登入" }, { status: 401 });

@@ -296,3 +296,12 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] User approved written design with “Ok”; explain that no separate approval UI is required.
 - [x] Write and self-review first-stage policy/audit implementation plan at docs/superpowers/plans/2026-10-10-school-policy-audit.md.
 - [ ] Written-plan review, then native implementation; controlled files, Portal vector adapter and host isolation remain subsequent stages.
+
+## School policy/audit first implementation — 2026-10-10
+- [x] Server-owned synthetic restricted policy, local-only loopback inference, configured model, cloud/client override/redirect denial and policy-bound job snapshots.
+- [x] Durable task attempts and protected input/output files with lease/version/ancestor fencing; worker planning/manual/Codex and chat paths covered.
+- [x] Admin list/detail/input/output viewer; active-role checks, inspection audit and literal HTML rendering. Unqualified legacy external/source routes and helper connectors denied.
+- [x] Fix fresh-review Important findings with failing-then-passing nested-stream and Codex-partial-output tests. Resolve six-worker audit contention with row-locked ReadCommitted transactions.
+- [ ] Qualify protected live audit storage/retention and model host isolation; controlled NAS/read-only inputs, separate outputs and scoped Portal PostgreSQL vector adapter.
+- [ ] Finish live AD, Spark migration/deployment, class-summary, Pixel provider and approved schedules.
+- [x] Final first-stage verification: Node 55/55, PostgreSQL 13/13, Python 6/6, both browser flows, typecheck/lint/build; ignored audit fixtures and generated schemas cleaned by tests.

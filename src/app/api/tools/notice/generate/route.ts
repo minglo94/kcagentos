@@ -1,3 +1,4 @@
+import { denyUnsupportedTask } from "@/lib/task-policy/deny-route";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { generateNoticeDocx, generateTutorSignIn } from "@/lib/tools/notice-docx";
@@ -5,6 +6,7 @@ import { generateAttendanceXlsx, generateFad8Xlsx } from "@/lib/tools/notice-xls
 import { createZipArchive } from "@/lib/tools/archive";
 
 export async function POST(req: NextRequest) {
+  const blocked = await denyUnsupportedTask("tools/notice/generate:POST"); if (blocked) return blocked;
   const session = await getSession();
   if (!session?.user?.id) return NextResponse.json({ error: "未登入" }, { status: 401 });
 

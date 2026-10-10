@@ -9,7 +9,7 @@ export async function officeUser(req: NextRequest) {
     // Next may normalize loopback/reverse-proxy URLs to localhost internally.
     // Prefer the explicitly configured public authentication origin.
     const expectedOrigin = process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).origin : req.nextUrl.origin;
-    if (origin && origin !== expectedOrigin) throw new OfficeError(403, "INVALID_ORIGIN");
+    if (origin !== expectedOrigin) throw new OfficeError(403, "INVALID_ORIGIN");
   }
   const session = await getSession();
   if (!session?.user?.id) throw new OfficeError(401, "NOT_AUTHENTICATED");
@@ -17,6 +17,7 @@ export async function officeUser(req: NextRequest) {
 }
 export function officeFailure(error: unknown) {
   if (error instanceof OfficeError) return NextResponse.json({ error: error.code }, { status: error.status });
+  if (error instanceof Error && ["SCHOOL_EXECUTION_NOT_READY", "LOCAL_MODEL_NOT_CONFIGURED", "AUDIT_STORAGE_UNAVAILABLE", "POLICY_DENIED"].includes(error.message)) return NextResponse.json({error:error.message}, {status:error.message === "POLICY_DENIED" ? 403 : 503});
   if (error instanceof ZodError || error instanceof SyntaxError) return NextResponse.json({ error: "INVALID_INPUT" }, { status: 400 });
   return NextResponse.json({ error: "SERVICE_UNAVAILABLE" }, { status: 503 });
 }

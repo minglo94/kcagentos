@@ -20,7 +20,8 @@
     "test:postgres": "node --import tsx --test tests/office-postgres.ts",
     "auth:bootstrap": "node --env-file-if-exists=.env.local --import tsx scripts/create-local-admin.ts",
     "test:auth:browser": "node --import tsx tests/school-auth-browser.ts",
-    "test:container": "node --import tsx tests/container-browser.ts"
+    "test:container": "node --import tsx tests/container-browser.ts",
+    "test:audit:browser": "node --import tsx tests/school-auth-browser.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",

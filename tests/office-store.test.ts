@@ -1,3 +1,4 @@
+import "./helpers/task-env";
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -14,11 +15,12 @@ const plan: OfficePlan = { summary: "Draft a report", acceptance: ["Staff review
 ] };
 before(async () => {
   pg = await PGlite.create();
-  for (const migration of ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review"]) await pg.exec(await readFile(`prisma/migrations/${migration}/migration.sql`, "utf-8"));
+  for (const migration of ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review", "20261010000000_task_audit"]) await pg.exec(await readFile(`prisma/migrations/${migration}/migration.sql`, "utf-8"));
   server = new PGLiteSocketServer({ db: pg, host: "127.0.0.1", port: 0 });
   await server.start();
   db = new PrismaClient({ datasources: { db: { url: `postgresql://postgres:postgres@${server.getServerConn()}/postgres?connection_limit=1` } } });
   user = (await db.user.create({ data: { email: "synthetic@example.test", name: "Synthetic tester", subjects: [] } })).id;
+  process.env.AGENTOS_DEVELOPMENT_ACTORS=user;
 });
 after(async () => { await db?.$disconnect(); await server?.stop(); await pg?.close(); });
 

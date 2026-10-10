@@ -1,0 +1,22 @@
+# Task policy coverage — synthetic first stage
+
+2026-10-10. Every path below was inspected after the school policy implementation. The only active task execution mode is `AGENTOS_TASK_DATA_MODE=synthetic`; there is no live student mode. Missing or different mode fails before job creation or chat/model execution. This table is a first-stage coverage record, not a claim that school NAS, Portal, local model or host isolation is qualified.
+
+| Entry point | Policy and input/output record |
+|---|---|
+| `POST /api/jobs` | Active actor and server policy; goal/team input and new job ID output recorded before success; policy snapshot/hash on job. |
+| Office worker planner and approved manual/Codex steps | Parent attempt per claim; goal/plan/instructions and result or failure persisted; lease, version and policy checked. Planner model has a nested attempt; Codex journals actual prefixed prompt and partial deltas. Manual evidence records submitted evidence and acceptance. |
+| `POST /api/chat` | Active actor and server policy; request and each model prompt/output recorded before final response. Cloud engine and browser-provided model URL/model refused. Only configured loopback inference. Tool requests are recorded and source reads denied until approved adapters exist. Streaming cancellation leaves a partial attempt. |
+| `GET /api/admin/task-audits`, detail and payload | Fresh active admin check; protected payload reference resolved only after authorization; inspection/listing audited. No general export. Portal-owned payload resolution unavailable. |
+| Legacy `/api/doc` GET/POST, `/api/tools/quotation/{parse,generate}`, `/api/tools/notice/generate` | Refused before body read or external inference/upload; a denial attempt records route and refusal, not the rejected body's contents. |
+| Legacy `/api/notify`, `/api/notify/callback`, `/api/cron/weekly-summary`, `/api/approvals/[id]`, `/api/todos` mutation | Refused before connector, scheduler or content-writing work. Denial attempts recorded. Existing accepted business operations are not replayed. |
+| `src/lib/notify.ts`, `src/lib/gdrive.ts`, `src/lib/gcal.ts` | Outbound helper entry points require a policy capability unavailable in this release; tests prove direct calls fail. |
+| `src/lib/office/hermes.ts` | Stock Hermes profile has no qualified school local-model/egress proof. The production worker now uses its configured loopback model with a schema-validated, manual planner. Direct Hermes bridge call requires unavailable restricted capability. |
+| Office plan approval/control | Existing owner/version/plan-hash and lease rules remain; policy hash checked before approval/resume. Decisions and actions remain in OfficeApproval/OfficeEvent. |
+| `GET /api/tasks`, dashboard, timetable, templates, admin users and authentication | Authenticated human UI/configuration paths. No agent path to their database or uploads is exposed by the new worker; legacy tool call is denied. Existing application data is not migrated or reclassified here. |
+
+## Remaining gates
+
+Protected payload storage currently uses an existing private 0700 directory outside the application checkout, immutable 0600 files, fsync and SHA-256 checks. It does not provide deployed encryption, retention purge, protected shared web/worker mounting, or Portal authorization for student payloads. A local environment flag permits synthetic fixtures only; there is no student-data activation flag. The current Compose web has no audit mount or model access, so its task endpoints fail closed.
+
+The file/NAS adapter, separate output folder, scoped PostgreSQL vector query adapter, complete Portal class-summary contract and egress/mount isolation need their own qualification. Do not enter real student data in chat or synthetic tests. Never use a public/static directory as `AGENTOS_AUDIT_ROOT`.

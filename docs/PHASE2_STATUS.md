@@ -32,3 +32,7 @@ Setup and evidence: `SCHOOL_AUTH_SETUP.md`, `DEPENDENCY_QUALIFICATION.md`, `POST
 ## New school data requirements — 2026-10-10
 
 Proposed enforcement design: `docs/SCHOOL_DATA_POLICY_DESIGN.md`. User confirmed PostgreSQL vector for online Teacher Portal retrieval. Next work covers admin-visible task input/output audit, local inference/embeddings, restricted read-only inputs and separate outputs, scoped read-only database queries, and student-data online-search denial. These controls are not implemented yet; existing cloud-capable chat must not be treated as compliant.
+
+## Synthetic task policy and audit implementation — 2026-10-10
+
+Server policy now defaults school/unknown tasks to restricted, routes chat to a configured loopback model, persists protected task inputs/outputs/attempt status, and provides an active-admin viewer. Unqualified legacy retrieval and external publication paths fail closed. The Office worker has a local-model manual planner; explicit development Codex access requires a server actor allowlist and persists partial deltas. Deployment remains synthetic-only; see `TASK_POLICY_COVERAGE.md` for route inventory and limits. NAS/output-folder and Portal PostgreSQL vector adapters, real student storage/retention, OS network isolation, local-model qualification, real AD and Spark remain separate gates.

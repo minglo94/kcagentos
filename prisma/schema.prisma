@@ -182,6 +182,8 @@ model OfficeJob {
   userId          String
   user            User         @relation(fields: [userId], references: [id])
   goal            String       @db.Text
+  executionPolicy Json?
+  policyHash      String?
   team            String
   status          OfficeStatus @default(PLANNING)
   plan            Json?
@@ -238,4 +240,39 @@ model OfficeApproval {
   createdAt   DateTime  @default(now())
 
   @@unique([jobId, planVersion])
+}
+
+model TaskAttempt {
+  id            String @id
+  invocationKey String @unique
+  actorId       String
+  parentId      String?
+  jobId         String?
+  stepId        String?
+  policy        Json
+  executor      String
+  model         String?
+  status        String @default("RUNNING")
+  errorCode     String?
+  leaseToken    String?
+  planVersion   Int?
+  deadline      DateTime
+  createdAt     DateTime @default(now())
+  finishedAt    DateTime?
+  artifacts     TaskArtifact[]
+  @@index([actorId, createdAt])
+  @@index([jobId, status])
+  @@index([status, deadline])
+}
+
+model TaskArtifact {
+  id         String @id @default(cuid())
+  attemptId  String
+  attempt    TaskAttempt @relation(fields: [attemptId], references: [id])
+  direction  String
+  sequence   Int
+  ref        String @unique
+  sha256     String
+  bytes      Int
+  @@unique([attemptId, direction, sequence])
 }

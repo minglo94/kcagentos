@@ -289,13 +289,13 @@ Review: the new process tests execute the real worker core with synthetic blocke
 ## School data policy — 2026-10-10
 - [x] Inspect worker, Codex/Hermes adapters, legacy LLM routing and audit schema; record user requirements and PostgreSQL vector clarification.
 - [x] Write reviewable design in docs/SCHOOL_DATA_POLICY_DESIGN.md, preserving Portal authority and protected sensitive audit payloads.
-- [ ] Review written design, then prepare implementation plan and implement policy/audit coverage across workers and chat.
+- [x] Review written design, prepare implementation plan and implement synthetic policy/audit coverage across workers and chat.
 - [ ] Qualify controlled folders, local inference/embeddings and scoped PostgreSQL vector retrieval; real configuration remains private and unavailable.
 
 ## School policy implementation planning — 2026-10-10
 - [x] User approved written design with “Ok”; explain that no separate approval UI is required.
 - [x] Write and self-review first-stage policy/audit implementation plan at docs/superpowers/plans/2026-10-10-school-policy-audit.md.
-- [ ] Written-plan review, then native implementation; controlled files, Portal vector adapter and host isolation remain subsequent stages.
+- [x] Review written plan and implement synthetic policy/audit stage; controlled files have a later synthetic stage, while Portal vector adapter and host isolation remain live gates.
 
 ## School policy/audit first implementation — 2026-10-10
 - [x] Server-owned synthetic restricted policy, local-only loopback inference, configured model, cloud/client override/redirect denial and policy-bound job snapshots.
@@ -312,3 +312,10 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Synthetic folder/audit tests, typecheck, Node/Python suites, browser auth/Office flows and production build verified. Reproduced intermittent `P2034` in six-worker step completion; narrowed that transaction to `ReadCommitted` with an explicit job row lock and retained lease/audit fencing. Five consecutive guarded PostgreSQL runs passed 13/13 after the fix.
 - [ ] Bind file tools to approved Office/Portal jobs, enforce per-job aggregate quotas, reconcile staged crash orphans and promote outputs only after authorized completion. Qualify actual read-only NAS mounts, protected storage/retention and host isolation before real data.
 - [ ] Get authoritative Portal views, teacher-scope and vector model contract before named read-only PostgreSQL queries; real AD/model/Spark/Pixel/scheduling gates remain.
+
+## Demo-first class-summary qualification — 2026-10-10
+- [x] Inspect the provided Keichi Portal source at `58f6ff6`; record its existing class/homework permissions, local student-data embedding path and missing AgentOS class-summary operation boundary.
+- [x] Add a strict proposed opaque request/status contract and test-only Portal fixture. Cover changed idempotency replay, staff/class/date scope, incomplete/ambiguous sources, separate approvals, impossible status claims and unknown delivery.
+- [x] Add `npm run demo:school` with disposable PGlite, fake loopback model, approved parent job, scoped file read/private output and auditable attempts; publish exact test steps in docs/DEMO_TEST_GUIDE.md.
+- [ ] Implement and qualify the class-summary operation, authoritative approvals, durable outbox and service identity in Keichi; then add the AgentOS client and cross-service tests. No direct student database credentials in AgentOS.
+- [ ] Qualify actual school Ollama, LDAPS, NAS, production backup/migration, full Pixel source/assets, schedule/calendar and Spark host before activating live student processing.

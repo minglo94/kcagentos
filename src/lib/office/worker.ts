@@ -112,7 +112,8 @@ export async function runNext(db: PrismaClient, services: WorkerServices, shutdo
         });
         await recordOutput(db, attemptId, Buffer.from(result));
         if (controller.signal.aborted || !result.trim()) throw new Error("JOB_INTERRUPTED");
-        await serial(db, async tx => {
+        await db.$transaction(async tx => {
+          await tx.$queryRaw`SELECT "id" FROM "OfficeJob" WHERE "id"=${job.id} FOR UPDATE`;
           const live = await tx.officeJob.findFirst({ where: { id: job.id, leaseToken: token, status: "RUNNING", leaseUntil: { gt: new Date() } } });
           if (!live) throw new Error("LEASE_LOST");
           if (executionAttemptId) await finishInTransaction(tx, executionAttemptId, "SUCCEEDED");
@@ -120,7 +121,7 @@ export async function runNext(db: PrismaClient, services: WorkerServices, shutdo
           await tx.officeStep.update({ where: { jobId_key: { jobId: job.id, key: next.id } }, data: { status: "SUCCEEDED", result: result.slice(0, 20_000) } });
           await tx.officeJob.update({ where: { id: job.id }, data: { status: "QUEUED", leaseToken: null, leaseUntil: null } });
           await emit(tx, job.id, "step.completed", { key: next.id, agent: next.agent, status: "QUEUED" });
-        });
+        },{isolationLevel:"ReadCommitted"});
       }
     }
   } catch (error) {

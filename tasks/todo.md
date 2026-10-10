@@ -305,3 +305,10 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Qualify protected live audit storage/retention and model host isolation; controlled NAS/read-only inputs, separate outputs and scoped Portal PostgreSQL vector adapter.
 - [ ] Finish live AD, Spark migration/deployment, class-summary, Pixel provider and approved schedules.
 - [x] Final first-stage verification: Node 55/55, PostgreSQL 13/13, Python 6/6, both browser flows, typecheck/lint/build; ignored audit fixtures and generated schemas cleaned by tests.
+
+## Controlled-file synthetic stage — 2026-10-10
+- [x] Add private named input/output root configuration and per-actor grants to policy hash; deny overlap, traversal, symlinks, wrong actors, unsupported file types and oversized reads.
+- [x] Add audited read and atomic private staged output bundle (one <=1 MiB file per attempt); generic chat tools remain journaled and denied even with folder grants.
+- [x] Synthetic folder/audit tests, typecheck, Node/Python suites, browser auth/Office flows and production build verified. Reproduced intermittent `P2034` in six-worker step completion; narrowed that transaction to `ReadCommitted` with an explicit job row lock and retained lease/audit fencing. Five consecutive guarded PostgreSQL runs passed 13/13 after the fix.
+- [ ] Bind file tools to approved Office/Portal jobs, enforce per-job aggregate quotas, reconcile staged crash orphans and promote outputs only after authorized completion. Qualify actual read-only NAS mounts, protected storage/retention and host isolation before real data.
+- [ ] Get authoritative Portal views, teacher-scope and vector model contract before named read-only PostgreSQL queries; real AD/model/Spark/Pixel/scheduling gates remain.

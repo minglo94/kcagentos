@@ -1,6 +1,6 @@
 # School data access and task audit design
 
-2026-10-10 — user approved this written design with “Ok”; runtime enforcement is pending. Implementation plan: `docs/superpowers/plans/2026-10-10-school-policy-audit.md`.
+2026-10-10 — user approved this written design with “Ok”. Synthetic policy/audit and private controlled-file staging have been implemented; live school activation and Portal query enforcement remain pending. Plans: `docs/superpowers/plans/2026-10-10-school-policy-audit.md` and `docs/superpowers/plans/2026-10-10-controlled-files.md`.
 
 ## Confirmed requirements
 
@@ -60,4 +60,4 @@ Configure encryption, access, backup and retention before live activation. Expir
 4. Qualify isolation and auditing: forbidden traffic cannot leave, unrelated files are inaccessible, crash/cancel/retry records remain accurate, stale workers cannot publish success, revoked admins are denied and events/Pixel contain no student payloads.
 5. Configure protected school services and retention; run an authorized small live workflow. Real student processing waits for these gates.
 
-Live models, real AD, production migration, full Pixel Agents, scheduling and Spark remain unfinished. This design changes no runtime behavior.
+Live models, real AD, production migration, full Pixel Agents, scheduling and Spark remain unfinished. The design itself is a requirements document; current runtime coverage and gaps are in `docs/TASK_POLICY_COVERAGE.md`.

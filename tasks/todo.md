@@ -285,3 +285,9 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Record concrete remaining dependencies and verified Pixel upstream limitations in docs/PHASE2_STATUS.md. Portal implementation still requires its authoritative contract; no invented API, duplicate outbox or business cron.
 - [x] Production-only audit: 3 moderate, zero high/critical; full tree remains 8.
 - [x] Published 0626b94, 1822436, ceeb9cf, cb70031 and synchronized draft PR #14; remaining live/Portal/Pixel/schedule/Spark gates stay unchecked.
+
+## School data policy — 2026-10-10
+- [x] Inspect worker, Codex/Hermes adapters, legacy LLM routing and audit schema; record user requirements and PostgreSQL vector clarification.
+- [x] Write reviewable design in docs/SCHOOL_DATA_POLICY_DESIGN.md, preserving Portal authority and protected sensitive audit payloads.
+- [ ] Review written design, then prepare implementation plan and implement policy/audit coverage across workers and chat.
+- [ ] Qualify controlled folders, local inference/embeddings and scoped PostgreSQL vector retrieval; real configuration remains private and unavailable.

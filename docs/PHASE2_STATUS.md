@@ -28,3 +28,7 @@ The authoritative Portal interface must establish these semantics before AgentOS
 Schedules and full school workflow must use that boundary rather than rebuilding Portal student tables, calculations, approval authority or email delivery. Current code still supports manual and approved Codex read-only steps only.
 
 Setup and evidence: `SCHOOL_AUTH_SETUP.md`, `DEPENDENCY_QUALIFICATION.md`, `POSTGRES_QUALIFICATION.md`, `HERMES_BRIDGE.md`, `SPARK_DEPLOYMENT.md`, and the latest task handover. Public files contain no staff credentials, private endpoints, student records or real backups.
+
+## New school data requirements — 2026-10-10
+
+Proposed enforcement design: `docs/SCHOOL_DATA_POLICY_DESIGN.md`. User confirmed PostgreSQL vector for online Teacher Portal retrieval. Next work covers admin-visible task input/output audit, local inference/embeddings, restricted read-only inputs and separate outputs, scoped read-only database queries, and student-data online-search denial. These controls are not implemented yet; existing cloud-capable chat must not be treated as compliant.

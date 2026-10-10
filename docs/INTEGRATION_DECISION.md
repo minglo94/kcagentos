@@ -48,3 +48,7 @@ First integrated pilot: overnight attendance/homework collection → validated i
 - No duplicate student schema, questionnaire scoring, email delivery engine or school business cron exists in AgentOS.
 
 References: docs/AGENTOS_PLAN.md; Keichi Local plan maintained locally in docs/KEICHI_LOCAL_PLAN.md pending creation of its private repository.
+
+## User clarification — 2026-10-10
+
+The user requests administrator-inspectable task input/output records, local-model-first execution, restricted NAS/input-folder reads, separate output storage, read-only online PostgreSQL vector queries and no online search while processing student data. See `docs/SCHOOL_DATA_POLICY_DESIGN.md` for the proposed enforcement design. Scoped database queries are an additional integration option, not authorization for unrestricted credentials, writes, duplicate datasets or bypassing Portal permissions. Sensitive audit payloads stay in protected school/Portal storage. Runtime implementation is pending.

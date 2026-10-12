@@ -10,11 +10,11 @@ The only capability is `class.daily-summary.draft`. Portal must validate complet
 
 ## Pairing and staff authorization
 
-Set server-only `PORTAL_BASE_URL`, `PORTAL_SERVICE_TOKEN` (16+ characters), `PORTAL_ASSERTION_SECRET` (32+ characters). Use an explicit HTTPS origin or loopback HTTP, without credentials, path, query or fragment. Redirects are rejected. Store secrets outside Git and supervisor/model context. Start the separate office Worker after applying the additive PortalOperation migration.
+Set server-only `PORTAL_BASE_URL`, `PORTAL_SERVICE_TOKEN` (48+ characters for the paired receiver), `PORTAL_ASSERTION_SECRET` (32+ characters). Use an explicit HTTPS origin or loopback HTTP, without credentials, path, query or fragment. Redirects are rejected. Store secrets outside Git and supervisor/model context. Start the separate office Worker after applying the additive PortalOperation migration.
 
 The service token identifies the integration. It does not authorize student access. Each call carries a fresh HMAC-SHA256 signed staff assertion. Portal must verify trusted issuer `agentos`, configured audience, signature, allowed clock skew, nonce replay protection, method/path/body hash and the authenticated service. Then independently map the asserted `(issuer, subject, email)` to a provisioned, active Portal staff account and enforce class/capability permissions. Never auto-create school permissions from email, role text or a valid service signature. Deny unmapped/disabled/out-of-scope staff.
 
-AgentOS checks its own active staff before dispatch. Portal owns the definitive staff/data authorization, content version and approval records. Receiving a signed request does not bypass these checks.
+AgentOS checks its own active staff before dispatch. The receiving pilot pins one provisioned Portal staff account and one AgentOS subject, checks matching email, current TEACHER/ADMIN role and class ownership; it does not auto-map arbitrary users. Revoke the pairing or eligible role/scope to stop access. Portal owns the definitive staff/data authorization, content version and approval records. Receiving a signed request does not bypass these checks.
 
 ## HTTP contract
 
@@ -40,4 +40,6 @@ Cancellation stops parent dispatch. It does not revoke or undo an already accept
 
 Tests cover real loopback HTTP authentication/signatures, redirects, response bounds, correlation, revision, denial and timeouts; database tests cover plan approval, ownership, manual-evidence rejection, same-key reconciliation, JSONB replay, cancelled parent fencing, old-ledger retention and missing pairing. Browser regression covers template creation and version approval alongside existing office flows.
 
-Database fixtures use single-backend PGlite; qualify PostgreSQL concurrent workers separately. Real school Google login, Portal nonce/permission enforcement and actual source calculations must be tested in the separate Portal runtime. Next steps: implement that runtime contract, pair it with dedicated credentials, run synthetic complete class-summary workflow, then authorized small real-data pilot. Content/send approvals and outbox must pass before any cron or live delivery is enabled.
+The actual AgentOS client and receiving factory have also passed a paired real-loopback HTTP test: complete source checks, one child on replay, scope denial, dropped-response reconciliation and source drift rejection. The receiving storage seam is in-memory and the AgentOS database fixture uses single-backend PGlite; qualify PostgreSQL concurrent workers separately. The first receiving pilot resolves `sourceBatchRef` to an existing Portal-local synthetic daily-summary operation ID; it checks the requested class/date and source/child versions and hashes. It does not accept real imports or raw student rows from AgentOS.
+
+Next steps: review both PRs, apply each service's additive migrations to isolated test databases, configure the pinned staff pairing and dedicated credentials, run native PostgreSQL/school identity and complete synthetic workflow acceptance, then authorized small real-data pilot. Content/send approvals and outbox must pass before any cron or live delivery is enabled.

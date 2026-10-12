@@ -6,8 +6,10 @@ User approved: repair dependencies first, then implement Portal integration.
 - [x] Upgrade and verify audit, typecheck, tests, browser regression and build (audit 0, 35 tests, typecheck/browser/build pass).
 - [x] Implement typed Portal client/operation contract with scoped identity, durable correlation and idempotency; Portal remains approval authority.
 - [x] Verify synthetic HTTP integration, denial, stale approval, replay and uncertain result handling; no live student data or delivery.
-- [ ] Update setup/limitations, GitHub PR and next-session handover with actual results.
-- [ ] Align the existing Portal legacy bridge to a reference-only receiver in an isolated branch, verify the actual AgentOS client against that receiver, and prepare a separate Portal PR without changing its active deployment checkout.
+- [x] Update setup/limitations, GitHub PR and next-session handover with actual results.
+- [x] Align the existing Portal legacy bridge to a reference-only receiver in an isolated branch, verify the actual AgentOS client against that receiver, and prepare a separate Portal PR without changing its active deployment checkout.
+
+Review — 2026-10-12: AgentOS audit 0, 35 tests, typecheck/browser/full build pass. Portal receiver own Prisma/typecheck pass; full Portal npm test passes (14 Node cases plus core/activity/meeting scripts). Actual client→receiver signed HTTP pair passes using synthetic in-memory storage. Portal receiving changes are a separate private draft PR, not enabled in deployment. Portal installation still reports 7 inherited high advisories; Portal dependency repair and native PostgreSQL nonce/dedup/migration acceptance are next gates.
 
 Specification: AgentOS submits only approved, bounded school operations and stores restricted references/status. Portal validates user scope and executes school tools. Missing Portal configuration must remain explicitly unavailable. No second student database, school scheduler or mail sender is added here. Real Portal runtime pairing depends on its separate implementation.
 

@@ -23,7 +23,7 @@ export function parseTimetableCsv(text: string): ParseResult {
   const rows:   TimetableRow[] = [];
   const errors: ParseResult["errors"] = [];
 
-  const lines = text.replace(/^﻿/, "").split(/\r?\n/);
+  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/);
   lines.forEach((line, i) => {
     const trimmed = line.trim();
     if (!trimmed) return;

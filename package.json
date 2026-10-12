@@ -10,8 +10,13 @@
     "build": "prisma generate && next build",
     "postinstall": "prisma generate",
     "start": "next start",
-    "lint": "next lint",
-    "db:seed": "npx prisma db seed"
+    "lint": "eslint src --ext .ts,.tsx",
+    "db:seed": "npx prisma db seed",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:browser": "node --import tsx tests/office-browser.ts",
+    "office:worker": "node --env-file-if-exists=.env.local --import tsx scripts/office-worker.ts",
+    "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
@@ -19,13 +24,14 @@
     "@prisma/client": "^5.22.0",
     "@react-pdf/renderer": "^4.5.1",
     "@types/archiver": "^8.0.0",
+    "@xmldom/xmldom": "^0.9.12",
     "archiver": "^8.0.0",
     "docx": "^9.7.1",
     "exceljs": "^4.4.0",
     "googleapis": "^173.0.0",
-    "mammoth": "^1.12.0",
-    "next": "14.2.35",
-    "next-auth": "^4.24.14",
+    "jszip": "^3.10.1",
+    "next": "^15.5.27",
+    "next-auth": "^4.24.15",
     "prisma": "^5.22.0",
     "pusher": "^5.3.3",
     "pusher-js": "^8.5.0",
@@ -34,14 +40,29 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-socket": "^0.2.11",
+    "@playwright/test": "^1.64.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@typescript-eslint/eslint-plugin": "^8.71.1",
+    "@typescript-eslint/parser": "^8.71.1",
     "eslint": "^8",
-    "eslint-config-next": "14.2.35",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "postcss": "8.5.29",
+    "tailwindcss": "^4.3.3",
     "ts-node": "^10.9.2",
+    "tsx": "^4.23.15",
     "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "8.5.29",
+    "exceljs": {
+      "uuid": "11.1.1"
+    }
   }
 }

@@ -2,7 +2,7 @@
 
 Confirmed by user: 2026-10-09 (Asia/Hong_Kong).
 Decision: integrated user experience, separate repositories, services and databases.
-Status: planning revision only; no application implementation, deployment or schedule activated.
+Status: AgentOS foundation and draft-only HTTP bridge implemented with synthetic tests; separate Portal runtime/pairing, deployment and school schedules remain pending. See docs/PORTAL_BRIDGE.md.
 
 ## Ownership
 

@@ -1,5 +1,7 @@
 import { getServerSession, type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { testAuthConfig, verifyTestCredentials } from "@/lib/test-auth";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@prisma/client";
 
@@ -8,6 +10,17 @@ const ALLOWED_DOMAIN = "gs.keichi.edu.hk";
 export const authOptions: NextAuthOptions = {
   // 移除 PrismaAdapter — JWT strategy 唔需要 Account/Session tables
   providers: [
+    ...(process.env.AGENTOS_TEST_AUTH_ENABLED === "true" ? [CredentialsProvider({
+      id: "agentos-test",
+      name: "合成資料測試帳號",
+      credentials: { email: { label: "測試電郵", type: "email" }, password: { label: "測試密碼", type: "password" } },
+      async authorize(credentials) {
+        if (!await verifyTestCredentials(process.env, credentials?.email, credentials?.password)) return null;
+        const config = testAuthConfig(process.env)!;
+        const user = await prisma.user.findUnique({ where: { email: config.email }, select: { id: true, email: true, name: true, isActive: true } });
+        return user?.isActive ? { id: user.id, email: user.email, name: user.name } : null;
+      },
+    })] : []),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -18,7 +31,16 @@ export const authOptions: NextAuthOptions = {
   ],
   session: { strategy: "jwt", maxAge: 8 * 60 * 60 },
   callbacks: {
-    async signIn({ profile }) {
+    async signIn({ profile, account, user }) {
+      if (account?.provider === "agentos-test") {
+        const config = testAuthConfig(process.env);
+        if (!config || user.email !== config.email) return false;
+        const existing = await prisma.user.findUnique({ where: { email: config.email }, select: { id: true, isActive: true } });
+        if (!existing?.isActive || existing.id !== user.id) return false;
+        await prisma.user.update({ where: { id: existing.id }, data: { lastLoginAt: new Date() } });
+        return true;
+      }
+      if (account?.provider !== "google") return false;
       const email = profile?.email ?? "";
       if (!email.endsWith(`@${ALLOWED_DOMAIN}`)) return false;
 
@@ -35,7 +57,12 @@ export const authOptions: NextAuthOptions = {
       });
       return true;
     },
-    async jwt({ token }) {
+    async jwt({ token, account }) {
+      if (account) token.testAuth = account.provider === "agentos-test";
+      if (token.testAuth) {
+        const config = testAuthConfig(process.env);
+        if (!config || token.email !== config.email) throw new Error("test_account_disabled");
+      }
       // 每次刷新 token 時從 DB 取最新角色（確保角色變更即時生效）
       const email = token.email;
       if (email) {
@@ -43,6 +70,7 @@ export const authOptions: NextAuthOptions = {
           where: { email },
           select: { id: true, role: true, department: true, isActive: true },
         });
+        if (!dbUser) throw new Error("account_missing");
         if (dbUser) {
           if (!dbUser.isActive) throw new Error("account_disabled");
           token.userId     = dbUser.id;

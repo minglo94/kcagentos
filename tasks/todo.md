@@ -1,5 +1,28 @@
 # 任務清單
 
+## Merge and protected Vercel deployment — 2026-10-13
+User explicitly requested merge to main, Vercel deployment and post-deployment testing.
+- [ ] Reconcile both PRs with latest base branches and finish Portal dependency repair/CI.
+- [ ] Establish AgentOS main from the current default, merge exact validated PR heads and record SHAs.
+- [ ] Inspect Vercel targets; configure separate synthetic AgentOS database, protected deployment and explicit test authentication.
+- [ ] Deploy validated commits; verify real URLs, anonymous gates, login, ownership, version approvals and signed Portal integration/reconciliation.
+- [ ] Record Vercel/serverless worker limitations, results and next-session handover on GitHub.
+
+Deployment scope: protected synthetic test environments; no student records, real school mail or business cron. Local models and persistent office Worker require a separately running authorized host; Vercel frontend readiness must not claim those are active.
+
+## Dependency repair and Portal bridge — 2026-10-09
+User approved: repair dependencies first, then implement Portal integration.
+- [x] Inspect current advisories and select compatible patched dependencies; preserve existing features.
+- [x] Upgrade and verify audit, typecheck, tests, browser regression and build (audit 0, 35 tests, typecheck/browser/build pass).
+- [x] Implement typed Portal client/operation contract with scoped identity, durable correlation and idempotency; Portal remains approval authority.
+- [x] Verify synthetic HTTP integration, denial, stale approval, replay and uncertain result handling; no live student data or delivery.
+- [x] Update setup/limitations, GitHub PR and next-session handover with actual results.
+- [x] Align the existing Portal legacy bridge to a reference-only receiver in an isolated branch, verify the actual AgentOS client against that receiver, and prepare a separate Portal PR without changing its active deployment checkout.
+
+Review — 2026-10-12: AgentOS audit 0, 35 tests, typecheck/browser/full build pass. Portal receiver own Prisma/typecheck pass; full Portal npm test passes (14 Node cases plus core/activity/meeting scripts). Actual client→receiver signed HTTP pair passes using synthetic in-memory storage. Portal receiving changes are a separate private draft PR, not enabled in deployment. Portal installation still reports 7 inherited high advisories; Portal dependency repair and native PostgreSQL nonce/dedup/migration acceptance are next gates.
+
+Specification: AgentOS submits only approved, bounded school operations and stores restricted references/status. Portal validates user scope and executes school tools. Missing Portal configuration must remain explicitly unavailable. No second student database, school scheduler or mail sender is added here. Real Portal runtime pairing depends on its separate implementation.
+
 > 最新實施交接（2026-10-09）：首版已在 `codex/agentos-foundation`，見 [草稿 PR #13](https://github.com/minglo94/kcagentos/pull/13)，commit `d05bc1f9ceab1301e0cd6586700178414ba90acd`。尚未合併或部署。
 > 已驗證：17 個 Node／資料庫測試、6 個 Python 測試、瀏覽器 E2E、typecheck 及完整 build；lint 有一個既有警告。模型尚未設定，接駁及測試骨架完成；Portal、完整像素動畫及夜間 cron 待續。PGlite 不代表 PostgreSQL 多 worker 驗證，現有依賴漏洞需另行修復。
 > 下次先讀該分支的 `tasks/handover.md`、`docs/OFFICE_FOUNDATION.md` 及 PR，再接續工作；下方歷史狀態不代表最新實施進度。
@@ -206,6 +229,22 @@ _Phase 3 任務清單建立於 2026-06-11，等待確認後開始實施_
 - [ ] 實作前驗證parentJobId/operationId/idempotencyKey及權威批准協議
 
 Review：本次為文件修訂；未執行產品測試、未啟用排程或部署。
+
+## Foundation implementation — 2026-10-09
+User authorized implementation in this session. Work branch: codex/agentos-foundation.
+- [x] Verify installed protocol handshakes and isolated no-tools planning/read-only adapters (live inference pending).
+- [x] Add durable parent job schema, version-bound plan approval and authenticated APIs.
+- [x] Add background worker lease/recovery and restricted executor interface; unsupported operations fail closed.
+- [x] Verify transport, version/idempotency, cancellation/recovery and ownership tests on isolated fixtures.
+- [x] Implement user-selected layout A and pass synthetic browser E2E.
+- [x] Prepare setup, progress and next-session handover documentation.
+- [ ] Configure and validate real local inference (user confirmed no model yet).
+- [ ] Qualify real PostgreSQL multi-worker serialization and school Google SSO.
+- [ ] Portal operation/approval contract integration, full Pixel Agents bridge and business cron.
+- [ ] Dependency security upgrade and production/Spark qualification.
+
+### Foundation review
+17 Node/Prisma tests + 6 Python bridge tests pass; browser E2E passes with real Next APIs and synthetic sessions/plans. No live model, student data, email or deployment. This is an implementation foundation, not full product completion; see latest handover and docs/OFFICE_FOUNDATION.md.
 
 ## 學校流程優先修訂 — 2026-10-09
 - [x] 用戶批准六項計劃修訂並要求同步 Portal 聊天。

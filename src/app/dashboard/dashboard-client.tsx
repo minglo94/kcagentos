@@ -177,6 +177,7 @@ export default function DashboardClient({ userName, role }: { userName: string; 
       {/* 頂欄 */}
       <div style={{ background: "var(--card)", borderBottom: "1px solid var(--border)", padding: "14px 24px", display: "flex", alignItems: "center", gap: 16, position: "sticky", top: 0, zIndex: 50 }}>
         <Link href="/" style={{ color: "var(--primary)", textDecoration: "none", fontSize: 13 }}>← 返回工作台</Link>
+        <Link href="/office" style={{ color: "var(--primary)", fontSize: 13 }}>Hermes 指揮台 ↗</Link>
         <span style={{ color: "var(--border)" }}>|</span>
         <h1 style={{ margin: 0, fontSize: 18, fontFamily: "var(--serif)", color: "var(--primary)", fontWeight: 700 }}>基智指揮中心</h1>
         <span style={{ marginLeft: "auto", fontSize: 10, fontFamily: "var(--mono)", color: "var(--ink3)" }}>

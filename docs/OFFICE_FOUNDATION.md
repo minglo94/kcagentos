@@ -1,5 +1,7 @@
 # Office foundation: implementation and verification
 
+Updated 2026-10-12: the original foundation below is a milestone snapshot. See `PORTAL_BRIDGE.md` for the implemented AgentOS draft-only HTTP bridge, and `DEPENDENCY_REPAIR.md` for the completed audited dependency repair. Portal runtime pairing and live workflow validation remain pending.
+
 2026-10-09 · User authorized implementation and selected layout A. User confirmed no local model is configured yet; this milestone delivers the connection/test foundation, not live AI or production deployment.
 
 ## Delivered

@@ -1,5 +1,11 @@
 # 錯誤記錄 — 防止重複
 
+## 2026-10-12 — Dependency repair and Portal reconciliation
+- npm audit may suggest destructive downgrades when a transitive library has no patch. Prefer replacing the unused vulnerable dependency or its build-tool chain; document lint coverage changes and verify document/CSS behavior.
+- Next 15 requires awaited dynamic params/searchParams and the current serverExternalPackages key. Browser tests must wait for the actual mutation response rather than assume cold dev compilation fits a five-second assertion.
+- Portal operations must survive OfficeStep replacement. Persist the key/hash before HTTP, reject changed identities/payloads, and do not resubmit known accepted operations when lookup returns 404.
+- JSONB may reorder object keys; parse through the same strict schema before equal-revision comparison. Unknown or late responses must not overwrite terminal records or expired parent leases.
+
 | 日期 | 問題 | 解決方法 |
 |------|------|---------|
 | Phase 1 | Prisma v7 改變 `datasource` 配置格式，`url = env(...)` 唔再有效 | 降回 Prisma v5（`prisma@5 @prisma/client@5`） |

@@ -1,5 +1,15 @@
 # AgentOS 進度交接
 
+## 最新接續 — 2026-10-12
+
+用戶批准先修依賴，再做 Portal 接駁。AgentOS 工作仍在 `codex/agentos-foundation` / PR #13。
+- 依賴已修復至 audit 0；Next 15 路由、Tailwind 4、登入及 DOCX/Excel 相容性有回歸檢查。見 docs/DEPENDENCY_REPAIR.md。
+- 已實作 AgentOS-side Portal draft v1：固定班務模板、版本計劃批准、簽名 staff assertion、受控 HTTP、持久化 operation/idempotency/revision、未知結果核實與 UI。見 docs/PORTAL_BRIDGE.md。
+- 重新讀取 Portal 聊天後確認：Portal repo 已建立，另一聊天正在驗證測試部署；舊 bridge 傳 raw synthetic rows，與新引用契約不相容。已在獨立 `codex/agentos-reference-bridge` worktree 對齊接收端，不改原部署 checkout。正式配對尚未設定；本聊天沒有學生資料、發送、排程、模型推理或部署。
+- 下一步：在 Portal 實作同一契約及身份 mapping/nonce replay/權限/確定性資料核對，完成合成整條班務流程；真實小批後才啟用 cron。仍需 PostgreSQL 多 Worker、Google 真實 SSO、完整 Pixel 動畫及 Spark 驗證。
+- 正式內容/發送批准仍由 Portal 強制執行；目前 AgentOS 顯示引用，沒有轉發批准或發送工具。
+- 已驗證：audit 0、35 個 Node/資料庫/HTTP/文件測試、typecheck、瀏覽器 E2E 及完整 production build 全部通過。lint 只有既有 hooks warning；build 提示缺少已移除的 Next lint plugin，以及 Tailwind config 模組格式警告。Portal 接收端對齊及雙端配對證據待補。
+
 > 最新實施交接（2026-10-09）：首版已在 `codex/agentos-foundation`，見 [草稿 PR #13](https://github.com/minglo94/kcagentos/pull/13)，commit `d05bc1f9ceab1301e0cd6586700178414ba90acd`。尚未合併或部署。
 > 已驗證：17 個 Node／資料庫測試、6 個 Python 測試、瀏覽器 E2E、typecheck 及完整 build；lint 有一個既有警告。模型尚未設定，接駁及測試骨架完成；Portal、完整像素動畫及夜間 cron 待續。PGlite 不代表 PostgreSQL 多 worker 驗證，現有依賴漏洞需另行修復。
 > 下次先讀該分支的 `tasks/handover.md`、`docs/OFFICE_FOUNDATION.md` 及 PR，再接續工作；下方歷史狀態不代表最新實施進度。

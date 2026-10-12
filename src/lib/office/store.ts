@@ -34,6 +34,7 @@ export async function installPlan(db: PrismaClient, jobId: string, plan: OfficeP
     const job = await tx.officeJob.findFirst({ where: { id: jobId, status: "PLANNING", leaseToken, leaseUntil: { gt: new Date() } } });
     if (!job) throw new OfficeError(409, "LEASE_LOST");
     if (parsed.steps.some(step => step.executor === "codex.readonly" && (job.team !== "development" || !["archie", "reviewer"].includes(step.agent)))) throw new OfficeError(400, "INVALID_EXECUTOR_SCOPE");
+    if (parsed.steps.some(step => step.executor === "portal.draft" && (job.team !== "school" || step.agent !== "andy"))) throw new OfficeError(400, "INVALID_EXECUTOR_SCOPE");
     const updated = await tx.officeJob.update({ where: { id: jobId }, data: {
       plan: parsed, planHash: hashPlan(parsed), planVersion: { increment: 1 }, approvedVersion: null,
       status: "PENDING_PLAN_APPROVAL", leaseToken: null, leaseUntil: null, errorCode: null,
@@ -72,6 +73,7 @@ export async function controlJob(db: PrismaClient, id: string, userId: string, a
     if (action === "cancel") status = "CANCELLED";
     else if (action === "pause") status = "PAUSED";
     else if (action === "replan") {
+      if (await tx.portalOperation.findFirst({ where: { jobId: id, status: { notIn: ["DRAFT_READY", "FAILED"] } } })) throw new OfficeError(409, "OPEN_PORTAL_OPERATION");
       if (["RUNNING", "QUEUED", "WAITING_INPUT"].includes(job.status)) throw new OfficeError(409, "PAUSE_BEFORE_REPLAN");
       status = "PLANNING";
     } else {

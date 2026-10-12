@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
+import { portalInputSchema } from "./portal-contract";
 
 export const AGENTS = ["hermes", "archie", "reviewer", "bob", "tesla", "clerk", "andy", "donna", "iris", "wendy", "quinn", "flora", "carla", "ada", "ethan"] as const;
 export const planSchema = z.object({
@@ -10,13 +11,15 @@ export const planSchema = z.object({
     title: z.string().trim().min(1).max(200),
     agent: z.enum(AGENTS),
     // First release deliberately has no write/shell/deploy executor.
-    executor: z.enum(["manual", "codex.readonly"]),
+    executor: z.enum(["manual", "codex.readonly", "portal.draft"]),
+    portalInput: portalInputSchema.optional(),
     dependsOn: z.array(z.string()).max(30),
     instructions: z.string().trim().min(1).max(4000),
   }).strict()).min(1).max(30),
 }).strict().superRefine((plan, ctx) => {
   const seen = new Set<string>();
   plan.steps.forEach((step, index) => {
+    if ((step.executor === "portal.draft") !== Boolean(step.portalInput)) ctx.addIssue({ code: "custom", path: ["steps", index], message: "Portal inputs require a Portal draft executor" });
     if (seen.has(step.id) || step.dependsOn.some((id) => !seen.has(id))) {
       ctx.addIssue({ code: "custom", path: ["steps", index], message: "Steps must have unique IDs and depend only on earlier steps" });
     }

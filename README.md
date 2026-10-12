@@ -1,6 +1,6 @@
 ## Hermes office foundation
 
-The authenticated `/office` dashboard adds persistent jobs, version-bound plan approvals and a separate Worker. This is the first implementation milestone; real local inference, Portal integration, cron and full Pixel Agents visualization are still pending.
+The authenticated `/office` dashboard adds persistent jobs, version-bound plan approvals and a separate Worker. It also includes the AgentOS-side [Portal draft bridge](docs/PORTAL_BRIDGE.md) and [dependency repair](docs/DEPENDENCY_REPAIR.md). Real local inference, separate Portal runtime pairing, cron and full Pixel Agents visualization remain pending.
 
 See [setup and verification](docs/OFFICE_FOUNDATION.md), [Hermes bridge](docs/HERMES_BRIDGE.md), [integration ownership](docs/INTEGRATION_DECISION.md), and [current handover](tasks/handover.md).
 

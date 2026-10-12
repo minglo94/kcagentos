@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import Anthropic from "@anthropic-ai/sdk";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const mammoth = require("mammoth") as typeof import("mammoth");
+import { DocxTextError, DOCX_INPUT_LIMIT, extractDocxText } from "@/lib/tools/docx-text";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -70,10 +69,14 @@ export async function POST(req: NextRequest) {
   let messageContent: Anthropic.MessageParam["content"];
 
   if (isDocx(mime, name)) {
-    // DOCX → mammoth text → Claude text message
+    if (file.size > DOCX_INPUT_LIMIT) return NextResponse.json({ error: "DOCX 檔案過大（上限 10MB）" }, { status: 413 });
     const buf = Buffer.from(await file.arrayBuffer());
-    const result = await mammoth.extractRawText({ buffer: buf });
-    const text = result.value.trim();
+    let text: string;
+    try { text = await extractDocxText(buf); }
+    catch (error) {
+      if (error instanceof DocxTextError) return NextResponse.json({ error: error.message }, { status: error.status });
+      throw error;
+    }
     if (!text) {
       return NextResponse.json({ error: "DOCX 無法提取文字（可能係掃描版），請嘗試上載圖片或 PDF 版本" }, { status: 422 });
     }

@@ -2,11 +2,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { OfficePlan } from "@/lib/office/plan";
+import type { PortalResponse } from "@/lib/office/portal-contract";
 import styles from "./office.module.css";
 
 type ListJob = { id: string; goal: string; team: string; status: string; errorCode: string | null };
 type Job = ListJob & { plan: OfficePlan | null; planVersion: number; planHash: string | null; approvedVersion: number | null; workerActive: boolean;
-  steps: { key: string; status: string; result: string | null }[]; events: { id: number; type: string; createdAt: string }[] };
+  steps: { key: string; status: string; result: string | null }[]; portalOperations: { planVersion: number; stepKey: string; operationId: string | null; status: string; revision: number; snapshot: PortalResponse | null }[]; events: { id: number; type: string; createdAt: string }[] };
 const labels: Record<string, string> = { PLANNING: "待總管規劃", PENDING_PLAN_APPROVAL: "待批准計劃", QUEUED: "已排隊", RUNNING: "執行中", WAITING_INPUT: "待人工輸入", PAUSED: "已暫停", SUCCEEDED: "已完成", FAILED: "失敗", CANCELLED: "已取消" };
 const names: Record<string, string> = { hermes: "Hermes 總管", archie: "Archie 編碼", reviewer: "Reviewer 審查", bob: "Bob 運維", tesla: "Tesla 測試", clerk: "Clerk 資料", andy: "Andy 班務", donna: "Donna 學習", iris: "Iris 支援", wendy: "Wendy 關顧", quinn: "Quinn 問卷", flora: "Flora 發展", carla: "Carla 通訊", ada: "Ada 課程", ethan: "Ethan 試卷" };
 const errorLabels: Record<string, string> = { HERMES_NOT_CONFIGURED: "Hermes 本地模型尚未設定。請按接駁指南設定專用 profile。", HERMES_UNAVAILABLE: "Hermes 或本地模型未能回應，請檢查設定。", HERMES_INVALID_PLAN: "模型未能提供有效計劃，請重新規劃。", CODEX_NOT_CONFIGURED: "Codex 唯讀執行器尚未設定。", SERVICE_UNAVAILABLE: "服務或資料庫暫時不可用。", STALE_PLAN: "計劃已更新，請重新檢視後批准。", JOB_NOT_FOUND: "找不到可存取的任務。" };
@@ -21,6 +22,7 @@ export default function OfficeClient() {
   const [jobs, setJobs] = useState<ListJob[]>([]), [selected, setSelected] = useState<string | null>(null), [job, setJob] = useState<Job | null>(null);
   const selectedRef = useRef(selected); selectedRef.current = selected;
   const [goal, setGoal] = useState(""), [team, setTeam] = useState("school"), [error, setError] = useState(""), [busy, setBusy] = useState(false), [evidence, setEvidence] = useState("");
+  const [classRef, setClassRef] = useState(""), [sourceBatchRef, setSourceBatchRef] = useState(""), [date, setDate] = useState("");
   const refresh = useCallback(async () => {
     const list = await jsonRequest("/api/jobs"); setJobs(list.jobs);
   }, []);
@@ -51,7 +53,7 @@ export default function OfficeClient() {
   const agents = ["hermes", ...(team === "school" ? ["clerk", "andy", "donna", "iris", "wendy", "quinn", "flora", "carla", "ada", "ethan"] : ["archie", "reviewer", "bob", "tesla"])];
   return <main className={styles.page}>
     <header className={styles.header}><div><p className={styles.eyebrow}>KCSS · AGENTOS</p><h1>Hermes 指揮台</h1></div><Link href="/dashboard">校務 Dashboard ↗</Link><span className={styles.badge}>基礎接駁版</span></header>
-    <p className={styles.notice}>首版只支援計劃批准、人工步驟及已設定的 Codex 唯讀檢查。校務 Portal、排程與對外發送尚未接通。請勿輸入學生姓名或個案內容。</p>
+    <p className={styles.notice}>支援計劃批准、人工步驟、Codex 唯讀檢查及已配對 Portal 的班務草稿。Portal 須另外部署及核權；排程與發送尚未接通。請勿輸入學生姓名或個案內容。</p>
     {error && <p role="alert" className={styles.error}>{error}</p>}
     <div className={styles.layout}>
       <section className={styles.panel} aria-labelledby="supervisor-title"><p className={styles.eyebrow}>01 · SUPERVISOR</p><h2 id="supervisor-title">跟總管交代目標</h2>
@@ -60,6 +62,12 @@ export default function OfficeClient() {
           <label htmlFor="goal">工作目標</label><textarea id="goal" value={goal} onChange={e => setGoal(e.target.value)} maxLength={4000} required minLength={3} rows={5} placeholder="例如：規劃每週班主任摘要的驗收步驟" />
           <button disabled={busy || goal.trim().length < 3} type="submit">交給 Hermes 規劃</button>
         </form>
+        {team === "school" && <details><summary>班務草稿流程 v1</summary><p className={styles.muted}>固定流程模板，只使用 Portal 提供的班別及批次識別，不讀取學生原文。建立後須批准計劃。</p><form onSubmit={e => { e.preventDefault(); void perform(async () => { const created = await jsonRequest("/api/portal/jobs", { classRef, sourceBatchRef, date }); setSelected(created.id); }); }}>
+          <label htmlFor="classRef">Portal 班別識別</label><input id="classRef" value={classRef} onChange={e => setClassRef(e.target.value)} required maxLength={128} pattern="[A-Za-z0-9][A-Za-z0-9._:-]*" />
+          <label htmlFor="sourceBatchRef">來源批次識別</label><input id="sourceBatchRef" value={sourceBatchRef} onChange={e => setSourceBatchRef(e.target.value)} required maxLength={128} pattern="[A-Za-z0-9][A-Za-z0-9._:-]*" />
+          <label htmlFor="portalDate">資料日期</label><input id="portalDate" type="date" value={date} onChange={e => setDate(e.target.value)} required />
+          <button disabled={busy}>建立班務草稿計劃</button>
+        </form></details>}
         <div className={styles.message}><strong>Hermes</strong><p>{job?.plan?.summary || (job ? labels[job.status] : "提交目標後，計劃會保存為任務，待你批准才開始執行。")}</p>{job?.errorCode && <p>{errorLabels[job.errorCode] || "執行器未能完成，請檢查交接紀錄及重新規劃。"}</p>}</div>
         <p className={styles.muted}>Worker 必須另外啟動；關閉頁面不影響已保存的任務。</p>
       </section>
@@ -70,13 +78,15 @@ export default function OfficeClient() {
         })}</div>
         <p className={styles.muted}>席位顯示真實工作狀態；完整 Pixel Agents 動畫橋接待後續整合。</p>
         <div className={styles.joblist}>{jobs.length === 0 && <p>尚未建立任務。</p>}{jobs.map(row => <button key={row.id} className={`${styles.job} ${selected === row.id ? styles.selected : ""}`} onClick={() => { setSelected(row.id); setTeam(row.team); }}><strong>{row.goal}</strong><span>{labels[row.status] || row.status}</span></button>)}</div>
-        {job?.plan && <><h3>計劃步驟 · {complete}/{job.plan.steps.length} 已完成</h3><ol className={styles.steps}>{job.plan.steps.map(step => <li key={step.id}><strong>{step.title}</strong><small>{names[step.agent]} · {step.executor === "manual" ? "人工執行" : "Codex 唯讀"} · {labels[job.steps.find(s => s.key === step.id)?.status || "QUEUED"] || "待執行"}</small><p>{step.instructions}</p>{job.steps.find(s => s.key === step.id)?.result && <pre>{job.steps.find(s => s.key === step.id)?.result}</pre>}</li>)}</ol></>}
+        {job?.plan && <><h3>計劃步驟 · {complete}/{job.plan.steps.length} 已完成</h3><ol className={styles.steps}>{job.plan.steps.map(step => <li key={step.id}><strong>{step.title}</strong><small>{names[step.agent]} · {step.executor === "manual" ? "人工執行" : step.executor === "portal.draft" ? "Portal 草稿" : "Codex 唯讀"} · {job.steps.find(s => s.key === step.id)?.status === "WAITING_PORTAL" ? "待 Portal 核實" : labels[job.steps.find(s => s.key === step.id)?.status || "QUEUED"] || "待執行"}</small><p>{step.instructions}</p>{step.portalInput && <p>班別 {step.portalInput.classRef} · 批次 {step.portalInput.sourceBatchRef} · 日期 {step.portalInput.date}</p>}{job.steps.find(s => s.key === step.id)?.result && <pre>{job.steps.find(s => s.key === step.id)?.result}</pre>}</li>)}</ol></>}
       </section>
       <section className={styles.panel} aria-labelledby="approval-title"><p className={styles.eyebrow}>03 · APPROVALS</p><h2 id="approval-title">待你決定</h2>
         {!job && <p className={styles.muted}>選擇任務查看計劃與批准。</p>}
         {job && <><p><span className={styles.badge}>{labels[job.status]}</span></p>{job.plan && <><h3>驗收條件</h3><ul>{job.plan.acceptance.map((item, i) => <li key={i}>{item}</li>)}</ul><p className={styles.muted}>計劃版本 {job.planVersion} · 批准只適用於這份內容。</p></>}
           {job.status === "PENDING_PLAN_APPROVAL" && <div className={styles.actions}><button disabled={busy} onClick={() => void perform(() => jsonRequest(`/api/jobs/${job.id}/approvals`, { version: job.planVersion, hash: job.planHash, decision: "approve" }))}>批准計劃</button><button disabled={busy} className={styles.secondary} onClick={() => void perform(() => jsonRequest(`/api/jobs/${job.id}/approvals`, { version: job.planVersion, hash: job.planHash, decision: "reject" }))}>退回計劃</button></div>}
           {waiting && job.status === "WAITING_INPUT" && <form onSubmit={e => { e.preventDefault(); void perform(async () => { await jsonRequest(`/api/jobs/${job.id}/evidence`, { key: waiting.key, evidence, version: job.planVersion, hash: job.planHash }); setEvidence(""); }); }}><label htmlFor="evidence">人工完成證據</label><textarea id="evidence" rows={4} value={evidence} onChange={e => setEvidence(e.target.value)} required minLength={3} maxLength={4000} placeholder="填寫已完成的核對及結果；勿填學生原文" /><button disabled={busy || evidence.trim().length < 3}>保存證據及繼續</button></form>}
+          {job.portalOperations?.map((operation, i) => <div className={styles.message} key={i}><strong>Portal · {operation.status}</strong><p>計劃版本 {operation.planVersion} · 操作 {operation.operationId || "待核實"} · 修訂 {operation.revision}</p>{operation.snapshot?.evidence && <p>來源 {operation.snapshot.evidence.sourceRef} · 截至 {operation.snapshot.evidence.asOf} · 產出 {operation.snapshot.evidence.artifactRef || "尚未產出"}</p>}{operation.snapshot?.approvalRef && <p>內容批准由 Portal 處理：{operation.snapshot.approvalRef}</p>}<p className={styles.muted}>草稿就緒不代表已發送；取消父任務亦不會回退 Portal 已接受的操作。</p></div>)}
+          {job.status === "WAITING_INPUT" && job.steps.some(step => step.status === "WAITING_PORTAL") && <button disabled={busy} onClick={() => void perform(() => jsonRequest(`/api/jobs/${job.id}/portal`, { version: job.planVersion, hash: job.planHash }))}>核實 Portal 最新結果</button>}
           <div className={styles.actions}>{!["SUCCEEDED", "CANCELLED"].includes(job.status) && <button disabled={busy} className={styles.secondary} onClick={() => void perform(() => jsonRequest(`/api/jobs/${job.id}/control`, { action: "cancel" }))}>取消工作</button>}{["RUNNING", "QUEUED", "WAITING_INPUT"].includes(job.status) && <button disabled={busy} className={styles.secondary} onClick={() => void perform(() => jsonRequest(`/api/jobs/${job.id}/control`, { action: "pause" }))}>暫停</button>}{job.status === "PAUSED" && job.approvedVersion === job.planVersion && <button disabled={busy} onClick={() => void perform(() => jsonRequest(`/api/jobs/${job.id}/control`, { action: "resume" }))}>繼續</button>}{["PAUSED", "FAILED", "PENDING_PLAN_APPROVAL"].includes(job.status) && <button disabled={busy} className={styles.secondary} onClick={() => void perform(() => jsonRequest(`/api/jobs/${job.id}/control`, { action: "replan" }))}>重新規劃</button>}</div>
           <h3>事件時間線</h3><ul className={styles.timeline}>{job.events.slice(-15).map(event => <li key={event.id}><time>{new Date(event.createdAt).toLocaleTimeString("zh-HK", { timeZone: "Asia/Hong_Kong" })}</time><span>{event.type}</span></li>)}</ul>
         </>}

@@ -168,6 +168,7 @@ model OfficeJob {
   steps           OfficeStep[]
   events          OfficeEvent[]
   approvals       OfficeApproval[]
+  portalOperations PortalOperation[]
 
   @@index([userId, createdAt])
   @@index([status, leaseUntil])
@@ -210,4 +211,24 @@ model OfficeApproval {
   createdAt   DateTime  @default(now())
 
   @@unique([jobId, planVersion])
+}
+
+// References only. School evidence and authoritative approvals remain in Portal.
+// Independent of OfficeStep so replanning cannot erase accepted operations.
+model PortalOperation {
+  id             String    @id @default(cuid())
+  jobId          String
+  job            OfficeJob @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  planVersion    Int
+  stepKey        String
+  idempotencyKey  String    @unique
+  requestHash    String
+  operationId    String?   @unique
+  status         String    @default("UNSUBMITTED")
+  revision       Int       @default(0)
+  snapshot       Json?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([jobId, planVersion, stepKey])
 }

@@ -16,7 +16,8 @@ const pusher =
 
 // PATCH /api/approvals/[id]
 // body: { action: "approve" | "reject", rejectionReason?: string }
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   let userId: string;
   try {
     ({ userId } = await requireRole("ADMIN", "APPROVER"));
@@ -33,7 +34,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "退回時必須填寫原因" }, { status: 400 });
   }
 
-  const doc = await prisma.document.findUnique({ where: { id: params.id } });
+  const doc = await prisma.document.findUnique({ where: { id } });
   if (!doc) return NextResponse.json({ error: "找不到文件" }, { status: 404 });
   if (doc.approvalStatus !== "PENDING") {
     return NextResponse.json({ error: "此文件並非待批核狀態" }, { status: 409 });
@@ -42,7 +43,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const newStatus = action === "approve" ? "APPROVED" : "REJECTED";
 
   const updated = await prisma.document.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       approvalStatus:  newStatus,
       approvedBy:      userId,
@@ -65,7 +66,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (pusher) {
     try {
       await pusher.trigger(`user-${doc.userId}`, "doc-approval", {
-        documentId:      params.id,
+        documentId:      id,
         title:           doc.title,
         status:          newStatus,
         rejectionReason: updated.rejectionReason ?? null,
@@ -76,5 +77,5 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     } catch {}
   }
 
-  return NextResponse.json({ ok: true, id: params.id, status: newStatus });
+  return NextResponse.json({ ok: true, id, status: newStatus });
 }

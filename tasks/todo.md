@@ -1,5 +1,16 @@
 # 任務清單
 
+## Dependency repair and Portal bridge — 2026-10-09
+User approved: repair dependencies first, then implement Portal integration.
+- [x] Inspect current advisories and select compatible patched dependencies; preserve existing features.
+- [x] Upgrade and verify audit, typecheck, tests, browser regression and build (audit 0, 35 tests, typecheck/browser/build pass).
+- [x] Implement typed Portal client/operation contract with scoped identity, durable correlation and idempotency; Portal remains approval authority.
+- [x] Verify synthetic HTTP integration, denial, stale approval, replay and uncertain result handling; no live student data or delivery.
+- [ ] Update setup/limitations, GitHub PR and next-session handover with actual results.
+- [ ] Align the existing Portal legacy bridge to a reference-only receiver in an isolated branch, verify the actual AgentOS client against that receiver, and prepare a separate Portal PR without changing its active deployment checkout.
+
+Specification: AgentOS submits only approved, bounded school operations and stores restricted references/status. Portal validates user scope and executes school tools. Missing Portal configuration must remain explicitly unavailable. No second student database, school scheduler or mail sender is added here. Real Portal runtime pairing depends on its separate implementation.
+
 > 最新實施交接（2026-10-09）：首版已在 `codex/agentos-foundation`，見 [草稿 PR #13](https://github.com/minglo94/kcagentos/pull/13)，commit `d05bc1f9ceab1301e0cd6586700178414ba90acd`。尚未合併或部署。
 > 已驗證：17 個 Node／資料庫測試、6 個 Python 測試、瀏覽器 E2E、typecheck 及完整 build；lint 有一個既有警告。模型尚未設定，接駁及測試骨架完成；Portal、完整像素動畫及夜間 cron 待續。PGlite 不代表 PostgreSQL 多 worker 驗證，現有依賴漏洞需另行修復。
 > 下次先讀該分支的 `tasks/handover.md`、`docs/OFFICE_FOUNDATION.md` 及 PR，再接續工作；下方歷史狀態不代表最新實施進度。

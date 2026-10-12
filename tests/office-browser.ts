@@ -15,7 +15,7 @@ import type { OfficePlan } from "../src/lib/office/plan";
 
 async function main() {
   const pg = await PGlite.create();
-  for (const dir of ["20261009000000_baseline", "20261009000100_office"]) await pg.exec(await readFile(`prisma/migrations/${dir}/migration.sql`, "utf-8"));
+  for (const dir of ["20261009000000_baseline", "20261009000100_office", "20261012000000_portal"]) await pg.exec(await readFile(`prisma/migrations/${dir}/migration.sql`, "utf-8"));
   const socket = new PGLiteSocketServer({ db: pg, port: 0, host: "127.0.0.1", maxConnections: 1 });
   await socket.start();
   // PGlite multiplexes one backend; disable per-connection prepared statements.
@@ -78,8 +78,10 @@ async function main() {
     await manualButton.click();
     await expect(page.getByLabel("人工完成證據")).toBeVisible({ timeout: 20_000 });
     await page.getByLabel("人工完成證據").fill("已核對合成日期及資料，沒有缺漏。");
+    const savedEvidence = page.waitForResponse(response => response.url().endsWith(`/api/jobs/${manual.id}/evidence`) && response.request().method() === "POST", { timeout: 60_000 });
     await page.getByRole("button", { name: "保存證據及繼續" }).click();
-    await expect(manualButton).toContainText("已排隊");
+    assert.equal((await savedEvidence).status(), 200);
+    await expect(manualButton).toContainText("已排隊", { timeout: 30_000 });
     await page.reload();
     await expect(manualButton).toContainText("已排隊");
     await manualButton.click();
@@ -89,6 +91,14 @@ async function main() {
     assert.equal((await context.request.get(`${url}/api/jobs/${job.id}`)).status(), 404);
     await context.addCookies([{ name: "next-auth.session-token", value: token, url }]);
     await mkdir(".test-artifacts", { recursive: true });
+    await page.getByText("班務草稿流程 v1", { exact: true }).click();
+    await page.getByLabel("Portal 班別識別").fill("synthetic-class");
+    await page.getByLabel("來源批次識別").fill("synthetic-batch");
+    await page.getByLabel("資料日期", { exact: true }).fill("2026-10-12");
+    await page.getByRole("button", { name: "建立班務草稿計劃" }).click();
+    await expect(page.getByRole("button", { name: /班務草稿 · 2026-10-12/ })).toBeVisible();
+    await expect(page.getByText("班別 synthetic-class · 批次 synthetic-batch · 日期 2026-10-12")).toBeVisible();
+    await expect(page.getByRole("button", { name: "批准計劃", exact: true })).toBeVisible();
     await page.screenshot({ path: ".test-artifacts/office.png", fullPage: true });
     console.log("Browser E2E passed: auth, cross-origin rejection, durable plan approval, manual evidence, SSE update, reload, ownership. Synthetic planner only; worker completion covered by store tests.");
     console.log(path.resolve(".test-artifacts/office.png"));

@@ -11,8 +11,9 @@ const UpdateSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   let adminUser: { userId: string };
   try {
     adminUser = await requireRole("ADMIN");
@@ -28,7 +29,7 @@ export async function PATCH(
   }
 
   const updated = await prisma.user.update({
-    where: { id: params.id },
+    where: { id },
     data:  parsed.data,
   });
 
@@ -39,7 +40,7 @@ export async function PATCH(
         userId:  adminUser.userId,
         action:  "ROLE_CHANGE",
         engine:  "n/a",
-        docType: `target:${params.id} role:${parsed.data.role}`,
+        docType: `target:${id} role:${parsed.data.role}`,
       },
     });
   }

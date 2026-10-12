@@ -1,5 +1,7 @@
 # AgentOS 工作接續規則
 
+有 tasks/CURRENT_STATUS.md 時先讀取最新里程碑入口，再按下列文件接續；歷史狀態不代表現況。
+
 開始每次工作先讀 docs/AGENTOS_PLAN.md、tasks/todo.md、tasks/handover.md及tasks/lessons.md，再檢查Git現況。
 
 - 3步或以上工作先列可驗收計劃；功能實作先取得用戶批准。

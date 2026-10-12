@@ -2,10 +2,13 @@ import { randomUUID } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
 import { emit, installPlan, serial } from "./store";
 import { planSchema, type OfficePlan } from "./plan";
+import type { PortalClient } from "./portal-contract";
+import { runPortalDraft } from "./portal-workflow";
 
 export type WorkerServices = {
   plan(goal: string, team: string, signal: AbortSignal): Promise<OfficePlan>;
   readOnly?(instructions: string, signal: AbortSignal): Promise<string>;
+  portal?: PortalClient;
 };
 const leaseMs = 30_000;
 
@@ -68,6 +71,10 @@ export async function runNext(db: PrismaClient, services: WorkerServices, shutdo
           await tx.officeJob.update({ where: { id: job.id }, data: { status: "WAITING_INPUT", leaseToken: null, leaseUntil: null } });
           await emit(tx, job.id, "step.waiting", { key: next.id, agent: next.agent, status: "WAITING_INPUT" });
         });
+      } else if (next.executor === "portal.draft") {
+        if (!services.portal) throw new Error("PORTAL_NOT_CONFIGURED");
+        if (job.team !== "school" || next.agent !== "andy" || !next.portalInput) throw new Error("APPROVAL_REQUIRED");
+        await runPortalDraft(db, job, next.id, next.portalInput, token, services.portal, controller.signal);
       } else {
         if (!services.readOnly) throw new Error("CODEX_NOT_CONFIGURED");
         await serial(db, async tx => {
@@ -88,10 +95,10 @@ export async function runNext(db: PrismaClient, services: WorkerServices, shutdo
       }
     }
   } catch (error) {
-    const known = new Set(["HERMES_NOT_CONFIGURED", "HERMES_TIMEOUT", "HERMES_INVALID_PLAN", "HERMES_UNAVAILABLE", "HERMES_START_FAILED", "CODEX_NOT_CONFIGURED", "APPROVAL_REQUIRED", "JOB_INTERRUPTED"]);
+    const known = new Set(["HERMES_NOT_CONFIGURED", "HERMES_TIMEOUT", "HERMES_INVALID_PLAN", "HERMES_UNAVAILABLE", "HERMES_START_FAILED", "CODEX_NOT_CONFIGURED", "APPROVAL_REQUIRED", "JOB_INTERRUPTED", "PORTAL_NOT_CONFIGURED", "PORTAL_ACCESS_DENIED", "PORTAL_CONFLICT", "PORTAL_OPERATION_FAILED"]);
     const code = error instanceof Error && known.has(error.message) ? error.message : "WORKER_FAILED";
     await serial(db, async tx => {
-      const changed = await tx.officeJob.updateMany({ where: { id: job.id, leaseToken: token }, data: { status: "FAILED", errorCode: code, leaseToken: null, leaseUntil: null } });
+      const changed = await tx.officeJob.updateMany({ where: { id: job.id, leaseToken: token, status: { in: ["RUNNING", "PLANNING"] }, leaseUntil: { gt: new Date() } }, data: { status: "FAILED", errorCode: code, leaseToken: null, leaseUntil: null } });
       if (changed.count) await emit(tx, job.id, "job.failed", { code, status: "FAILED" });
     });
   } finally {

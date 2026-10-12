@@ -1,5 +1,10 @@
 # 錯誤記錄 — 防止重複
 
+## 2026-10-13 — Cloud qualification
+- Finish provisioning processes that load Prisma before generating/building its Windows client; otherwise the query-engine DLL cannot be replaced.
+- A Neon admin may need membership in a newly created restricted role before assigning that role database ownership. Keep the new application database and credentials separate; do not fall back to Portal's schema.
+- Verify current parallel-chat/repository state before relying on an older handover. Portal now exists and its separate gateway branch/dependency qualification must be reflected accurately.
+
 ## 2026-10-12 — Dependency repair and Portal reconciliation
 - npm audit may suggest destructive downgrades when a transitive library has no patch. Prefer replacing the unused vulnerable dependency or its build-tool chain; document lint coverage changes and verify document/CSS behavior.
 - Next 15 requires awaited dynamic params/searchParams and the current serverExternalPackages key. Browser tests must wait for the actual mutation response rather than assume cold dev compilation fits a five-second assertion.

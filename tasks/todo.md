@@ -1,5 +1,15 @@
 # 任務清單
 
+## Merge and protected Vercel deployment — 2026-10-13
+User explicitly requested merge to main, Vercel deployment and post-deployment testing.
+- [ ] Reconcile both PRs with latest base branches and finish Portal dependency repair/CI.
+- [ ] Establish AgentOS main from the current default, merge exact validated PR heads and record SHAs.
+- [ ] Inspect Vercel targets; configure separate synthetic AgentOS database, protected deployment and explicit test authentication.
+- [ ] Deploy validated commits; verify real URLs, anonymous gates, login, ownership, version approvals and signed Portal integration/reconciliation.
+- [ ] Record Vercel/serverless worker limitations, results and next-session handover on GitHub.
+
+Deployment scope: protected synthetic test environments; no student records, real school mail or business cron. Local models and persistent office Worker require a separately running authorized host; Vercel frontend readiness must not claim those are active.
+
 ## Dependency repair and Portal bridge — 2026-10-09
 User approved: repair dependencies first, then implement Portal integration.
 - [x] Inspect current advisories and select compatible patched dependencies; preserve existing features.

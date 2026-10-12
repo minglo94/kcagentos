@@ -43,3 +43,4 @@ node_modules/
 /playwright-report/
 /local-data/
 __pycache__/
+.env*

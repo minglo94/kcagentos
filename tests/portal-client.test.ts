@@ -11,6 +11,11 @@ const data = { parentJobId: "job-123", planVersion: 1, stepKey: "daily-summary",
   staff: { subject: "staff-123", email: "teacher@example.test" }, workflowVersion: 1 as const,
   capability: "class.daily-summary.draft" as const, input: { classRef: "class-1", sourceBatchRef: "batch-1", date: "2026-10-12" } };
 const request: PortalRequest = { ...data, requestHash: hashPortalRequest(data) };
+test("deployment protection token cannot be sent to non-Vercel or non-TLS destinations", () => {
+  for (const baseUrl of ["http://127.0.0.1:1234", "https://unrelated.example", "http://example.vercel.app"]) {
+    assert.throws(() => createPortalClient({ baseUrl, serviceToken, assertionSecret, deploymentBypassSecret: "synthetic-private-bypass" }), /PORTAL_NOT_CONFIGURED/);
+  }
+});
 const result = (overrides: Partial<PortalResponse> = {}): PortalResponse => ({ operationId: "op-1", parentJobId: request.parentJobId,
   idempotencyKey: request.idempotencyKey, requestHash: request.requestHash, revision: 1, status: "ACCEPTED", ...overrides });
 const json = (res: ServerResponse, value: unknown, status = 200) => { res.writeHead(status, { "Content-Type": "application/json" }); res.end(JSON.stringify(value)); };

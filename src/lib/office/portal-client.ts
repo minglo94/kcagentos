@@ -6,7 +6,7 @@ export type PortalErrorCode = "PORTAL_NOT_CONFIGURED" | "PORTAL_INVALID_REQUEST"
 export class PortalError extends Error {
   constructor(public readonly code: PortalErrorCode) { super(code); }
 }
-export interface PortalClientConfig { baseUrl: string; serviceToken: string; assertionSecret: string; timeoutMs?: number }
+export interface PortalClientConfig { baseUrl: string; serviceToken: string; assertionSecret: string; timeoutMs?: number; deploymentBypassSecret?: string }
 const MAX_BODY_BYTES = 64 * 1024;
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 
@@ -17,6 +17,7 @@ function validatedConfig(config: PortalClientConfig) {
     if (url.username || url.password || url.search || url.hash || !["", "/"].includes(url.pathname)
       || !(url.protocol === "https:" || (url.protocol === "http:" && loopback))
       || config.serviceToken.length < 16 || /[\r\n]/.test(config.serviceToken)
+      || (config.deploymentBypassSecret && (!url.hostname.endsWith(".vercel.app") || url.protocol !== "https:" || /[\r\n]/.test(config.deploymentBypassSecret)))
       || config.assertionSecret.length < 32 || !Number.isInteger(config.timeoutMs ?? 15_000)
       || (config.timeoutMs ?? 15_000) < 1 || (config.timeoutMs ?? 15_000) > 120_000) throw new Error();
     return { ...config, origin: url.origin, timeoutMs: config.timeoutMs ?? 15_000 };
@@ -47,7 +48,8 @@ export function createPortalClient(config: PortalClientConfig): PortalClient {
       const response = await fetch(new URL(path, settings.origin), { method, body: body || undefined,
         headers: { Authorization: `Bearer ${settings.serviceToken}`, "Content-Type": "application/json",
           "X-AgentOS-Assertion": assertion,
-          "X-AgentOS-Signature": createHmac("sha256", settings.assertionSecret).update(assertion).digest("hex") },
+          "X-AgentOS-Signature": createHmac("sha256", settings.assertionSecret).update(assertion).digest("hex"),
+          ...(settings.deploymentBypassSecret ? { "x-vercel-protection-bypass": settings.deploymentBypassSecret } : {}) },
         redirect: "error", cache: "no-store", signal: controller.signal });
       if (response.status === 401 || response.status === 403) { await response.body?.cancel(); throw new PortalError("PORTAL_ACCESS_DENIED"); }
       if (response.status === 409) { await response.body?.cancel(); throw new PortalError("PORTAL_CONFLICT"); }
@@ -101,5 +103,5 @@ export function createPortalClient(config: PortalClientConfig): PortalClient {
 }
 
 export function loadPortalClient(): PortalClient {
-  return createPortalClient({ baseUrl: process.env.PORTAL_BASE_URL ?? "", serviceToken: process.env.PORTAL_SERVICE_TOKEN ?? "", assertionSecret: process.env.PORTAL_ASSERTION_SECRET ?? "" });
+  return createPortalClient({ baseUrl: process.env.PORTAL_BASE_URL ?? "", serviceToken: process.env.PORTAL_SERVICE_TOKEN ?? "", assertionSecret: process.env.PORTAL_ASSERTION_SECRET ?? "", deploymentBypassSecret: process.env.PORTAL_AUTOMATION_BYPASS_SECRET });
 }

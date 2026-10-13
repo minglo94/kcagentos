@@ -44,3 +44,7 @@ AgentOS及Keichi Local同時規劃時，先確定功能權威與共享契約。�
 - Stop immediately on native command failure in PowerShell. A failed link followed by deploy can create an unintended project.
 - Use an explicit preview target for Portal pairing. A project's first default deployment can become production even when test credentials are protected.
 - Confirm the READY deployment, protected access and real authenticated browser behavior; local build success alone is insufficient.
+
+## 2026-10-13 — Teacher interface correction
+
+The user clarified that normal teachers use Portal only, including every approval and action confirmation. Do not require an AgentOS login or treat the operator dashboard as school approval authority. Preserve backend orchestration in AgentOS and implement Portal-originated request/decision/progress protocols; current test UI does not prove that workflow exists.

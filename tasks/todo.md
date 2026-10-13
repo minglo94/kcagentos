@@ -269,3 +269,15 @@ User approved main merge, Vercel deployment and synthetic test login.
 - [x] Publish exact cloud evidence, account instructions and next-session handover to GitHub.
 
 Review: protected cloud login and approved draft workflow passed; actual native Portal deduplication/scoping passed. See docs/VERCEL_TEST_DEPLOYMENT.md for exact evidence and intermittent Worker transaction limitation. No school email, business cron, real student data or live model inference is enabled.
+
+## Portal-only teacher entry — confirmed 2026-10-13
+
+- [x] Record user correction: teachers only use Portal; every school approval/action confirmation occurs there.
+- [x] Align shared integration responsibility, identity/decision protocol and acceptance plan; sync both repos and Portal chat.
+- [ ] Add durable Portal request/outbox plus authenticated AgentOS ingress and verified multi-user mapping.
+- [ ] Display versioned plans and required step confirmations in Portal; relay verified decisions to AgentOS.
+- [ ] Return progress/evidence and handle pause/cancel/reconciliation entirely in Portal.
+- [ ] Enforce operator-only AgentOS school console access; reject direct teacher mutations and operator substitution for school approval.
+- [ ] Verify synthetic multi-teacher end-to-end, stale/forged approvals, outages and concurrency before real teacher rollout.
+
+Review: design/documentation update only. Existing protected synthetic pilot still uses AgentOS entry; new Portal entry/approval endpoints are not yet implemented. See docs/PORTAL_TEACHER_ENTRY.md.

@@ -27,3 +27,6 @@ The native tests run only against independently provisioned synthetic databases 
 ## Remaining rollout limits
 
 The first capability accepts owned `daily-summary/1` sources explicitly marked synthetic, with matching class/date/version/hash. It rejects the real offline CSV `daily-export/1` contract. This is not a live attendance import or mail integration. Persistent Worker hosting, local inference, Google OAuth, complete pixel animation and business cron require separate qualification. Hermes memory/Skills learning is a proposal described in `HERMES_LEARNING_PLAN.md`.
+
+
+Additional review fixes: unapproved Pause is rejected before durable commands on both services, and disabled in Portal (including Resume after rejection). Legacy AgentOS document approvals, arbitrary notification sending and weekly-summary delivery now return403 without DB/network action; their UI directs school confirmation to Portal. Actual Next receiver testing found internal-origin normalization; public Host and the cryptographically bound configured audience are checked separately, with wrong Host/browser Origin still rejected.

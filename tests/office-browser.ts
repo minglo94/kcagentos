@@ -68,6 +68,9 @@ async function main() {
     await context.addCookies([{ name: "next-auth.session-token", value: token, url }]);
     for(const suffix of ["approvals","control","evidence","portal"]) assert.equal((await context.request.post(`${url}/api/jobs/${school.id}/${suffix}`,{headers:{origin:url},data:{action:"cancel"}})).status(),403);
     assert.equal((await context.request.post(url+"/api/portal/jobs",{headers:{origin:url},data:{}})).status(),403);
+    assert.equal((await context.request.patch(url+"/api/approvals/nonexistent",{data:{action:"approve"}})).status(),403);
+    assert.equal((await context.request.post(url+"/api/notify",{data:{content:"Synthetic blocked",recipients:[]}})).status(),403);
+    assert.equal((await context.request.get(url+"/api/cron/weekly-summary")).status(),403);
     const page = await context.newPage();
     await page.goto(url + "/office");
     await expect(page.getByRole("heading", { name: "Hermes 指揮台", exact: true })).toBeVisible({ timeout: 60_000 });

@@ -102,6 +102,7 @@ export function makeTeacherHandlers(db:PrismaClient,env:TeacherEnv):TeacherHandl
         const existing=await tx.portalTeacherCommand.findUnique({where:{commandId:body.commandId}}),commandHash=hashTeacherCommand(body);
         if(existing&&(existing.commandHash!==commandHash||existing.requestId!==id))throw new OfficeError(409,'COMMAND_CONFLICT');
         if(!existing){
+          if(body.action==='pause'&&link.job.approvedVersion!==body.version)throw new OfficeError(409,'APPROVAL_REQUIRED');
           if(body.action==='refresh')await queuePortalRefreshTx(tx,link.jobId,mapping.userId,body.version,body.hash);
           else await controlJobTx(tx,link.jobId,mapping.userId,body.action);
           await tx.portalTeacherCommand.create({data:{commandId:body.commandId,requestId:id,commandHash,action:body.action}});

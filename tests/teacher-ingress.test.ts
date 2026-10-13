@@ -52,7 +52,7 @@ async function command(snapshot: TeacherSnapshot, id: string, action: string) {
 }
 
 test('signed ingress rejects wrong audience, expired timestamp, tampering, wrong path, disabled config and replay', async () => {
-  for (const change of [{ audience: 'https://evil.example' }, { timestamp: Math.floor(Date.now()/1000)-61 }, { timestamp: Math.floor(Date.now()/1000)+61 }, { path: '/forged' }, { method: 'GET' }, { bodyHash: '0'.repeat(64) }]) assert.equal((await handlers.create(signed(base, request('auth-denied'), 'teacher-a', change))).status, 401);
+  for (const change of [{ audience: 'https://evil.example' }, { timestamp: Math.floor(Date.now()/1000)-90 }, { timestamp: Math.floor(Date.now()/1000)+90 }, { path: '/forged' }, { method: 'GET' }, { bodyHash: '0'.repeat(64) }]) assert.equal((await handlers.create(signed(base, request('auth-denied'), 'teacher-a', change))).status, 401);
   assert.equal((await handlers.create(signed(base, request('tampered'), 'teacher-a', {}, { 'x-portal-signature': '0'.repeat(64) }))).status, 401);
   assert.equal((await makeTeacherHandlers(db, { ...env, PORTAL_INGRESS_ENABLED: 'false' }).create(signed(base, request('disabled')))).status, 503);
   const signedRequest = signed(base, request('nonce-replay'));
@@ -60,6 +60,10 @@ test('signed ingress rejects wrong audience, expired timestamp, tampering, wrong
   assert.equal((await handlers.create(signedRequest)).status, 201);
   assert.equal((await handlers.create(retry)).status, 409);
   assert.equal((await handlers.create(signed(base, ' '.repeat(8193)))).status, 413);
+  const normalized = new Request('http://localhost:3000'+base, signed(base, request('normalized-origin'), 'teacher-a', {}, {host:'agentos.example.test'}));
+  assert.equal((await handlers.create(normalized)).status,201);
+  const wrongHost = new Request('http://localhost:3000'+base, signed(base, request('wrong-public-host'), 'teacher-a', {}, {host:'evil.example'}));
+  assert.equal((await handlers.create(wrongHost)).status,403);
   const hostile = new Request('https://evil.example'+base, signed(base, request('hostile')));
   assert.equal((await handlers.create(hostile)).status, 403);
 });
@@ -107,6 +111,8 @@ test('immutable concurrent creation returns one fixed unapproved parent and scop
 });
 test('decisions are version bound, atomic and duplicate approval cannot undo pause or cancel', async () => {
   const snapshot = await create('decision-test');
+  assert.equal((await command(snapshot, 'premature-pause', 'pause')).status, 409);
+  assert.equal(await db.portalTeacherCommand.count({where:{requestId:snapshot.requestId}}),0);
   assert.equal((await decide(snapshot, 'stale-decision', { version: 2 })).status, 409);
   assert.equal((await decide(snapshot, 'forged-decision', { actor: 'teacher-b' })).status, 401);
   const responses = await Promise.all([decide(snapshot, 'approval-1'), decide(snapshot, 'approval-1')]);

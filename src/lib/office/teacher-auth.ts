@@ -39,7 +39,10 @@ export async function authenticateTeacher(db:PrismaClient, env:TeacherEnv, req:R
   try{trusted=new URL(origin);}catch{throw new OfficeError(503,'PORTAL_INGRESS_DISABLED');}
   if(trusted.origin!==origin || !['https:','http:'].includes(trusted.protocol) || (trusted.protocol==='http:'&&!['127.0.0.1','localhost','[::1]'].includes(trusted.hostname)))throw new OfficeError(503,'PORTAL_INGRESS_DISABLED');
   const url=new URL(req.url);
-  if(url.origin!==origin || (req.headers.has('origin')&&req.headers.get('origin')!==origin))throw new OfficeError(403,'INVALID_ORIGIN');
+  // Next may normalize its internal URL to localhost behind the public Host.
+  // Host must match configuration; the signed audience independently binds the public origin.
+  const requestHost=req.headers.get('host')??url.host;
+  if(requestHost!==trusted.host || (req.headers.has('origin')&&req.headers.get('origin')!==origin))throw new OfficeError(403,'INVALID_ORIGIN');
   const encoded=req.headers.get('x-portal-assertion')||'',signature=req.headers.get('x-portal-signature')||'';
   if(!equal(req.headers.get('authorization')||'',`Bearer ${token}`)||encoded.length>4096||!/^[A-Za-z0-9_-]+$/.test(encoded)||!/^[a-f0-9]{64}$/.test(signature)||!equal(signature,createHmac('sha256',secret).update(encoded).digest('hex')))throw new OfficeError(401,'INVALID_ASSERTION');
   let assertion;

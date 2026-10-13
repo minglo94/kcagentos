@@ -47,7 +47,9 @@ export async function installPlan(db: PrismaClient, jobId: string, plan: OfficeP
 }
 
 export async function approvePlan(db: PrismaClient, jobId: string, userId: string, version: number, hash: string, decision: "approve" | "reject", reason?: string) {
-  return serial(db, async tx => {
+  return serial(db, tx => approvePlanTx(tx, jobId, userId, version, hash, decision, reason));
+}
+export async function approvePlanTx(tx: Tx, jobId: string, userId: string, version: number, hash: string, decision: "approve" | "reject", reason?: string) {
     const job = await owned(tx, jobId, userId);
     if (job.planVersion !== version || job.planHash !== hash) throw new OfficeError(409, "STALE_PLAN");
     const existing = await tx.officeApproval.findUnique({ where: { jobId_planVersion: { jobId, planVersion: version } } });
@@ -62,11 +64,12 @@ export async function approvePlan(db: PrismaClient, jobId: string, userId: strin
     } });
     await emit(tx, jobId, "plan.decision", { decision, version, status: updated.status });
     return updated;
-  });
 }
 
 export async function controlJob(db: PrismaClient, id: string, userId: string, action: "pause" | "resume" | "cancel" | "replan") {
-  return serial(db, async tx => {
+  return serial(db, tx => controlJobTx(tx, id, userId, action));
+}
+export async function controlJobTx(tx: Tx, id: string, userId: string, action: "pause" | "resume" | "cancel" | "replan") {
     const job = await owned(tx, id, userId);
     if (["SUCCEEDED", "CANCELLED"].includes(job.status)) throw new OfficeError(409, "JOB_FINISHED");
     let status: OfficeStatus;
@@ -87,7 +90,6 @@ export async function controlJob(db: PrismaClient, id: string, userId: string, a
     if (action === "pause") await tx.officeStep.updateMany({ where: { jobId: id, status: "RUNNING" }, data: { status: "QUEUED" } });
     await emit(tx, id, "job.control", { action, status });
     return updated;
-  });
 }
 
 export async function completeManual(db: PrismaClient, id: string, userId: string, key: string, evidence: string, version: number, hash: string) {

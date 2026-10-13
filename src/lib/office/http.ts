@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { getSession } from "@/lib/auth";
+import { getIdentitySession } from "@/lib/auth";
 import { OfficeError } from "./plan";
+import { prisma } from '@/lib/prisma';
+import { assertOfficeOperator } from './teacher-auth';
 
 export async function officeUser(req: NextRequest) {
   if (!["GET", "HEAD"].includes(req.method)) {
@@ -11,8 +13,9 @@ export async function officeUser(req: NextRequest) {
     const expectedOrigin = process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).origin : req.nextUrl.origin;
     if (origin && origin !== expectedOrigin) throw new OfficeError(403, "INVALID_ORIGIN");
   }
-  const session = await getSession();
+  const session = await getIdentitySession();
   if (!session?.user?.id) throw new OfficeError(401, "NOT_AUTHENTICATED");
+  await assertOfficeOperator(prisma,session.user.id);
   return session.user.id;
 }
 export function officeFailure(error: unknown) {

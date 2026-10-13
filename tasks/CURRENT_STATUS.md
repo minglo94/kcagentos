@@ -1,3 +1,11 @@
+## Portal-only implementation progress — 13 October 2026
+
+Branch codex/portal-teacher-entry implements Portal teacher submission, exact plan/step confirmation, durable decision/control delivery, scoped progress reconciliation and mapped synthetic draft execution. AgentOS browser is operator-only. Portal independently signs short-lived Ed25519 authority after live scope/decision checks.
+
+Native two-service PostgreSQL synthetic acceptance passed: lost replies, immutable replay, teacher isolation, stale decisions, controls, draft evidence and mapping revocation. AgentOS52 tests/typecheck/lint and Portal tests/typecheck/lint pass. Actual Portal browser and final builds underway. This branch is not yet merged/deployed; older deployments below are a separate milestone.
+
+Hermes is a restricted no-tools planner adapter; no local inference or automatic learning enabled. Progress is durable database state. See docs/HERMES_LEARNING_PLAN.md and docs/PORTAL_TEACHER_ENTRY_QUALIFICATION.md.
+
 ## 最新設計修正 — 2026-10-13：Portal 是老師唯一入口
 
 普通老師只在 Portal 提交、批准計劃/行動步驟、確認內容/收件人/發送、追蹤及控制工作。AgentOS 是後台總管及管理/開發指揮台，不能代老師批准。下一步先做 Portal request/outbox→AgentOS authenticated ingress、multi-user mapping、decision relay、進度核實及普通老師 AgentOS 存取拒絕；規格見 docs/PORTAL_TEACHER_ENTRY.md。既有部署仍是舊 AgentOS-entry synthetic pilot，新入口未實作。

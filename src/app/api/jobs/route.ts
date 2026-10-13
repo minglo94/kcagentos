@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { officeFailure, officeUser } from "@/lib/office/http";
-import { createJobSchema } from "@/lib/office/plan";
+import { createJobSchema, OfficeError } from "@/lib/office/plan";
 import { createJob } from "@/lib/office/store";
 export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const userId = await officeUser(req);
     const { goal, team } = createJobSchema.parse(await req.json());
+    if(team==='school')throw new OfficeError(403,'PORTAL_AUTHORITY_REQUIRED');
     const job = await createJob(prisma, userId, goal, team);
     return NextResponse.json({ id: job.id, status: job.status }, { status: 201 });
   } catch (error) { return officeFailure(error); }

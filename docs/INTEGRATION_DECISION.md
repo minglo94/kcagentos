@@ -2,7 +2,7 @@
 
 Confirmed by user: 2026-10-09 (Asia/Hong_Kong).
 Decision: integrated user experience, separate repositories, services and databases.
-Status: foundation and draft-only bridge merged and protected synthetic cloud acceptance passed. Teacher-only Portal entry was confirmed on 2026-10-13 and remains to be implemented; see docs/PORTAL_TEACHER_ENTRY.md and docs/VERCEL_TEST_DEPLOYMENT.md.
+Status: foundation and draft-only bridge merged and protected synthetic cloud acceptance passed. Teacher-only Portal entry was confirmed on 2026-10-13 and is implemented on the feature branch and undergoing final browser/build qualification; not deployed; see docs/PORTAL_TEACHER_ENTRY.md and docs/VERCEL_TEST_DEPLOYMENT.md.
 
 ## Ownership
 

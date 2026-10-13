@@ -1,12 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest } from "next/server";
 import { officeFailure, officeUser } from "@/lib/office/http";
-import { portalInputSchema } from "@/lib/office/portal-contract";
-import { createPortalDraftJob } from "@/lib/office/portal-workflow";
+import { OfficeError } from '@/lib/office/plan';
 export async function POST(req: NextRequest) {
   try {
-    const userId = await officeUser(req);
-    const job = await createPortalDraftJob(prisma, userId, portalInputSchema.parse(await req.json()));
-    return NextResponse.json({ id: job.id, status: job.status }, { status: 201 });
+    await officeUser(req);
+    throw new OfficeError(403,'PORTAL_AUTHORITY_REQUIRED');
   } catch (error) { return officeFailure(error); }
 }

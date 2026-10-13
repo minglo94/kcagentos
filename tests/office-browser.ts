@@ -15,20 +15,22 @@ import type { OfficePlan } from "../src/lib/office/plan";
 
 async function main() {
   const pg = await PGlite.create();
-  for (const dir of ["20261009000000_baseline", "20261009000100_office", "20261012000000_portal"]) await pg.exec(await readFile(`prisma/migrations/${dir}/migration.sql`, "utf-8"));
+  for (const dir of ["20261009000000_baseline", "20261009000100_office", "20261012000000_portal", "20261013000100_teacher_entry"]) await pg.exec(await readFile(`prisma/migrations/${dir}/migration.sql`, "utf-8"));
   const socket = new PGLiteSocketServer({ db: pg, port: 0, host: "127.0.0.1", maxConnections: 1 });
   await socket.start();
   // PGlite multiplexes one backend; disable per-connection prepared statements.
   const databaseUrl = `postgresql://postgres:postgres@${socket.getServerConn()}/postgres?connection_limit=1&pgbouncer=true&statement_cache_size=0`;
   const db = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
-  const user = await db.user.create({ data: { name: "Synthetic staff", email: "synthetic@gs.keichi.edu.hk", subjects: [] } });
-  const other = await db.user.create({ data: { name: "Other synthetic staff", email: "other@gs.keichi.edu.hk", subjects: [] } });
+  const user = await db.user.create({ data: { name: "Synthetic operator", role: "ADMIN", email: "synthetic@gs.keichi.edu.hk", subjects: [] } });
+  const other = await db.user.create({ data: { name: "Other synthetic operator", role: "ADMIN", email: "other@gs.keichi.edu.hk", subjects: [] } });
+  const teacher = await db.user.create({ data: { name: "Synthetic teacher", email: "teacher@gs.keichi.edu.hk", subjects: [] } });
   const fixture: OfficePlan = { summary: "合成測試計劃，並非模型生成。", acceptance: ["老師核對合成資料來源"], steps: [{ id: "review", title: "核對合成資料", agent: "andy", executor: "manual", dependsOn: [], instructions: "核對日期及缺漏；不發送任何電郵。" }] };
   const { createJob, approvePlan } = await import("../src/lib/office/store");
-  const job = await createJob(db, user.id, "規劃一份合成資料班主任摘要", "school");
+  const job = await createJob(db, user.id, "規劃一份合成開發驗收", "development");
   await runNext(db, { plan: async () => fixture });
-  const manual = await createJob(db, user.id, "人工核對合成資料", "school");
+  const manual = await createJob(db, user.id, "人工核對合成資料", "development");
   await runNext(db, { plan: async () => fixture });
+  const school = await createJob(db, user.id, "School authority gate", "school");
   const manualReady = await db.officeJob.findUniqueOrThrow({ where: { id: manual.id } });
   await approvePlan(db, manual.id, user.id, manualReady.planVersion, manualReady.planHash!, "approve");
   await runNext(db, { plan: async () => fixture });
@@ -57,12 +59,19 @@ async function main() {
     const context = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
     const anonymous = await context.request.get(url + "/api/jobs");
     assert.equal(anonymous.status(), 401);
-    const token = await encode({ secret, token: { email: user.email, name: user.name, userId: user.id, role: "TEACHER" } });
+    const teacherToken = await encode({secret,token:{email:teacher.email,userId:teacher.id,role:"ADMIN"}});
+    await context.addCookies([{name:"next-auth.session-token",value:teacherToken,url}]);
+    assert.equal((await context.request.get(url+"/api/jobs")).status(),403);
+    assert.equal((await context.request.get(url+"/office")).status(),403);
+    assert.equal((await context.request.get(url+"/api/tasks")).status(),401,'Normal teacher cannot use legacy AgentOS browser APIs');
+    const token = await encode({ secret, token: { email: user.email, name: user.name, userId: user.id, role: "ADMIN" } });
     await context.addCookies([{ name: "next-auth.session-token", value: token, url }]);
+    for(const suffix of ["approvals","control","evidence","portal"]) assert.equal((await context.request.post(`${url}/api/jobs/${school.id}/${suffix}`,{headers:{origin:url},data:{action:"cancel"}})).status(),403);
+    assert.equal((await context.request.post(url+"/api/portal/jobs",{headers:{origin:url},data:{}})).status(),403);
     const page = await context.newPage();
     await page.goto(url + "/office");
     await expect(page.getByRole("heading", { name: "Hermes 指揮台", exact: true })).toBeVisible({ timeout: 60_000 });
-    const jobButton = page.getByRole("button", { name: /規劃一份合成資料班主任摘要/ });
+    const jobButton = page.getByRole("button", { name: /規劃一份合成開發驗收/ });
     // Wait for the authenticated client fetch, not just server-rendered headings.
     await expect(jobButton).toBeVisible({ timeout: 30_000 });
     await page.getByLabel("工作目標").fill("建立另一個合成測試目標");
@@ -86,21 +95,13 @@ async function main() {
     await expect(manualButton).toContainText("已排隊");
     await manualButton.click();
     await expect(page.getByText("已核對合成日期及資料，沒有缺漏。", { exact: true })).toBeVisible();
-    const otherToken = await encode({ secret, token: { email: other.email, userId: other.id, role: "TEACHER" } });
+    const otherToken = await encode({ secret, token: { email: other.email, userId: other.id, role: "ADMIN" } });
     await context.addCookies([{ name: "next-auth.session-token", value: otherToken, url }]);
     assert.equal((await context.request.get(`${url}/api/jobs/${job.id}`)).status(), 404);
     await context.addCookies([{ name: "next-auth.session-token", value: token, url }]);
     await mkdir(".test-artifacts", { recursive: true });
-    await page.getByText("班務草稿流程 v1", { exact: true }).click();
-    await page.getByLabel("Portal 班別識別").fill("synthetic-class");
-    await page.getByLabel("來源批次識別").fill("synthetic-batch");
-    await page.getByLabel("資料日期", { exact: true }).fill("2026-10-12");
-    await page.getByRole("button", { name: "建立班務草稿計劃" }).click();
-    await expect(page.getByRole("button", { name: /班務草稿 · 2026-10-12/ })).toBeVisible();
-    await expect(page.getByText("班別 synthetic-class · 批次 synthetic-batch · 日期 2026-10-12")).toBeVisible();
-    await expect(page.getByRole("button", { name: "批准計劃", exact: true })).toBeVisible();
     await page.screenshot({ path: ".test-artifacts/office.png", fullPage: true });
-    console.log("Browser E2E passed: auth, cross-origin rejection, durable plan approval, manual evidence, SSE update, reload, ownership. Synthetic planner only; worker completion covered by store tests.");
+    console.log("Browser E2E passed: current teacher role denied page/API; ADMIN school mutation gates; development approval, manual evidence, SSE, reload and ownership. Synthetic planner only.");
     console.log(path.resolve(".test-artifacts/office.png"));
   } catch (error) { console.error(logs); throw error; }
   finally {

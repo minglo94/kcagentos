@@ -1,3 +1,14 @@
+## Active Portal teacher-entry handover — 13 October 2026
+
+AgentOS and isolated Portal C:/Users/CMLO/keichi-portal-bridge use codex/portal-teacher-entry. Portal incorporates P0–P3 e7aee17; original checkout untouched. Task1 c53c910 committed; root fixes and Task2 await final acceptance/commit. Native PostgreSQL paired acceptance and AgentOS52 tests/current typechecks/lints passed. Teacher AgentOS browser denial verified. Ed25519 keys are separate from HMAC; only Portal receives private key. Both active user mappings must be explicitly provisioned.
+
+Next: genuine Portal credential/browser acceptance, both builds after servers stop, exact-head review and GitHub PRs. Existing user merge/deploy authorization remains; isolate preview env from other Portal work and verify exact test-project identities. Synthetic DBs/credentials/keys remain ignored private artifacts. No actual sender, local inference or business cron enabled. See docs/PORTAL_TEACHER_ENTRY_QUALIFICATION.md. Hermes reviewed-learning loop is proposal only.
+
+
+---
+
+Historical milestones follow.
+
 ## 最新設計修正 — 2026-10-13：Portal 是老師唯一入口
 
 普通老師只在 Portal 提交、批准計劃/行動步驟、確認內容/收件人/發送、追蹤及控制工作。AgentOS 是後台總管及管理/開發指揮台，不能代老師批准。下一步先做 Portal request/outbox→AgentOS authenticated ingress、multi-user mapping、decision relay、進度核實及普通老師 AgentOS 存取拒絕；規格見 docs/PORTAL_TEACHER_ENTRY.md。既有部署仍是舊 AgentOS-entry synthetic pilot，新入口未實作。

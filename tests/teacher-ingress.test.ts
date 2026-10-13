@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { before, after, test } from 'node:test';
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHmac, randomUUID, generateKeyPairSync } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
@@ -9,8 +9,12 @@ import { hashTeacherBody, teacherSnapshotSchema, type TeacherSnapshot } from '..
 import { runNext } from '../src/lib/office/worker';
 import { assertOfficeOperator, assertBrowserJobMutation } from '../src/lib/office/teacher-auth';
 import { makeTeacherHandlers } from '../src/lib/office/teacher-ingress';
+import { issueTeacherAuthority } from '../src/lib/office/teacher-authority';
+import { hashTeacherRequest, hashTeacherDecision, hashTeacherCommand } from '../src/lib/office/teacher-contract';
 
-const env = { PORTAL_INGRESS_ENABLED: 'true', PORTAL_INGRESS_ORIGIN: 'https://agentos.example.test', PORTAL_INGRESS_SERVICE_TOKEN: 't'.repeat(48), PORTAL_INGRESS_ASSERTION_SECRET: 's'.repeat(32) };
+const authority=generateKeyPairSync('ed25519');
+const authorityPrivate=authority.privateKey.export({format:'pem',type:'pkcs8'}).toString();
+const env = { PORTAL_INGRESS_ENABLED: 'true', PORTAL_INGRESS_ORIGIN: 'https://agentos.example.test', PORTAL_INGRESS_SERVICE_TOKEN: 't'.repeat(48), PORTAL_INGRESS_ASSERTION_SECRET: 's'.repeat(32),PORTAL_SCOPE_PUBLIC_KEY:authority.publicKey.export({format:'pem',type:'spki'}).toString() };
 const base = '/api/portal/v1/requests';
 let pg: PGlite, socket: PGLiteSocketServer, db: PrismaClient, handlers: ReturnType<typeof makeTeacherHandlers>, user: string;
 before(async () => {
@@ -25,6 +29,10 @@ before(async () => {
 after(async () => { await db?.$disconnect(); await socket?.stop(); await pg?.close(); });
 
 function signed(path: string, body?: unknown, actor = 'teacher-a', overrides: Record<string, unknown> = {}, headers: Record<string,string> = {}) {
+  if(body&&typeof body==='object'&&!Object.prototype.hasOwnProperty.call(body,'authorityProof')){
+    const purpose=path.endsWith('/decisions')?'decision':path.endsWith('/commands')?'command':'request';
+    try{const hash=purpose==='decision'?hashTeacherDecision(body):purpose==='command'?hashTeacherCommand(body):hashTeacherRequest(body);body={...body,authorityProof:issueTeacherAuthority(purpose,hash,authorityPrivate)};}catch{/* malformed test inputs remain raw for receiver rejection */}
+  }
   const raw = body === undefined ? '' : typeof body === 'string' ? body : JSON.stringify(body);
   const method = body === undefined ? 'GET' : 'POST';
   const assertion = { issuer: 'keichi-local', audience: env.PORTAL_INGRESS_ORIGIN, subject: actor, method, path, bodyHash: hashTeacherBody(raw), timestamp: Math.floor(Date.now()/1000), nonce: randomUUID(), ...overrides };
@@ -54,6 +62,22 @@ test('signed ingress rejects wrong audience, expired timestamp, tampering, wrong
   assert.equal((await handlers.create(signed(base, ' '.repeat(8193)))).status, 413);
   const hostile = new Request('https://evil.example'+base, signed(base, request('hostile')));
   assert.equal((await handlers.create(hostile)).status, 403);
+});
+test('service authentication cannot mint foreign request scope or teacher decisions',async()=>{
+ const core=request('scope-proof-test');
+ const proof=issueTeacherAuthority('request',hashTeacherRequest(core),authorityPrivate);
+ const foreign={...core,input:{...input,classRef:'another-teacher-class'},authorityProof:proof};
+ assert.equal((await handlers.create(signed(base,foreign))).status,403);
+ assert.equal((await handlers.create(signed(base,{...request('missing-proof'),authorityProof:undefined}))).status,403);
+ const expired=issueTeacherAuthority('request',hashTeacherRequest(core),authorityPrivate,Math.floor(Date.now()/1000)-121);
+ assert.equal((await handlers.create(signed(base,{...core,authorityProof:expired}))).status,403);
+ assert.equal(await db.portalTeacherRequest.count({where:{requestId:core.requestId}}),0);
+ const created=await create('decision-proof-test');
+ const path=`${base}/${created.requestId}/decisions`;
+ const decision={decisionId:'missing-authority',requestId:created.requestId,actor:'teacher-a',version:created.planVersion,hash:created.planHash,decision:'approve',authorityProof:undefined};
+ assert.equal((await handlers.decision(signed(path,decision),created.requestId)).status,403);
+ assert.equal((await db.officeJob.findUniqueOrThrow({where:{id:created.jobId}})).approvedVersion,null);
+ await command(created,'scope-proof-clean','cancel');
 });
 test('unmapped or revoked actors fail closed and cannot select an AgentOS owner', async () => {
   assert.equal((await handlers.create(signed(base, request('unmapped', 'missing'), 'missing'))).status, 403);

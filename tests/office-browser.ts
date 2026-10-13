@@ -63,6 +63,7 @@ async function main() {
     await context.addCookies([{name:"next-auth.session-token",value:teacherToken,url}]);
     assert.equal((await context.request.get(url+"/api/jobs")).status(),403);
     assert.equal((await context.request.get(url+"/office")).status(),403);
+    assert.equal((await context.request.get(url+"/api/tasks")).status(),401,'Normal teacher cannot use legacy AgentOS browser APIs');
     const token = await encode({ secret, token: { email: user.email, name: user.name, userId: user.id, role: "ADMIN" } });
     await context.addCookies([{ name: "next-auth.session-token", value: token, url }]);
     for(const suffix of ["approvals","control","evidence","portal"]) assert.equal((await context.request.post(`${url}/api/jobs/${school.id}/${suffix}`,{headers:{origin:url},data:{action:"cancel"}})).status(),403);

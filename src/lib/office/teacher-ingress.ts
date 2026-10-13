@@ -6,6 +6,7 @@ import { OfficeError, planSchema } from './plan';
 import { approvePlanTx, controlJobTx, serial } from './store';
 import { createPortalDraftJobTx, queuePortalRefreshTx } from './portal-workflow';
 import { portalResponseSchema } from './portal-contract';
+import { TeacherAuthorityError, verifyTeacherAuthority } from './teacher-authority';
 
 type Tx=Prisma.TransactionClient;
 async function scoped(tx:Tx, requestId:string, issuer:string, actor:string) {
@@ -38,6 +39,7 @@ async function snapshot(tx:Tx,requestId:string,issuer:string,actor:string) {
 }
 function respond(value:unknown,status=200){return Response.json(value,{status,headers:{'cache-control':'no-store'}});}
 function failure(error:unknown){
+  if(error instanceof TeacherAuthorityError)return respond({error:error.message},error.status);
   if(error instanceof OfficeError)return respond({error:error.code},error.status);
   if(error instanceof ZodError||error instanceof SyntaxError||error instanceof TypeError)return respond({error:'INVALID_INPUT'},400);
   return respond({error:'SERVICE_UNAVAILABLE'},503);
@@ -56,6 +58,7 @@ export function makeTeacherHandlers(db:PrismaClient,env:TeacherEnv):TeacherHandl
       const raw=await readTeacherBody(req),auth=await authenticateTeacher(db,env,req,raw);
       const body=teacherRequestSchema.parse(JSON.parse(raw));
       if(body.actor!==auth.assertion.subject)throw new OfficeError(401,'INVALID_ASSERTION');
+      verifyTeacherAuthority('request',hashTeacherRequest(body),body.authorityProof,env.PORTAL_SCOPE_PUBLIC_KEY||'');
       return serial(db,async tx=>{
         const mapping=await currentTeacherMapping(tx,auth.assertion.issuer,body.actor);
         let link=await tx.portalTeacherRequest.findUnique({where:{requestId:body.requestId}});
@@ -75,6 +78,7 @@ export function makeTeacherHandlers(db:PrismaClient,env:TeacherEnv):TeacherHandl
       if(!id||req.method!=='POST'||new URL(req.url).pathname!==`/api/portal/v1/requests/${encodeURIComponent(id)}/decisions`||new URL(req.url).search)throw new OfficeError(404,'REQUEST_NOT_FOUND');
       const raw=await readTeacherBody(req),auth=await authenticateTeacher(db,env,req,raw),body=teacherDecisionSchema.parse(JSON.parse(raw));
       if(body.actor!==auth.assertion.subject||body.requestId!==id)throw new OfficeError(401,'INVALID_ASSERTION');
+      verifyTeacherAuthority('decision',hashTeacherDecision(body),body.authorityProof,env.PORTAL_SCOPE_PUBLIC_KEY||'');
       return serial(db,async tx=>{
         const {link,mapping}=await scoped(tx,id,auth.assertion.issuer,body.actor);
         if(link.job.planVersion!==body.version||link.job.planHash!==body.hash)throw new OfficeError(409,'STALE_PLAN');
@@ -91,6 +95,7 @@ export function makeTeacherHandlers(db:PrismaClient,env:TeacherEnv):TeacherHandl
       if(!id||req.method!=='POST'||new URL(req.url).pathname!==`/api/portal/v1/requests/${encodeURIComponent(id)}/commands`||new URL(req.url).search)throw new OfficeError(404,'REQUEST_NOT_FOUND');
       const raw=await readTeacherBody(req),auth=await authenticateTeacher(db,env,req,raw),body=teacherCommandSchema.parse(JSON.parse(raw));
       if(body.actor!==auth.assertion.subject||body.requestId!==id)throw new OfficeError(401,'INVALID_ASSERTION');
+      verifyTeacherAuthority('command',hashTeacherCommand(body),body.authorityProof,env.PORTAL_SCOPE_PUBLIC_KEY||'');
       return serial(db,async tx=>{
         const {link,mapping}=await scoped(tx,id,auth.assertion.issuer,body.actor);
         if(link.job.planVersion!==body.version||link.job.planHash!==body.hash)throw new OfficeError(409,'STALE_PLAN');

@@ -95,7 +95,13 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-export const getSession = () => getServerSession(authOptions);
+/** Office gates need the current identity to return an explicit teacher 403. */
+export const getIdentitySession = () => getServerSession(authOptions);
+/** Browser-facing AgentOS is operator-only; teacher identities remain backend mappings. */
+export const getSession = async () => {
+  const session=await getIdentitySession();
+  return session?.user?.role==='ADMIN'?session:null;
+};
 
 export async function requireRole(
   ...roles: Role[]

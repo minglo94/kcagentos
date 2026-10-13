@@ -281,3 +281,13 @@ Review: protected cloud login and approved draft workflow passed; actual native 
 - [ ] Verify synthetic multi-teacher end-to-end, stale/forged approvals, outages and concurrency before real teacher rollout.
 
 Review: design/documentation update only. Existing protected synthetic pilot still uses AgentOS entry; new Portal entry/approval endpoints are not yet implemented. See docs/PORTAL_TEACHER_ENTRY.md.
+
+## Portal teacher-entry implementation — authorized 2026-10-13
+- [x] Confirm written design approval and write exact implementation plan/protocol.
+- [x] Baseline AgentOS 38 tests and Portal 17 cases+workflow scripts passed; new protocol tests RED→GREEN.
+- [x] Task1 AgentOS authenticated ingress/mapping/decision authority/operator gate.
+- [x] Task2 Portal durable teacher task UI/relay/mapped draft receiver (browser qualification pending).
+- [ ] Task3 cross-service/native/browser acceptance, fresh review, relevant builds and GitHub handover.
+Review pending implementation. Portal isolated branch incorporates committed P0–P3 e7aee17; original active checkout remains untouched.
+
+Review update 13 October: native two-service PostgreSQL acceptance PASS after reducing lease-heartbeat contention. AgentOS52 tests/typecheck/lint pass; Portal tests/typecheck/lint and focused12 teacher cases pass. Reviewed fixes: independent Ed25519 authority, revoked-class list filtering, GET-only reload and shared5-second read budget. Genuine Portal browser qualification and final builds pending; not yet deployed. Hermes learning loop is design only.

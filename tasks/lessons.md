@@ -37,3 +37,10 @@ AgentOS及Keichi Local同時規劃時，先確定功能權威與共享契約。�
 - PGlite multiplexes one backend; simultaneous Prisma clients can collide in prepared statements. It is a fixture, not proof of real PostgreSQL concurrency.
 - Next dev can normalize request origins; compare state-changing requests to the configured NEXTAUTH_URL and test both legitimate and hostile origins.
 - Windows Prisma DLL generation must run after the app is stopped; do not build while browser tests hold that DLL.
+
+## 2026-10-13 — Verify deployment identity before mutation
+
+- Inspect the actual checkout's `.vercel/project.json` project/team IDs before every deployment; named-project inspection alone does not verify linking.
+- Stop immediately on native command failure in PowerShell. A failed link followed by deploy can create an unintended project.
+- Use an explicit preview target for Portal pairing. A project's first default deployment can become production even when test credentials are protected.
+- Confirm the READY deployment, protected access and real authenticated browser behavior; local build success alone is insufficient.

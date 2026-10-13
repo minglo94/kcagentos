@@ -1,5 +1,21 @@
 # AgentOS 進度交接
 
+## 最新接續 — 2026-10-13
+
+用戶已批准合併 main、部署 Vercel 及使用受保護合成測試帳戶。
+- AgentOS PR13 已合併 main（fb9cd031a5e62c1827c43e3b6ec0e5b5078b1449），main 已設為 default。
+- Portal PR1 已合併 main（a4d4d5e970a04e53db6b9b15a836cdf81a2d7e22），隔離 worktree 避免改動另一聊天的 checkout。
+- 雙端 audit 0；AgentOS 38 tests／typecheck／browser／build 通過；Portal 17 tests＋core/activity/meeting、typecheck 及 exact-head CI（native DB、standalone container）通過。
+- Vercel AgentOS test READY：kcagentos-test.vercel.app；Portal protected preview READY：keichi-local-test-hzh4ih8gr-locmhy-7651s-projects.vercel.app。
+- 真實 credentials login、錯誤密碼拒絕、匿名 API、Origin 及 desktop/mobile 已實测通過。帳戶／密碼只在 ignored .test-artifacts/test-login.txt；不要上傳 GitHub。
+- 實際 cloud pairing 驗收見 docs/VERCEL_TEST_DEPLOYMENT.md；未完成或失败不可當成功。
+- 仍待：本機/Spark 長駐 Worker、真實模型、Google OAuth、廣泛多 Worker 競爭驗收、完整 Pixel 動畫、真實資料及唯一 business cron。Vercel 只運行 dashboard/API；測試以受控本機 Worker cycles 完成。
+- 下一次先讀 main 的 tasks/CURRENT_STATUS.md、部署驗收與 Portal 契約。另一 Portal 聊天正做 P0-P3 離線流程，不重複總管/排程/資料庫。歷史交接保留下方，不能用其未合併/漏洞狀態判斷現況。
+
+---
+
+# AgentOS 進度交接
+
 ## 最新接續 — 2026-10-12
 
 用戶批准先修依賴，再做 Portal 接駁。AgentOS 工作仍在 `codex/agentos-foundation` / PR #13。
@@ -66,3 +82,5 @@
 下一步：完成既有技術前置驗證後，以合成資料驗收班務流程（Portal 工具/權限/權威批准/outbox），再授權真實小批，最後 cron；不以 manual 證據文字或動畫宣稱完成。
 已向 Build private AI teacher portal（01a120d8-4d93-7f70-aa40-fa96902e9bd2）發送用戶授權同步指示，由該聊天更新其本地計劃與交接。Portal private repo 未建立時不得宣稱 GitHub 已同步。
 本次只有計劃文件修訂，沒有新功能、學生資料、發送、部署或排程。首版技術骨架仍見 PR #13；既有測試證據不等於新增流程已驗收。
+
+- Protected cloud login and the browser-approved draft flow passed on 13 October: controlled local Worker → DRAFT_READY → SUCCEEDED → browser reload. Actual gateway replay/scoping and three concurrent native requests deduplicated. See docs/VERCEL_TEST_DEPLOYMENT.md for exact evidence and the intermittent Worker failure/concurrency limitation. Do not treat a single successful cycle as unattended Worker qualification.

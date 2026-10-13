@@ -256,3 +256,16 @@ User authorized implementation in this session. Work branch: codex/agentos-found
 - [ ] 建立人工基準，量度老師耗時、修改量、漏項及同事獨立使用。
 
 Review：此次只修訂文檔；檢查跨服務分工、驗收及 Git diff，不代表新增程式測試或功能完成。
+
+## Main merge and protected cloud qualification — 2026-10-13
+
+User approved main merge, Vercel deployment and synthetic test login.
+- [x] Merge AgentOS PR13 and Portal PR1 to their main branches; set AgentOS default branch main.
+- [x] Provision separate synthetic AgentOS DB/account and a scoped Portal staff/class pairing.
+- [x] Deploy exact merged application code to protected Vercel test projects.
+- [x] Verify genuine credentials login, wrong-password rejection, anonymous/Origin gates and desktop/mobile rendering.
+- [x] Verify cloud Portal reference gateway, replay, scope, changed-request conflict and three-request deduplication (source-drift fixture checks remain separate).
+- [x] Verify browser plan approval through controlled local Worker and persisted Portal draft.
+- [x] Publish exact cloud evidence, account instructions and next-session handover to GitHub.
+
+Review: protected cloud login and approved draft workflow passed; actual native Portal deduplication/scoping passed. See docs/VERCEL_TEST_DEPLOYMENT.md for exact evidence and intermittent Worker transaction limitation. No school email, business cron, real student data or live model inference is enabled.

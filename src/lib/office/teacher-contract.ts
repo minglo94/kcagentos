@@ -11,7 +11,11 @@ export const teacherDecisionSchema=z.object({decisionId:ref,requestId:ref,actor:
 export const teacherCommandSchema=z.object({commandId:ref,requestId:ref,actor:ref,version,hash:digest,action:z.enum(['pause','resume','cancel','refresh'])}).strict();
 export const teacherAssertionSchema=z.object({issuer:z.literal('keichi-local'),audience:z.string().max(300),subject:ref,method:z.enum(['POST','GET']),path:z.string().max(400),bodyHash:digest,timestamp:z.number().int().nonnegative(),nonce:z.string().uuid()}).strict();
 const evidence=z.object({sourceRef:ref,artifactRef:ref.optional(),asOf:z.string().datetime({offset:true}),checks:z.object({complete:z.boolean(),identityMatched:z.boolean(),dateMatched:z.boolean(),sourceRows:z.number().int().nonnegative(),reconciledRows:z.number().int().nonnegative()}).strict().optional()}).strict();
-const operation=z.object({operationId:ref.nullable(),planVersion:version,stepKey:ref,status:z.enum(['UNSUBMITTED','ACCEPTED','RUNNING','WAITING_CONTENT_APPROVAL','DRAFT_READY','FAILED','RESULT_UNKNOWN']),revision:z.number().int().nonnegative(),evidence:evidence.optional(),approvalRef:ref.optional()}).strict();
+const operation=z.object({operationId:ref.nullable(),planVersion:version,stepKey:ref,status:z.enum(['UNSUBMITTED','ACCEPTED','RUNNING','WAITING_CONTENT_APPROVAL','DRAFT_READY','FAILED','RESULT_UNKNOWN']),revision:z.number().int().nonnegative(),evidence:evidence.optional(),approvalRef:ref.optional()}).strict().superRefine((value,ctx)=>{
+ const checks=value.evidence?.checks;
+ if(value.status==='DRAFT_READY'&&(!value.operationId||!value.evidence?.artifactRef||!checks?.complete||!checks.identityMatched||!checks.dateMatched||checks.sourceRows!==checks.reconciledRows))ctx.addIssue({code:'custom',message:'Ready draft requires reconciled artifact evidence',path:['evidence']});
+ if(value.status==='WAITING_CONTENT_APPROVAL'&&(!value.operationId||!value.approvalRef))ctx.addIssue({code:'custom',message:'Pending approval requires authoritative reference',path:['approvalRef']});
+});
 export const teacherSnapshotSchema=z.object({
  requestId:ref,jobId:ref,revision:z.number().int().nonnegative().max(2147483647),
  status:z.enum(['PLANNING','PENDING_PLAN_APPROVAL','QUEUED','RUNNING','WAITING_INPUT','PAUSED','SUCCEEDED','FAILED','CANCELLED']),

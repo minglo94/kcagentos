@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { emit, installPlan, serial } from "./store";
 import { planSchema, type OfficePlan } from "./plan";
 import type { PortalClient } from "./portal-contract";
-import { runPortalDraft } from "./portal-workflow";
+import { assertTeacherExecution, runPortalDraft } from "./portal-workflow";
 
 export type WorkerServices = {
   plan(goal: string, team: string, signal: AbortSignal): Promise<OfficePlan>;
@@ -50,6 +50,7 @@ export async function runNext(db: PrismaClient, services: WorkerServices, shutdo
     finally { beating = false; }
   }, 2000);
   try {
+    if(job.team==='school')await assertTeacherExecution(db,job);
     if (job.status === "PLANNING") {
       const plan = await services.plan(job.goal, job.team, controller.signal);
       if (controller.signal.aborted) throw new Error("JOB_INTERRUPTED");

@@ -1,25 +1,38 @@
 import { createHash } from "node:crypto";
-import { PrismaClient, type OfficeJob } from "@prisma/client";
+import { PrismaClient, type Prisma, type OfficeJob } from "@prisma/client";
 import { hashPlan, OfficeError, planSchema } from "./plan";
 import { emit, owned, serial } from "./store";
 import { hashPortalRequest, portalInputSchema, portalResponseSchema, type PortalInput, type PortalRequest } from "./portal-contract";
 import type { PortalClient } from "./portal-contract";
+import { currentTeacherMapping } from './teacher-auth';
+
+export async function assertTeacherExecution(db: PrismaClient | Prisma.TransactionClient, job: OfficeJob) {
+  const link=await db.portalTeacherRequest.findUnique({where:{jobId:job.id}});
+  if(!link)return; // Preserve explicitly configured pinned v1 jobs.
+  const mapping=await currentTeacherMapping(db,link.issuer,link.portalStaffId);
+  if(mapping.id!==link.mappingId||mapping.userId!==job.userId)throw new OfficeError(403,'PORTAL_ACCESS_DENIED');
+  const decision=await db.portalTeacherDecision.findFirst({where:{requestId:link.requestId,planVersion:job.planVersion,planHash:job.planHash!,decision:'approve'}});
+  if(!decision)throw new OfficeError(403,'APPROVAL_REQUIRED');
+}
 
 export async function createPortalDraftJob(db: PrismaClient, userId: string, input: PortalInput) {
+  return serial(db, tx => createPortalDraftJobTx(tx, userId, input));
+}
+export async function createPortalDraftJobTx(tx: Prisma.TransactionClient, userId: string, input: PortalInput) {
   const args = portalInputSchema.parse(input);
   const plan = planSchema.parse({ summary: "總管使用班務草稿流程 v1；只調用 Portal 核對及產出，不發送。這是固定模板，並非模型生成。", acceptance: ["Portal 核對來源日期、身份、完整性及行數", "取得 Portal 草稿版本及來源證據引用；正式內容審批及發送仍在 Portal"], steps: [{ id: "daily_summary", agent: "andy", executor: "portal.draft", title: "核對並建立班務草稿", instructions: "按已批准班別及來源批次建立草稿；缺漏、身份或日期不符停止。", dependsOn: [], portalInput: args }] });
-  return serial(db, async tx => {
     const staff = await tx.user.findFirst({ where: { id: userId, isActive: true } });
     if (!staff) throw new OfficeError(403, "PORTAL_ACCESS_DENIED");
     const job = await tx.officeJob.create({ data: { userId, team: "school", goal: `班務草稿 · ${args.date}`, status: "PENDING_PLAN_APPROVAL", plan, planHash: hashPlan(plan), planVersion: 1 } });
     await tx.officeStep.create({ data: { jobId: job.id, key: "daily_summary" } });
     await emit(tx, job.id, "plan.ready", { version: 1, template: "class.daily-summary.v1", status: job.status });
     return job;
-  });
 }
 
 export async function queuePortalRefresh(db: PrismaClient, id: string, userId: string, version: number, hash: string) {
-  return serial(db, async tx => {
+  return serial(db, tx => queuePortalRefreshTx(tx, id, userId, version, hash));
+}
+export async function queuePortalRefreshTx(tx: Prisma.TransactionClient, id: string, userId: string, version: number, hash: string) {
     const job = await owned(tx, id, userId);
     if (job.planVersion !== version || job.planHash !== hash) throw new OfficeError(409, "STALE_PLAN");
     if (job.status !== "WAITING_INPUT" || job.approvedVersion !== version) throw new OfficeError(409, "NOT_WAITING_PORTAL");
@@ -27,7 +40,6 @@ export async function queuePortalRefresh(db: PrismaClient, id: string, userId: s
     if (!step) throw new OfficeError(409, "NOT_WAITING_PORTAL");
     await tx.officeJob.update({ where: { id }, data: { status: "QUEUED" } });
     await emit(tx, id, "portal.refresh_requested", { status: "QUEUED" });
-  });
 }
 
 export async function runPortalDraft(db: PrismaClient, job: OfficeJob, key: string, input: PortalInput, leaseToken: string, client: PortalClient, signal: AbortSignal) {
@@ -35,6 +47,7 @@ export async function runPortalDraft(db: PrismaClient, job: OfficeJob, key: stri
   const request = await serial(db, async tx => {
     const live = await tx.officeJob.findFirst({ where: { id: job.id, leaseToken, status: "RUNNING", approvedVersion: job.planVersion, leaseUntil: { gt: new Date() } } });
     if (!live) throw new Error("JOB_INTERRUPTED");
+    await assertTeacherExecution(tx,live);
     const staff = await tx.user.findFirst({ where: { id: job.userId, isActive: true } });
     if (!staff) throw new Error("PORTAL_ACCESS_DENIED");
     const body = { parentJobId: job.id, planVersion: job.planVersion, stepKey: key, idempotencyKey: createHash("sha256").update(`${job.id}:${job.planVersion}:${key}`).digest("hex"), staff: { subject: staff.id, email: staff.email }, capability: "class.daily-summary.draft" as const, workflowVersion: 1 as const, input: args };
@@ -48,12 +61,14 @@ export async function runPortalDraft(db: PrismaClient, job: OfficeJob, key: stri
   // Portal must atomically deduplicate the same request key/hash.
   let result;
   try {
+    await assertTeacherExecution(db,job);
     result = await client.lookup(request, signal);
     if (!result) {
       const accepted = await db.portalOperation.findUniqueOrThrow({ where: { idempotencyKey: request.idempotencyKey } });
       if (accepted.operationId) throw new Error("PORTAL_RESULT_UNKNOWN");
       const live = await db.officeJob.findFirst({ where: { id: job.id, leaseToken, status: "RUNNING", leaseUntil: { gt: new Date() } } });
       if (!live || signal.aborted) throw new Error("JOB_INTERRUPTED");
+      await assertTeacherExecution(db,live);
       result = await client.submit(request, signal);
     }
   }

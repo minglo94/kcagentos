@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { hashTeacherBody, teacherAssertionSchema } from './teacher-contract';
 import { OfficeError } from './plan';
-import { owned, serial } from './store';
+import { owned } from './store';
 
 export type TeacherEnv = Record<string, string | undefined>;
 type Db = Prisma.TransactionClient | PrismaClient;
@@ -48,11 +48,15 @@ export async function authenticateTeacher(db:PrismaClient, env:TeacherEnv, req:R
   let assertion;
   try{assertion=teacherAssertionSchema.parse(JSON.parse(Buffer.from(encoded,'base64url').toString('utf8')));}catch{throw new OfficeError(401,'INVALID_ASSERTION');}
   if(assertion.audience!==origin||assertion.method!==req.method||assertion.path!==url.pathname+url.search||assertion.bodyHash!==hashTeacherBody(body)||Math.abs(assertion.timestamp-Math.floor(Date.now()/1000))>60)throw new OfficeError(401,'INVALID_ASSERTION');
-  const mapping=await serial(db,async tx=>{
+  // Atomic unique insertion avoids serializable gap-read contention between unrelated nonces.
+  // Effect transactions independently refresh mapping and retain Serializable isolation.
+  let mapping;
+  try{mapping=await db.$transaction(async tx=>{
     const current=await currentTeacherMapping(tx,assertion.issuer,assertion.subject);
-    if(await tx.portalTeacherNonce.findUnique({where:{issuer_nonce:{issuer:assertion.issuer,nonce:assertion.nonce}}}))throw new OfficeError(409,'ASSERTION_REPLAY');
-    await tx.portalTeacherNonce.create({data:{issuer:assertion.issuer,nonce:assertion.nonce}});
+    const inserted=await tx.portalTeacherNonce.createMany({data:[{issuer:assertion.issuer,nonce:assertion.nonce}],skipDuplicates:true});
+    if(inserted.count!==1)throw new OfficeError(409,'ASSERTION_REPLAY');
     return current;
-  });
+  },{isolationLevel:"ReadCommitted",maxWait:10000,timeout:20000});}
+  catch(error){if(error instanceof Prisma.PrismaClientKnownRequestError&&error.code==='P2002')throw new OfficeError(409,'ASSERTION_REPLAY');throw error;}
   return {assertion,mapping};
 }

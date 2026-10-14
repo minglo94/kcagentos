@@ -67,6 +67,14 @@ test('signed ingress rejects wrong audience, expired timestamp, tampering, wrong
   const hostile = new Request('https://evil.example'+base, signed(base, request('hostile')));
   assert.equal((await handlers.create(hostile)).status, 403);
 });
+test('concurrent replay of one signed assertion creates exactly one parent',async()=>{
+  const shared=signed(base,request('concurrent-nonce'));
+  const responses=await Promise.all(Array.from({length:8},()=>handlers.create(shared.clone())));
+  assert.equal(responses.filter(response=>response.status===201).length,1);
+  assert.equal(responses.filter(response=>response.status===409).length,7);
+  const created=teacherSnapshotSchema.parse(await responses.find(response=>response.status===201)!.json());
+  assert.equal(await db.portalTeacherRequest.count({where:{requestId:created.requestId}}),1);
+});
 test('service authentication cannot mint foreign request scope or teacher decisions',async()=>{
  const core=request('scope-proof-test');
  const proof=issueTeacherAuthority('request',hashTeacherRequest(core),authorityPrivate);

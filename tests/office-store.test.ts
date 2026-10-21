@@ -16,7 +16,7 @@ const plan: OfficePlan = { summary: "Draft a report", acceptance: ["Staff review
 ] };
 before(async () => {
   pg = await PGlite.create();
-  for (const migration of ["20261009000000_baseline", "20261009000100_office", "20261012000000_portal"]) await pg.exec(await readFile(`prisma/migrations/${migration}/migration.sql`, "utf-8"));
+  for (const migration of ["20261009000000_baseline", "20261009000100_office", "20261012000000_portal", "20261013000100_teacher_entry"]) await pg.exec(await readFile(`prisma/migrations/${migration}/migration.sql`, "utf-8"));
   server = new PGLiteSocketServer({ db: pg, host: "127.0.0.1", port: 0 });
   await server.start();
   db = new PrismaClient({ datasources: { db: { url: `postgresql://postgres:postgres@${server.getServerConn()}/postgres?connection_limit=1` } } });

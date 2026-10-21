@@ -48,3 +48,12 @@ AgentOS及Keichi Local同時規劃時，先確定功能權威與共享契約。�
 ## 2026-10-13 — Teacher interface correction
 
 The user clarified that normal teachers use Portal only, including every approval and action confirmation. Do not require an AgentOS login or treat the operator dashboard as school approval authority. Preserve backend orchestration in AgentOS and implement Portal-originated request/decision/progress protocols; current test UI does not prove that workflow exists.
+
+
+## 2026-10-13 — Teacher entry qualification
+
+- Next route Request URLs may normalize to an internal localhost origin. Validate configured public Host and signed service audience independently; keep browser Origin rejection and never infer audience from arbitrary forwarded headers.
+- Run only one Next dev process per checkout at a time: different ports still share build artifacts. Separate databases do not isolate `.next`.
+- Pre-approval pause can strand a workflow when resume requires approval; reject before writing a command and disable the corresponding control in the UI.
+- A bounded per-call timeout does not bound a page of sequential batches. Use one overall read deadline, cached-state freshness labeling and live scope checks.
+- Worker heartbeat writes may contend with Serializable transactions on remote PostgreSQL. Verify against actual paired services after changing heartbeat cadence.

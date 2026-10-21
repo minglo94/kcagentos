@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { emit, installPlan, serial } from "./store";
 import { planSchema, type OfficePlan } from "./plan";
 import type { PortalClient } from "./portal-contract";
-import { runPortalDraft } from "./portal-workflow";
+import { assertTeacherExecution, runPortalDraft } from "./portal-workflow";
 
 export type WorkerServices = {
   plan(goal: string, team: string, signal: AbortSignal): Promise<OfficePlan>;
@@ -11,6 +11,9 @@ export type WorkerServices = {
   portal?: PortalClient;
 };
 const leaseMs = 30_000;
+// A two-second write cadence repeatedly conflicted with native serialized job
+// transactions over a remote DB. Renew at one third of the fenced lease instead.
+const heartbeatMs = Math.floor(leaseMs / 3);
 
 export async function recoverExpired(db: PrismaClient) {
   return serial(db, async tx => {
@@ -48,8 +51,9 @@ export async function runNext(db: PrismaClient, services: WorkerServices, shutdo
       if (!result.count) controller.abort();
     } catch { controller.abort(); }
     finally { beating = false; }
-  }, 2000);
+  }, heartbeatMs);
   try {
+    if(job.team==='school')await assertTeacherExecution(db,job);
     if (job.status === "PLANNING") {
       const plan = await services.plan(job.goal, job.team, controller.signal);
       if (controller.signal.aborted) throw new Error("JOB_INTERRUPTED");

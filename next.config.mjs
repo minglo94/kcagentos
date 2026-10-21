@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: { authInterrupts: true },
   serverExternalPackages: ["exceljs"],
   webpack(config, { isServer }) {
     if (isServer) {

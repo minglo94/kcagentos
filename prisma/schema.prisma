@@ -50,6 +50,7 @@ model User {
   documents   Document[]
   todos       Todo[]
   officeJobs  OfficeJob[]
+  portalTeacherMappings PortalTeacherMapping[]
 }
 
 model Todo {
@@ -169,6 +170,7 @@ model OfficeJob {
   events          OfficeEvent[]
   approvals       OfficeApproval[]
   portalOperations PortalOperation[]
+  teacherRequest PortalTeacherRequest?
 
   @@index([userId, createdAt])
   @@index([status, leaseUntil])
@@ -231,4 +233,58 @@ model PortalOperation {
   updatedAt      DateTime  @updatedAt
 
   @@unique([jobId, planVersion, stepKey])
+}
+
+// Operator-provisioned identity links; never supplied or auto-created by ingress.
+model PortalTeacherMapping {
+  id String @id @default(cuid())
+  issuer String
+  portalStaffId String
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  requests PortalTeacherRequest[]
+  @@unique([issuer, portalStaffId])
+  @@unique([issuer, userId])
+}
+model PortalTeacherRequest {
+  requestId String @id
+  issuer String
+  portalStaffId String
+  mappingId String
+  mapping PortalTeacherMapping @relation(fields: [mappingId], references: [id], onDelete: Restrict)
+  requestHash String
+  jobId String @unique
+  job OfficeJob @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  revision Int @default(0)
+  snapshotHash String?
+  createdAt DateTime @default(now())
+  decisions PortalTeacherDecision[]
+  commands PortalTeacherCommand[]
+}
+model PortalTeacherDecision {
+  decisionId String @id
+  requestId String
+  request PortalTeacherRequest @relation(fields: [requestId], references: [requestId], onDelete: Restrict)
+  decisionHash String
+  planVersion Int
+  planHash String
+  decision String
+  createdAt DateTime @default(now())
+}
+model PortalTeacherCommand {
+  commandId String @id
+  requestId String
+  request PortalTeacherRequest @relation(fields: [requestId], references: [requestId], onDelete: Restrict)
+  commandHash String
+  action String
+  createdAt DateTime @default(now())
+}
+model PortalTeacherNonce {
+  issuer String
+  nonce String
+  createdAt DateTime @default(now())
+  @@id([issuer, nonce])
 }

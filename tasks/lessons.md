@@ -57,3 +57,18 @@ The user clarified that normal teachers use Portal only, including every approva
 - Pre-approval pause can strand a workflow when resume requires approval; reject before writing a command and disable the corresponding control in the UI.
 - A bounded per-call timeout does not bound a page of sequential batches. Use one overall read deadline, cached-state freshness labeling and live scope checks.
 - Worker heartbeat writes may contend with Serializable transactions on remote PostgreSQL. Verify against actual paired services after changing heartbeat cadence.
+## 2026-10-09 — School authentication correction
+
+- User clarified that school login uses local Windows AD and explicitly requested both AD and separate AgentOS accounts. Do not carry the old Google-only school-login assumption into acceptance tests.
+- Keep AD identities and local credentials explicitly provisioned; a similar username/email is not evidence of account ownership. Never store AD passwords or silently fall back to local login after AD failure.
+- Process-crash qualification must kill a separate process. A database-client reconnect alone is not a worker-process restart test; record accelerated lease expiry and synthetic service limits explicitly.
+
+## 2026-10-10 — School data boundary clarification
+
+User permits read-only online Teacher Portal PostgreSQL vector queries while prohibiting online search during student processing. Distinguish a scoped Portal connection from internet search. Local provider names and read-only Codex settings do not prove local inference or input-folder containment. Every-task audit needs protected input/output payload records, not action metadata alone; do not place student content in shared events or public Git.
+## 2026-10-22 — Branch integration evidence
+
+- Re-enumerate branches and refresh main before publication: another session may merge a branch during review. Preserve ancestry and incorporate its changes instead of repeating a stale merge.
+- Adding a policy hash to existing jobs needs an explicit upgrade path that invalidates old approvals; never silently treat null as the current policy. Existing external operations must be reconciled before changing operation keys.
+- Persist accepted external receipts independently of later audit/authorization finalization, so revocation cannot roll back knowledge of an accepted effect.
+- Linux security guarantees must be tested using actual Linux Node/Prisma and a private Linux filesystem audit root. Plain WSL invocations can inherit Windows npm; assert process.platform and retain verification logs outside temporary snapshots.

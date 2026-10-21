@@ -1,3 +1,4 @@
+import { assertCapability } from "./task-policy/policy";
 import { google } from "googleapis";
 import { periodToDateRange } from "@/lib/schedule";
 
@@ -28,6 +29,7 @@ export interface SubstitutionEventInput {
 }
 
 export async function createSubstitutionEvent(input: SubstitutionEventInput): Promise<string | null> {
+  assertCapability(undefined, "externalPublish"); // No qualified publication context in this release.
   if (!isCalendarConfigured()) return null;
 
   const auth = getAuth();

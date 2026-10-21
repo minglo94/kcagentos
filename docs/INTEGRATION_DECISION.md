@@ -2,7 +2,7 @@
 
 Confirmed by user: 2026-10-09 (Asia/Hong_Kong).
 Decision: integrated user experience, separate repositories, services and databases.
-Status: foundation and draft-only bridge merged and protected synthetic cloud acceptance passed. Teacher-only Portal entry was confirmed on 2026-10-13 and is implemented on the feature branch and undergoing final browser/build qualification; not deployed; see docs/PORTAL_TEACHER_ENTRY.md and docs/VERCEL_TEST_DEPLOYMENT.md.
+Status updated 2026-10-22: teacher-only Portal entry is merged in both repositories. Portal main includes all inventoried feature branches and review corrections (PR5, main 83239e4). AgentOS Phase2 integration is under final verification before main merge; see docs/BRANCH_INTEGRATION_20261021.md. Native synthetic two-service qualification passed after integration; genuine teacher browser qualification remains incomplete. Earlier protected cloud deployments are separate immutable milestones, not evidence that this integrated runtime is deployed.
 
 ## Ownership
 

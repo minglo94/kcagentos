@@ -1,3 +1,4 @@
+import "./helpers/task-env";
 import assert from 'node:assert/strict';
 import { before, after, test } from 'node:test';
 import { createHmac, randomUUID, generateKeyPairSync } from 'node:crypto';
@@ -19,7 +20,7 @@ const base = '/api/portal/v1/requests';
 let pg: PGlite, socket: PGLiteSocketServer, db: PrismaClient, handlers: ReturnType<typeof makeTeacherHandlers>, user: string;
 before(async () => {
   pg = await PGlite.create();
-  for (const name of ['20261009000000_baseline', '20261009000100_office', '20261012000000_portal', '20261013000100_teacher_entry']) await pg.exec(await readFile(`prisma/migrations/${name}/migration.sql`, 'utf8'));
+  for (const name of ['20261009000000_baseline', '20261009000100_office', '20261009000200_school_auth', '20261009000300_auth_review', '20261010000000_task_audit', '20261012000000_portal', '20261013000100_teacher_entry']) await pg.exec(await readFile(`prisma/migrations/${name}/migration.sql`, 'utf8'));
   socket = new PGLiteSocketServer({ db: pg, port: 0, host: '127.0.0.1', maxConnections: 1 }); await socket.start();
   db = new PrismaClient({ datasources: { db: { url: `postgresql://postgres:postgres@${socket.getServerConn()}/postgres?connection_limit=1&pgbouncer=true&statement_cache_size=0` } } });
   user = (await db.user.create({ data: { name: 'Synthetic teacher', email: 'teacher@example.test', subjects: [] } })).id;

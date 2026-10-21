@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agentos
+      POSTGRES_DB: agentos
+      POSTGRES_PASSWORD: ${AGENTOS_DB_PASSWORD:?Set a private random hexadecimal database password}
+    ports:
+      - "127.0.0.1:${AGENTOS_DB_PORT:-15432}:5432"
+    volumes:
+      - agentos-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentos -d agentos"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+  web:
+    image: kcagentos:${AGENTOS_IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    init: true
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${AGENTOS_HTTP_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://agentos:${AGENTOS_DB_PASSWORD:?Set database password}@db:5432/agentos
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?Set a private random session secret}
+      AGENTOS_LOCAL_AUTH_ENABLED: ${AGENTOS_LOCAL_AUTH_ENABLED:-false}
+      AGENTOS_AD_AUTH_ENABLED: ${AGENTOS_AD_AUTH_ENABLED:-false}
+      AGENTOS_AD_ID: ${AGENTOS_AD_ID:-}
+      AGENTOS_AD_URL: ${AGENTOS_AD_URL:-}
+      AGENTOS_AD_BASE: ${AGENTOS_AD_BASE:-}
+      AGENTOS_AD_BIND_DN: ${AGENTOS_AD_BIND_DN:-}
+      AGENTOS_AD_BIND_PASSWORD: ${AGENTOS_AD_BIND_PASSWORD:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/auth/providers').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 30s
+  migrate:
+    image: kcagentos:${AGENTOS_IMAGE_TAG:-local}
+    profiles: [maintenance]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://agentos:${AGENTOS_DB_PASSWORD:?Set database password}@db:5432/agentos
+    command: ["npm", "run", "db:migrate"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+volumes:
+  agentos-db:

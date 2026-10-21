@@ -26,7 +26,7 @@ interface HeaderProps {
   onOpenSettings?: () => void;
 }
 
-export default function Header({ agentStatuses = {}, engine = "claude", onOpenSettings }: HeaderProps) {
+export default function Header({ agentStatuses = {}, engine = "ollama", onOpenSettings }: HeaderProps) {
   const { data: session } = useSession();
   const [showMenu,      setShowMenu]      = useState(false);
   const [pendingCount,  setPendingCount]  = useState(0);

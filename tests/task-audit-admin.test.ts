@@ -1,0 +1,34 @@
+import {before,after,test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {authDb} from './helpers/auth-db';
+import {restrictedPolicy} from '../src/lib/task-policy/policy';
+import {beginAttempt,finishAttempt} from '../src/lib/task-audit/store';
+import {listAudits,readAudit,readAuditPayload} from '../src/lib/task-audit/admin';
+let f:Awaited<ReturnType<typeof authDb>>,root:string,admin:string,teacher:string,id:string;
+before(async()=>{f=await authDb();root=await mkdtemp(join(tmpdir(),'audit-admin-'));process.env.AGENTOS_AUDIT_ROOT=root;
+ admin=(await f.db.user.create({data:{email:'admin@example.test',name:'Admin',role:'ADMIN',subjects:[]}})).id;
+ teacher=(await f.db.user.create({data:{email:'teacher@example.test',name:'Teacher',subjects:[]}})).id;
+ id=(await beginAttempt(f.db,{actorId:teacher,policy:restrictedPolicy(teacher),invocationKey:'fixture',executor:'fixture',input:Buffer.from('<script>synthetic</script>')})).id;await finishAttempt(f.db,id,'SUCCEEDED');});
+after(async()=>{await f?.close();await rm(root,{recursive:true,force:true});});
+test('only a currently active admin may inspect attempts or payloads',async()=>{
+ await assert.rejects(listAudits(f.db,teacher,{}),/ADMIN_REQUIRED/);
+ await assert.rejects(readAudit(f.db,teacher,id),/ADMIN_REQUIRED/);
+ const rows=await listAudits(f.db,admin,{});assert.equal(rows.length,1);
+ const detail=await readAudit(f.db,admin,id);assert.equal(detail.id,id);
+ assert.equal((await readAuditPayload(f.db,admin,id,'input')).text,'<script>synthetic</script>');
+ assert.ok(await f.db.auditLog.count({where:{userId:admin,action:'TASK_AUDIT_READ'}}));
+ await f.db.user.update({where:{id:admin},data:{isActive:false}});
+ await assert.rejects(readAuditPayload(f.db,admin,id,'input'),/ADMIN_REQUIRED/);
+});
+test('administrator can page through tied timestamps without skipping attempts',async()=>{
+ const viewer=(await f.db.user.create({data:{email:'pagination@example.test',name:'Admin',role:'ADMIN',subjects:[]}})).id;
+ const when=new Date('2026-10-10T00:00:00.000Z');
+ await f.db.taskAttempt.createMany({data:Array.from({length:55},(_,i)=>({id:`page-attempt-${String(i).padStart(2,'0')}`,invocationKey:`page-${i}`,actorId:teacher,policy:restrictedPolicy(teacher),executor:'fixture',status:'SUCCEEDED',deadline:new Date(when.getTime()+60000),createdAt:when}))});
+ const first=await listAudits(f.db,viewer,{});assert.equal(first.length,50);
+ const last=first.at(-1)!;
+ const second=await listAudits(f.db,viewer,{before:last.createdAt,beforeId:last.id});
+ assert.equal(new Set([...first,...second].map(a=>a.id)).size,56);
+});

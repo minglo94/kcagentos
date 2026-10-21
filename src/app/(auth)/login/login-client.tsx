@@ -1,10 +1,20 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { getProviders, type ClientSafeProvider, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 
 function LoginContent({ testAuthEnabled }: { testAuthEnabled: boolean }) {
+  const [providers,setProviders]=useState<Record<string,ClientSafeProvider>>({});
+  const [method,setMethod]=useState("local");
+  useEffect(()=>{getProviders().then(value=>{setProviders(value??{});setMethod(value?.local?"local":"school-ad");}).catch(()=>{});},[]);
+  async function operatorLogin(event:FormEvent<HTMLFormElement>) {
+    event.preventDefault();setBusy(true);setTestError("");
+    const data=new FormData(event.currentTarget);
+    try { const result=await signIn(method,{username:data.get("username"),password:data.get("password"),redirect:false,callbackUrl:"/office"});
+      if(result?.ok && result.url) window.location.assign(result.url);else setTestError("登入失敗，請檢查帳號及密碼。");
+    } catch {setTestError("暫時無法登入，請再試。");} finally {setBusy(false);}
+  }
   const params = useSearchParams();
   const error = params.get("error");
   const [busy, setBusy] = useState(false);
@@ -82,12 +92,20 @@ function LoginContent({ testAuthEnabled }: { testAuthEnabled: boolean }) {
               基智 Agent OS
             </h1>
             <p style={{ color: "var(--ink3)", fontSize: 13, marginTop: 4, fontFamily: "var(--mono)" }}>
-              KCSS · 教師智能工作台
+              KCSS · 管理及開發指揮台
             </p>
           </div>
         </div>
 
-        {/* 登入卡 */}
+        {(providers.local || providers["school-ad"]) && <form onSubmit={operatorLogin} className="grid gap-3 w-full">
+        <p>管理員登入；老師請使用 Portal。</p>
+        <label>登入方式<select value={method} onChange={e=>setMethod(e.target.value)}>{["local","school-ad"].filter(id=>providers[id]).map(id=><option key={id} value={id}>{providers[id].name}</option>)}</select></label>
+        <label>帳號<input name="username" autoComplete="username" required maxLength={64}/></label>
+        <label>密碼<input name="password" type="password" autoComplete="current-password" required maxLength={128}/></label>
+        <button disabled={busy}>登入</button>
+        {testError && <p role="alert">{testError}</p>}
+      </form>}
+      {/* 登入卡 */}
         <div
           style={{
             background: "var(--card)",

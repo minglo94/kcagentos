@@ -1,3 +1,4 @@
+import "./helpers/task-env";
 // Synthetic-only end-to-end test: real Next routes, sessions, Prisma and browser;
 // planner output is a fixture, not a claim of live Hermes inference.
 import { spawn, spawnSync } from "node:child_process";
@@ -15,7 +16,7 @@ import type { OfficePlan } from "../src/lib/office/plan";
 
 async function main() {
   const pg = await PGlite.create();
-  for (const dir of ["20261009000000_baseline", "20261009000100_office", "20261012000000_portal", "20261013000100_teacher_entry"]) await pg.exec(await readFile(`prisma/migrations/${dir}/migration.sql`, "utf-8"));
+  for (const dir of ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review", "20261010000000_task_audit", "20261012000000_portal", "20261013000100_teacher_entry"]) await pg.exec(await readFile(`prisma/migrations/${dir}/migration.sql`, "utf-8"));
   const socket = new PGLiteSocketServer({ db: pg, port: 0, host: "127.0.0.1", maxConnections: 1 });
   await socket.start();
   // PGlite multiplexes one backend; disable per-connection prepared statements.
@@ -59,12 +60,12 @@ async function main() {
     const context = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
     const anonymous = await context.request.get(url + "/api/jobs");
     assert.equal(anonymous.status(), 401);
-    const teacherToken = await encode({secret,token:{email:teacher.email,userId:teacher.id,role:"ADMIN"}});
+    const teacherToken = await encode({secret,token:{email:teacher.email,userId:teacher.id,role:"ADMIN",authRevision:0,signInExpiresAt:Date.now()+8*3600000}});
     await context.addCookies([{name:"next-auth.session-token",value:teacherToken,url}]);
     assert.equal((await context.request.get(url+"/api/jobs")).status(),403);
     assert.equal((await context.request.get(url+"/office")).status(),403);
     assert.equal((await context.request.get(url+"/api/tasks")).status(),401,'Normal teacher cannot use legacy AgentOS browser APIs');
-    const token = await encode({ secret, token: { email: user.email, name: user.name, userId: user.id, role: "ADMIN" } });
+    const token = await encode({ secret, token: { email: user.email, name: user.name, userId: user.id, role: "ADMIN", authRevision: 0, signInExpiresAt: Date.now()+8*3600000 } });
     await context.addCookies([{ name: "next-auth.session-token", value: token, url }]);
     for(const suffix of ["approvals","control","evidence","portal"]) assert.equal((await context.request.post(`${url}/api/jobs/${school.id}/${suffix}`,{headers:{origin:url},data:{action:"cancel"}})).status(),403);
     assert.equal((await context.request.post(url+"/api/portal/jobs",{headers:{origin:url},data:{}})).status(),403);
@@ -72,6 +73,10 @@ async function main() {
     assert.equal((await context.request.post(url+"/api/notify",{data:{content:"Synthetic blocked",recipients:[]}})).status(),403);
     assert.equal((await context.request.get(url+"/api/cron/weekly-summary")).status(),403);
     const page = await context.newPage();
+    page.on("pageerror", error => { logs += `\nBrowser error: ${error.message}`; });
+    page.on("requestfailed", request => { logs += `\nFailed request: ${new URL(request.url()).pathname}`; });
+    page.on("console", message => { if (message.type() === "error") logs += `\nConsole error: ${message.text()}`; });
+    page.on("response", response => { if (response.status() >= 400) logs += `\nHTTP ${response.status()}: ${new URL(response.url()).pathname}`; });
     await page.goto(url + "/office");
     await expect(page.getByRole("heading", { name: "Hermes 指揮台", exact: true })).toBeVisible({ timeout: 60_000 });
     const jobButton = page.getByRole("button", { name: /規劃一份合成開發驗收/ });
@@ -98,7 +103,7 @@ async function main() {
     await expect(manualButton).toContainText("已排隊");
     await manualButton.click();
     await expect(page.getByText("已核對合成日期及資料，沒有缺漏。", { exact: true })).toBeVisible();
-    const otherToken = await encode({ secret, token: { email: other.email, userId: other.id, role: "ADMIN" } });
+    const otherToken = await encode({ secret, token: { email: other.email, userId: other.id, role: "ADMIN", authRevision: 0, signInExpiresAt: Date.now()+8*3600000 } });
     await context.addCookies([{ name: "next-auth.session-token", value: otherToken, url }]);
     assert.equal((await context.request.get(`${url}/api/jobs/${job.id}`)).status(), 404);
     await context.addCookies([{ name: "next-auth.session-token", value: token, url }]);

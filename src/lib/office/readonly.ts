@@ -1,6 +1,13 @@
+import { assertCapability, type ExecutionPolicy } from "../task-policy/policy";
 import { CodexAdapter } from "./codex";
 
-export async function inspectWithCodex(instructions: string, signal: AbortSignal): Promise<string> {
+export type CodexAudit = {input(text:string):Promise<void>; output(text:string):Promise<void>};
+
+export async function inspectWithCodex(instructions: string, signal: AbortSignal, policy?: ExecutionPolicy, audit?: CodexAudit): Promise<string> {
+  assertCapability(policy, "codexReadonly");
+  if (!audit) throw new Error("AUDIT_REQUIRED");
+  const prompt = `Read-only inspection. Do not edit files, request elevated permissions, push, deploy, or contact external services. Return findings and verification limitations.\n\n${instructions}`;
+  await audit.input(prompt);
   const command = process.env.AGENTOS_CODEX_COMMAND;
   const cwd = process.env.AGENTOS_CODEX_WORKSPACE;
   const codexHome = process.env.AGENTOS_CODEX_HOME;
@@ -13,10 +20,11 @@ export async function inspectWithCodex(instructions: string, signal: AbortSignal
     threadId = await adapter.startThread(cwd);
     return await new Promise<string>((resolve, reject) => {
       let answer = "", done = false;
+      let writes: Promise<void> = Promise.resolve();
       const finish = (error?: Error) => {
         if (done) return;
         done = true; clearTimeout(timer); unsubscribe(); signal.removeEventListener("abort", abort);
-        if (error) reject(error); else resolve(answer);
+        void writes.then(() => { if (error) reject(error); else resolve(answer); }, () => reject(new Error("AUDIT_STORAGE_UNAVAILABLE")));
       };
       const abort = () => {
         if (threadId && turnId) void adapter.interrupt(threadId, turnId).catch(() => {});
@@ -26,7 +34,10 @@ export async function inspectWithCodex(instructions: string, signal: AbortSignal
         const params = event.params as { threadId?: string; delta?: string; turn?: { id: string; status: string } } | undefined;
         if (!params || params.threadId !== threadId) return;
         if (event.method === "item/agentMessage/delta") {
-          answer += params.delta ?? "";
+          const delta = params.delta ?? "";
+          answer += delta;
+          writes = writes.then(() => audit.output(delta));
+          void writes.catch(() => finish(new Error("AUDIT_STORAGE_UNAVAILABLE")));
           if (answer.length > 20_000) abort();
         }
         if (event.method === "turn/completed") finish(params.turn?.status === "completed" ? undefined : new Error("CODEX_TURN_FAILED"));
@@ -34,7 +45,7 @@ export async function inspectWithCodex(instructions: string, signal: AbortSignal
       const timer = setTimeout(abort, 180_000);
       signal.addEventListener("abort", abort, { once: true });
       if (signal.aborted) { abort(); return; }
-      void adapter.startTurn(threadId!, `Read-only inspection. Do not edit files, request elevated permissions, push, deploy, or contact external services. Return findings and verification limitations.\n\n${instructions}`, signal)
+      void adapter.startTurn(threadId!, prompt, signal)
         .then(result => { turnId = result.turn.id; if (signal.aborted) abort(); })
         .catch(() => finish(new Error("CODEX_TURN_FAILED")));
     });

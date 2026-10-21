@@ -291,3 +291,13 @@ Review: design/documentation update only. Existing protected synthetic pilot sti
 Review pending implementation. Portal isolated branch incorporates committed P0–P3 e7aee17; original active checkout remains untouched.
 
 Review update 13 October: native two-service PostgreSQL acceptance PASS after reducing lease-heartbeat contention. AgentOS52 tests/typecheck/lint pass; Portal tests/typecheck/lint and focused12 teacher cases pass. Reviewed fixes: independent Ed25519 authority, revoked-class list filtering, GET-only reload and shared5-second read budget. Genuine Portal browser qualification and final builds pending; not yet deployed. Hermes learning loop is design only.
+## Branch integration — user authorized 2026-10-21
+
+- [x] Inventory all remote branches; identify ancestors versus unique work.
+- [ ] Integrate remaining unique branch on main-derived isolated branch; preserve Portal-only school approval and closed release gates.
+- [ ] Verify schema/migrations, tests, typecheck, lint and production build; record actual limitations.
+- [ ] Review merged behavior, resolve findings, publish reviewable integration PR.
+- [ ] Merge to main and verify all inventoried branch tips are ancestors; update handover.
+
+Review: integration in progress. Existing Portal browser qualification remains incomplete; a successful build is not end-to-end acceptance. Local unrelated changes are preserved in named stashes.
+

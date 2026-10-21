@@ -1,9 +1,10 @@
+import "./helpers/task-env";
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { approvePlan, completeManual, controlJob, createJob, installPlan, owned } from "../src/lib/office/store";
 import { hashPlan, planSchema, type OfficePlan } from "../src/lib/office/plan";
 import { recoverExpired, runNext } from "../src/lib/office/worker";
@@ -16,11 +17,12 @@ const plan: OfficePlan = { summary: "Draft a report", acceptance: ["Staff review
 ] };
 before(async () => {
   pg = await PGlite.create();
-  for (const migration of ["20261009000000_baseline", "20261009000100_office", "20261012000000_portal", "20261013000100_teacher_entry"]) await pg.exec(await readFile(`prisma/migrations/${migration}/migration.sql`, "utf-8"));
+  for (const migration of ["20261009000000_baseline", "20261009000100_office", "20261009000200_school_auth", "20261009000300_auth_review", "20261010000000_task_audit", "20261012000000_portal", "20261013000100_teacher_entry"]) await pg.exec(await readFile(`prisma/migrations/${migration}/migration.sql`, "utf-8"));
   server = new PGLiteSocketServer({ db: pg, host: "127.0.0.1", port: 0 });
   await server.start();
   db = new PrismaClient({ datasources: { db: { url: `postgresql://postgres:postgres@${server.getServerConn()}/postgres?connection_limit=1` } } });
   user = (await db.user.create({ data: { email: "synthetic@example.test", name: "Synthetic tester", subjects: [] } })).id;
+  process.env.AGENTOS_DEVELOPMENT_ACTORS=user;
 });
 after(async () => { await db?.$disconnect(); await server?.stop(); await pg?.close(); });
 
@@ -106,7 +108,7 @@ test("missing Portal configuration and deactivated staff cannot reach school too
   await db.user.update({ where: { id: user }, data: { isActive: false } });
   try {
     await runNext(db, { plan: async () => plan, portal: { lookup: async () => { throw new Error("should not execute"); }, submit: async () => { throw new Error("should not execute"); } } });
-    assert.equal((await owned(db, second.id, user)).errorCode, "PORTAL_ACCESS_DENIED");
+    assert.equal((await owned(db, second.id, user)).errorCode, "POLICY_DENIED");
   } finally { await db.user.update({ where: { id: user }, data: { isActive: true } }); }
 });
 test("durable plan approval is scoped, content-bound and idempotent", async () => {
@@ -200,4 +202,51 @@ test("evidence from an old plan cannot complete a reused step ID", async () => {
   await runNext(db, { plan: async () => plan });
   await assert.rejects(() => completeManual(db, job.id, user, "collect", "Old source verified", first.planVersion, first.planHash!), /STALE_PLAN/);
   assert.equal((await db.officeStep.findFirstOrThrow({ where: { jobId: job.id } })).status, "WAITING_INPUT");
+});
+
+
+test("Portal accepted receipt survives actor revocation during submission without parent success", async () => {
+  const job=await approvedPortalJob();
+  try {
+    await runNext(db,{plan:async()=>plan,portal:{lookup:async()=>null,submit:async request=>{
+      await db.user.update({where:{id:user},data:{isActive:false}});
+      return portalResult(request,"DRAFT_READY",1);
+    }}});
+    const receipt=await db.portalOperation.findFirstOrThrow({where:{jobId:job.id}});
+    assert.equal(receipt.operationId,`op-${job.id}`);
+    assert.equal(receipt.status,"DRAFT_READY");
+    assert.ok(receipt.snapshot);
+    assert.notEqual((await owned(db,job.id,user)).status,"SUCCEEDED");
+    assert.equal(await db.taskAttempt.count({where:{jobId:job.id,executor:"worker",status:"SUCCEEDED"}}),0);
+  } finally {await db.user.update({where:{id:user},data:{isActive:true}});}
+});
+
+test("legacy Portal policy upgrade is explicit, mapped, quiescent and requires a fresh version approval", async () => {
+  const {requalifyLegacyPortalJob}=await import("../src/lib/office/requalify");
+  const admin=await db.user.create({data:{name:"Synthetic upgrader",email:"upgrade@example.test",role:"ADMIN",subjects:[]}});
+  const job=await createPortalDraftJob(db,user,portalInput);
+  const mapping=await db.portalTeacherMapping.create({data:{issuer:"upgrade-fixture",portalStaffId:"synthetic-staff",userId:user}});
+  await db.portalTeacherRequest.create({data:{requestId:`upgrade-${job.id}`,issuer:mapping.issuer,portalStaffId:mapping.portalStaffId,mappingId:mapping.id,requestHash:"f".repeat(64),jobId:job.id}});
+  await db.officeJob.update({where:{id:job.id},data:{executionPolicy:Prisma.DbNull,policyHash:null,approvedVersion:1,status:"QUEUED"}});
+  await assert.rejects(approvePlan(db,job.id,user,1,job.planHash!,"approve"),/LEGACY_POLICY_REQUALIFICATION_REQUIRED/);
+  await assert.rejects(requalifyLegacyPortalJob(db,user,job.id,true),/ADMIN_REQUIRED/);
+  assert.equal((await requalifyLegacyPortalJob(db,admin.id,job.id)).applied,false);
+  assert.equal((await owned(db,job.id,user)).planVersion,1);
+  await db.officeJob.update({where:{id:job.id},data:{leaseToken:"busy"}});
+  await assert.rejects(requalifyLegacyPortalJob(db,admin.id,job.id,true),/QUIESCENT_JOB_REQUIRED/);
+  await db.officeJob.update({where:{id:job.id},data:{leaseToken:null}});
+  const upgraded=await requalifyLegacyPortalJob(db,admin.id,job.id,true);
+  assert.equal(upgraded.toVersion,2);
+  const current=await owned(db,job.id,user);
+  assert.equal(current.status,"PENDING_PLAN_APPROVAL");assert.equal(current.approvedVersion,null);assert.ok(current.policyHash);
+  await assert.rejects(approvePlan(db,job.id,user,1,job.planHash!,"approve"),/STALE_PLAN/);
+  await approvePlan(db,job.id,user,2,job.planHash!,"approve");
+  assert.equal((await owned(db,job.id,user)).approvedVersion,2);
+  await controlJob(db,job.id,user,"cancel");
+  const unknown=await createPortalDraftJob(db,user,portalInput);
+  await db.portalTeacherRequest.create({data:{requestId:`upgrade-${unknown.id}`,issuer:mapping.issuer,portalStaffId:mapping.portalStaffId,mappingId:mapping.id,requestHash:"e".repeat(64),jobId:unknown.id}});
+  await db.officeJob.update({where:{id:unknown.id},data:{executionPolicy:Prisma.DbNull,policyHash:null}});
+  await db.portalOperation.create({data:{jobId:unknown.id,planVersion:1,stepKey:"daily_summary",idempotencyKey:`unknown-${unknown.id}`,requestHash:"d".repeat(64),status:"RESULT_UNKNOWN"}});
+  await assert.rejects(requalifyLegacyPortalJob(db,admin.id,unknown.id,true),/OPERATIONS_REQUIRE_RECONCILIATION/);
+  assert.equal((await owned(db,unknown.id,user)).planVersion,1);
 });

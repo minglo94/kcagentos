@@ -1,0 +1,6 @@
+services:
+  web:
+    environment:
+      AGENTOS_AD_CA_PATH: /run/agentos/ad-ca.pem
+    volumes:
+      - ${AGENTOS_AD_CA_FILE:?Set the protected school CA file path}:/run/agentos/ad-ca.pem:ro

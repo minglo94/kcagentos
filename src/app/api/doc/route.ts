@@ -1,3 +1,4 @@
+import { denyUnsupportedTask } from "@/lib/task-policy/deny-route";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -27,6 +28,7 @@ async function uploadToDrive(
 }
 
 export async function POST(req: NextRequest) {
+  const blocked = await denyUnsupportedTask("doc:POST"); if (blocked) return blocked;
   const session = await getSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "未登入" }, { status: 401 });
@@ -84,6 +86,7 @@ export async function POST(req: NextRequest) {
 
 // GET /api/doc?id=xxx — return driveUrl for DocCard link
 export async function GET(req: NextRequest) {
+  const blocked = await denyUnsupportedTask("doc:GET"); if (blocked) return blocked;
   const session = await getSession();
   if (!session?.user?.id) return NextResponse.json({ error: "未登入" }, { status: 401 });
   const id = req.nextUrl.searchParams.get("id");

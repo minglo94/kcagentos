@@ -1,3 +1,4 @@
+import "./helpers/task-env";
 /** Cross-repository native acceptance. Explicit isolated DBs required; no production data. */
 import assert from 'node:assert/strict';
 import { randomUUID,generateKeyPairSync } from 'node:crypto';

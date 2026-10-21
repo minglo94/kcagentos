@@ -1,3 +1,11 @@
+## Branch integration — updated 22 October 2026
+
+Portal PR5 is merged at 83239e457f7e77beda26e2d77b5d92d5c244f5ec. Every inventoried Portal remote branch is an ancestor of main. Exact-head GitHub CI passed both runs, including isolated PostgreSQL migration, restore, API and container checks; 63 local tests and production build passed. Two reviewed fixes preserve support-case identity and unsaved report edits.
+
+AgentOS Phase2 conflict resolutions and reviewed upgrade/receipt fixes are complete on codex/integrate-all-20261021, awaiting final Linux suite and publication. See docs/BRANCH_INTEGRATION_20261021.md for inventory, conflict decisions, safe legacy policy requalification and evidence. Native synthetic two-service teacher acceptance passed after integration; Windows production build passed; dependency audit is zero.
+
+Audited work requires Linux/WSL with private durable mode0700 storage outside the checkout; native Windows execution fails closed. Existing jobs without policy hashes require explicit safe requalification and fresh teacher approval. Jobs with existing Portal operations require reconciliation first. Genuine teacher browser qualification, live AD/local model, real school data/mail, persistent host and business cron remain unqualified. No new AgentOS deployment is included in this merge request. Historical sections below do not override this status.
+
 ## Portal-only implementation progress — 13 October 2026
 
 Branch codex/portal-teacher-entry implements Portal teacher submission, exact plan/step confirmation, durable decision/control delivery, scoped progress reconciliation and mapped synthetic draft execution. AgentOS browser is operator-only. Portal independently signs short-lived Ed25519 authority after live scope/decision checks.

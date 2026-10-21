@@ -1,3 +1,4 @@
+import { denyUnsupportedTask } from "@/lib/task-policy/deny-route";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import Pusher from "pusher";
@@ -18,6 +19,7 @@ const pusher =
 // header: x-webhook-secret
 // body: { requestId, status: "CONFIRMED" | "DECLINED", teacherName? }
 export async function POST(req: NextRequest) {
+  const blocked = await denyUnsupportedTask("notify/callback:POST"); if (blocked) return blocked;
   const secret = process.env.N8N_WEBHOOK_SECRET;
   if (!secret) {
     return NextResponse.json({ error: "伺服器未設定 N8N_WEBHOOK_SECRET" }, { status: 503 });

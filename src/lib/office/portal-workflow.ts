@@ -1,3 +1,5 @@
+import { resolvePolicy, policyHash, requireSyntheticExecution } from "../task-policy/policy";
+import { finishInTransaction } from "../task-audit/store";
 import { createHash } from "node:crypto";
 import { PrismaClient, type Prisma, type OfficeJob } from "@prisma/client";
 import { hashPlan, OfficeError, planSchema } from "./plan";
@@ -19,11 +21,13 @@ export async function createPortalDraftJob(db: PrismaClient, userId: string, inp
   return serial(db, tx => createPortalDraftJobTx(tx, userId, input));
 }
 export async function createPortalDraftJobTx(tx: Prisma.TransactionClient, userId: string, input: PortalInput) {
+  requireSyntheticExecution();
   const args = portalInputSchema.parse(input);
   const plan = planSchema.parse({ summary: "總管使用班務草稿流程 v1；只調用 Portal 核對及產出，不發送。這是固定模板，並非模型生成。", acceptance: ["Portal 核對來源日期、身份、完整性及行數", "取得 Portal 草稿版本及來源證據引用；正式內容審批及發送仍在 Portal"], steps: [{ id: "daily_summary", agent: "andy", executor: "portal.draft", title: "核對並建立班務草稿", instructions: "按已批准班別及來源批次建立草稿；缺漏、身份或日期不符停止。", dependsOn: [], portalInput: args }] });
     const staff = await tx.user.findFirst({ where: { id: userId, isActive: true } });
     if (!staff) throw new OfficeError(403, "PORTAL_ACCESS_DENIED");
-    const job = await tx.officeJob.create({ data: { userId, team: "school", goal: `班務草稿 · ${args.date}`, status: "PENDING_PLAN_APPROVAL", plan, planHash: hashPlan(plan), planVersion: 1 } });
+    const policy=await resolvePolicy(tx,userId,"school");
+    const job = await tx.officeJob.create({ data: { userId, executionPolicy:policy as unknown as Prisma.InputJsonObject, policyHash:policyHash(policy), team: "school", goal: `班務草稿 · ${args.date}`, status: "PENDING_PLAN_APPROVAL", plan, planHash: hashPlan(plan), planVersion: 1 } });
     await tx.officeStep.create({ data: { jobId: job.id, key: "daily_summary" } });
     await emit(tx, job.id, "plan.ready", { version: 1, template: "class.daily-summary.v1", status: job.status });
     return job;
@@ -42,7 +46,7 @@ export async function queuePortalRefreshTx(tx: Prisma.TransactionClient, id: str
     await emit(tx, id, "portal.refresh_requested", { status: "QUEUED" });
 }
 
-export async function runPortalDraft(db: PrismaClient, job: OfficeJob, key: string, input: PortalInput, leaseToken: string, client: PortalClient, signal: AbortSignal) {
+export async function runPortalDraft(db: PrismaClient, job: OfficeJob, key: string, input: PortalInput, leaseToken: string, client: PortalClient, signal: AbortSignal, attemptId?: string) {
   const args = portalInputSchema.parse(input);
   const request = await serial(db, async tx => {
     const live = await tx.officeJob.findFirst({ where: { id: job.id, leaseToken, status: "RUNNING", approvedVersion: job.planVersion, leaseUntil: { gt: new Date() } } });
@@ -77,6 +81,12 @@ export async function runPortalDraft(db: PrismaClient, job: OfficeJob, key: stri
     if (!["PORTAL_RESULT_UNKNOWN", "PORTAL_INVALID_RESPONSE"].includes(message)) throw error;
     await serial(db, async tx => {
       await tx.portalOperation.updateMany({ where: { idempotencyKey: request.idempotencyKey, status: { notIn: ["DRAFT_READY", "FAILED"] } }, data: { status: "RESULT_UNKNOWN" } });
+    });
+    await serial(db,async tx=>{
+      if(attemptId) {
+        const live=await tx.officeJob.findFirst({where:{id:job.id,leaseToken,status:"RUNNING",leaseUntil:{gt:new Date()}}});
+        await finishInTransaction(tx,attemptId,live?"SUCCEEDED":"INTERRUPTED");
+      }
       const changed = await tx.officeJob.updateMany({ where: { id: job.id, leaseToken, status: "RUNNING", leaseUntil: { gt: new Date() } }, data: { status: "WAITING_INPUT", leaseToken: null, leaseUntil: null, errorCode: "PORTAL_RESULT_UNKNOWN" } });
       if (changed.count) {
         await tx.officeStep.update({ where: { jobId_key: { jobId: job.id, key } }, data: { status: "WAITING_PORTAL" } });
@@ -93,8 +103,14 @@ export async function runPortalDraft(db: PrismaClient, job: OfficeJob, key: stri
     if (old.revision === result.revision && old.snapshot && JSON.stringify(portalResponseSchema.parse(old.snapshot)) !== JSON.stringify(result)) throw new Error("PORTAL_CONFLICT");
     // Record accepted external operation even if the parent was paused/cancelled in flight.
     await tx.portalOperation.update({ where: { id: old.id }, data: { operationId: result.operationId, status: result.status, revision: result.revision, snapshot: result } });
-    const live = await tx.officeJob.findFirst({ where: { id: job.id, leaseToken, status: "RUNNING", leaseUntil: { gt: new Date() } } });
-    if (!live || signal.aborted) return;
+  });
+  // Portal may have accepted the operation before revocation, cancellation or
+  // audit expiry. Its durable receipt must survive any parent/audit rejection.
+  await serial(db, async tx => {
+    const live = await tx.officeJob.findFirst({ where: { id: job.id, leaseToken, status: "RUNNING", planVersion:job.planVersion, approvedVersion:job.planVersion, leaseUntil: { gt: new Date() } } });
+    if (!live || signal.aborted) {if(attemptId)await finishInTransaction(tx,attemptId,"INTERRUPTED");return;}
+    await assertTeacherExecution(tx,live);
+    if(attemptId) await finishInTransaction(tx,attemptId,"SUCCEEDED");
     const done = result.status === "DRAFT_READY";
     const failed = result.status === "FAILED";
     await tx.officeStep.update({ where: { jobId_key: { jobId: job.id, key } }, data: { operationId: result.operationId, status: done ? "SUCCEEDED" : failed ? "FAILED" : "WAITING_PORTAL", result: done ? "Portal 草稿及核對證據已就緒；尚未發送。" : null } });

@@ -1,3 +1,11 @@
+## Integrated runtime requirements — 21 October 2026
+
+Teachers use Portal only. AgentOS browser access is for active ADMIN operators; school approvals and sending remain under Portal authority. Phase 2 authentication, audit/policy, controlled-file and deployment work is integrated with the signed teacher protocol. See [integration and upgrade guide](docs/BRANCH_INTEGRATION_20261021.md).
+
+**Task execution requires Linux or WSL/Linux**, Node >=22.13, `AGENTOS_TASK_DATA_MODE=synthetic` and `AGENTOS_AUDIT_ROOT` pointing to an existing canonical Linux directory owned by the service user, mode 0700, outside the checkout. The audit and controlled-file protections depend on POSIX permissions/durable directory sync and `/proc/self/fd`; Windows task execution fails closed. Windows remains usable for source editing, typechecking and building; do not infer executable worker qualification from a Windows build. Browser/server requests that create audited work also require this protected Linux storage.
+
+Existing pre-integration Portal jobs need explicit policy requalification and fresh teacher approval; see the upgrade guide. No real student mode, sending, business cron, model inference or new deployment is enabled by this merge. Existing protected cloud deployments continue to run their earlier immutable code.
+
 ## Hermes office foundation
 
 The authenticated `/office` dashboard adds persistent jobs, version-bound plan approvals and a separate Worker. It also includes the AgentOS-side [Portal draft bridge](docs/PORTAL_BRIDGE.md) and [dependency repair](docs/DEPENDENCY_REPAIR.md). Real local inference, separate Portal runtime pairing, cron and full Pixel Agents visualization remain pending.

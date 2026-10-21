@@ -17,7 +17,16 @@
     "test:browser": "node --import tsx tests/office-browser.ts",
     "office:worker": "node --env-file-if-exists=.env.local --import tsx scripts/office-worker.ts",
     "db:migrate": "prisma migrate deploy",
-    "test:teacher-pair": "node --import tsx tests/teacher-pair.ts"
+    "test:teacher-pair": "node --import tsx tests/teacher-pair.ts",
+    "test:postgres": "node --import tsx --test tests/office-postgres.ts",
+    "auth:bootstrap": "node --env-file-if-exists=.env.local --import tsx scripts/create-local-admin.ts",
+    "test:auth:browser": "node --import tsx tests/school-auth-browser.ts",
+    "test:container": "node --import tsx tests/container-browser.ts",
+    "test:audit:browser": "node --import tsx tests/school-auth-browser.ts",
+    "demo:school": "node --import tsx tests/demo-school-cli.ts",
+    "review:bootstrap": "node --import tsx scripts/bootstrap-review.ts",
+    "test:zeabur:container": "node --import tsx tests/zeabur-container.ts",
+    "portal:requalify": "node --env-file-if-exists=.env.local --import tsx scripts/requalify-portal-job.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
@@ -31,6 +40,7 @@
     "exceljs": "^4.4.0",
     "googleapis": "^173.0.0",
     "jszip": "^3.10.1",
+    "ldapts": "9.2.0",
     "next": "^15.5.27",
     "next-auth": "^4.24.15",
     "prisma": "^5.22.0",
@@ -38,6 +48,7 @@
     "pusher-js": "^8.5.0",
     "react": "^18",
     "react-dom": "^18",
+    "tsx": "^4.23.15",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -57,7 +68,6 @@
     "postcss": "8.5.29",
     "tailwindcss": "^4.3.3",
     "ts-node": "^10.9.2",
-    "tsx": "^4.23.15",
     "typescript": "^5"
   },
   "overrides": {
@@ -65,5 +75,8 @@
     "exceljs": {
       "uuid": "11.1.1"
     }
+  },
+  "engines": {
+    "node": ">=22.13.0"
   }
 }

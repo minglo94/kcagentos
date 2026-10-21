@@ -1,0 +1,26 @@
+[Unit]
+Description=AgentOS approved-job worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=agentos
+Group=agentos
+WorkingDirectory=/opt/agentos
+EnvironmentFile=/etc/agentos/worker.env
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/env node --import tsx scripts/office-worker.ts
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+KillMode=control-group
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/agentos
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

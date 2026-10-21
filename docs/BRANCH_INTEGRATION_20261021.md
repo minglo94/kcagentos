@@ -11,7 +11,7 @@ User authorized merging all project GitHub branches into main. This AgentOS inte
 | codex/portal-teacher-entry | caf5c7913ff6eed10332ce2d393097972963c393 | Yes | 0 |
 | codex/agentos-phase2 | fedb88b6d85a807824819b10f4eff5626100787c | No | 15 |
 
-The Phase 2 merge makes all inventoried tips ancestors of the integration commit; GitHub main verification remains a separate publication step. Existing unrelated browser edits are preserved in the root-managed stash.
+Completed 22 October: integration PR16 merged at5d9af6c61736b7ec20294ae24594b21a12cfe8bb, and GitHub also marks PR14 merged. After fetching, every inventoried remote branch, including the integration branch, is an ancestor of main. Portal PR5 is merged at83239e457f7e77beda26e2d77b5d92d5c244f5ec with the same all-branch ancestry verification. Existing unrelated browser edits remain preserved in the root-managed stash.
 
 ## Conflict decisions
 

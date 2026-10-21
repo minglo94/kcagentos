@@ -298,9 +298,9 @@ Review update 13 October: native two-service PostgreSQL acceptance PASS after re
 - [x] Integrate remaining unique branch on main-derived isolated branch; preserve Portal-only school approval and closed release gates.
 - [x] Verify schema/migrations, tests, typecheck, lint and production build; record actual limitations.
 - [x] Review merged behavior and resolve all blocking findings; prepare reviewable integration PR.
-- [ ] Merge to main and verify all inventoried branch tips are ancestors; update handover.
+- [x] Merge to main and verify all inventoried branch tips are ancestors; update handover.
 
-Review updated 22 October: Linux104/104, typecheck/lint/build, audit0, native paired PostgreSQL upgrades/teacher acceptance PASS; fresh review blockers fixed. Portal PR5 merged at83239e4 with exact-head DB/API/container CI passing. AgentOS GitHub publication/main ancestry confirmation pending. Genuine teacher browser qualification remains incomplete; Linux audit storage is required. Local unrelated changes remain in named stashes. Full evidence and conflict decisions: docs/BRANCH_INTEGRATION_20261021.md.
+Review completed 22 October: Linux104/104, typecheck/lint/build, audit0, native paired PostgreSQL upgrades/teacher acceptance PASS; fresh review blockers fixed. Portal PR5 merged at83239e4 with exact-head DB/API/container CI passing; AgentOS PR16 merged at5d9af6c and PR14 is marked merged. Every remote branch in both repositories is an ancestor of its main, verified after fetching. Genuine teacher browser qualification remains incomplete; Linux audit storage is required. Local unrelated changes remain in named stashes. Full evidence and conflict decisions: docs/BRANCH_INTEGRATION_20261021.md.
 
 ## Phase 2 continuation — PostgreSQL qualification (2026-10-09)
 

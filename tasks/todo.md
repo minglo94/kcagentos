@@ -393,3 +393,8 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Write copy-paste Zeabur setup and reviewer checks in `docs/ZEABUR_REVIEW.md`.
 - [ ] Connect this branch to a separate Zeabur project/database/volume and inspect its actual HTTPS URL; platform project access is not available in this workspace.
 - [ ] Complete the separately listed live Portal, Ollama, AD, NAS, production migration, full Pixel, scheduling and Spark acceptance work.
+
+## Neon tooling — 2026-11-09
+- [x] Install project-scoped Neon and Neon Postgres skills and configure the Neon MCP endpoint using OAuth without storing an API key in the repository.
+- [ ] Complete MCP OAuth authorization and verify access; confirm the intended Neon organization before creating a separate synthetic staging database.
+- [ ] Verify database version, region, extensions, isolation and backup restoration before any production migration.

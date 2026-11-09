@@ -396,5 +396,6 @@ Review: the new process tests execute the real worker core with synthetic blocke
 
 ## Neon tooling — 2026-11-09
 - [x] Install project-scoped Neon and Neon Postgres skills and configure the Neon MCP endpoint using OAuth without storing an API key in the repository.
-- [ ] Complete MCP OAuth authorization and verify access; confirm the intended Neon organization before creating a separate synthetic staging database.
+- [x] Complete MCP OAuth authorization; the project CLI lists the server as enabled with OAuth.
+- [ ] Confirm the intended Neon organization before creating a separate synthetic staging database.
 - [ ] Verify database version, region, extensions, isolation and backup restoration before any production migration.

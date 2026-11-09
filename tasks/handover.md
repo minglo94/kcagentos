@@ -205,6 +205,6 @@ Next runtime work: use Linux Node and private audit storage, apply additive migr
 
 ## Neon tooling handover — 9 November 2026
 
-Installed the official project-scoped Neon and Neon Postgres skills and configured the Neon MCP endpoint with OAuth. The configuration contains no API key. Skill status reported both current; the MCP endpoint was listed as enabled, with OAuth authorization pending when checked. Existing application configuration was not linked or overwritten.
+Installed the official project-scoped Neon and Neon Postgres skills and configured the Neon MCP endpoint with OAuth. The configuration contains no API key. Skill status reported both current; the MCP endpoint is listed as enabled with OAuth after successful authorization; tool calls in a refreshed session remain to be verified. Existing application configuration was not linked or overwritten.
 
 The signed-in Neon CLI initially showed an empty personal organization; an existing Vercel-managed Neon integration is a separate account context. Do not assume these are the same. Next: finish OAuth authorization, verify the intended organization and provision an isolated free PostgreSQL 18 staging database only in the user-approved region; use synthetic data initially. Validate extensions and backups before any migration or cutover. No database or deployment has been created by this tooling setup.

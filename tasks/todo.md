@@ -484,3 +484,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Capture a fresh Zeabur snapshot, restore it into an independent rehearsal database, compare every table, and repeat migration baselining.
 - [x] Deploy an independent Cloudflare acceptance Worker with synthetic data and verify Worker-level Access on normal and version URLs.
 - [ ] Qualify the real-data candidate with a dedicated database login, no live integration credentials, restricted read routes, and fresh admin and teacher sessions before exposing it.
+- [x] Verify a protected web request can read approved real-data aggregates through a separate restricted database login.
+- [ ] Extend private acceptance to approved administrator and teacher record views, verify per-class scope, and qualify outbound isolation before application data cutover.

@@ -278,3 +278,7 @@ This is an inbound request-layer control, not an outbound network firewall. Read
 ## Dazhi staging asset fix — 2026-11-10
 
 Dazhi staging commit 102d91c routes authenticated GET/HEAD chunk requests to the static asset binding before the encoded-path application policy. The Worker also serves the local logo for the restricted logo image request and favicon, and adds credential mode to manifest links. Eight focused tests and eleven wrapper tests passed. After deployment, reloading the existing browser tab displayed the IT committee and its tools. Manifest loading was not independently verified.
+
+## Dazhi staging Google sign-in — 2026-11-10
+
+Portal branch commit df08f59 restricts staging Google sign-in to a single verified email and opens only the exact sign-in and callback routes when configured. The wrapper passes settings in the existing request scope. Unit tests passed 21/21, TypeScript and OpenNext build passed, and the Cloudflare deployment dry run completed. The staging account binding was added remotely. Deployment metadata confirmed that the Google client secret was saved as plain text, so rollout and interactive sign-in testing are pending rotation and encrypted storage. The isolated real-data restore remains disconnected.

@@ -458,3 +458,8 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Diagnose one observed intermittent synthetic login navigation timeout, and qualify remaining roles, integrations, attachment restoration and final sync.
 
 - [x] Restore authenticated staging assets for encoded Next.js chunks, logo and favicon. Browser verified IT committee loads.
+
+## Dazhi staging Google sign-in — 2026-11-10
+- [x] Prepare the single-account Google sign-in gate and verify the local test suite, OpenNext build and Cloudflare dry run.
+- [ ] Rotate the staging OAuth client secret and confirm it is encrypted in Cloudflare. Preserve the staged bindings when deploying.
+- [ ] Verify Google callback, allowed and rejected identities, session role and synthetic database behavior in the deployed Worker.

@@ -399,3 +399,10 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Complete MCP OAuth authorization; the project CLI lists the server as enabled with OAuth.
 - [ ] Confirm the intended Neon organization before creating a separate synthetic staging database.
 - [ ] Verify database version, region, extensions, isolation and backup restoration before any production migration.
+
+## Zeabur migration staging — 2026-11-10
+- [x] Establish a separate free PostgreSQL 18 staging project in Singapore and load a schema generated from public source without real records.
+- [x] Verify 77 synthetic application tables, pgvector and pg_trgm, protected Cloudflare Worker access, direct database connectivity, and a separate Prisma diagnostic including concurrent requests.
+- [x] Check three Investbot SQLite backup files for integrity and match their checksums against suspended source volumes; preserve the running Dazhi OCI image and verify its blobs.
+- [ ] Integrate request-scoped Prisma into the actual Dazhi application, verify authentication and all critical flows, and test restores in an approved isolated destination.
+- [ ] Qualify durable storage and safe staging for Investbot and Hermes; validate shared PostgreSQL consumers, credentials, final sync, rollback and costs before production cutover.

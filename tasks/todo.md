@@ -490,3 +490,4 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Provision an approved administrator identity with independently managed credentials before enabling real-data admin acceptance.
 - [x] Verify the full Dazhi application's selected admin and teacher read routes against the real restore on a loopback-only server.
 - [ ] Qualify actual sign-in on the private Worker for real-data administration using a separately approved identity or separately provisioned credential.
+- [x] Run the original Dazhi class-detail handler on the private Worker against the real snapshot with verified teacher assignment and read-only database permissions.

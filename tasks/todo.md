@@ -397,7 +397,7 @@ Review: the new process tests execute the real worker core with synthetic blocke
 ## Neon tooling — 2026-11-09
 - [x] Install project-scoped Neon and Neon Postgres skills and configure the Neon MCP endpoint using OAuth without storing an API key in the repository.
 - [x] Complete MCP OAuth authorization; the project CLI lists the server as enabled with OAuth.
-- [ ] Confirm the intended Neon organization before creating a separate synthetic staging database.
+- [x] Use the explicitly approved personal Neon organization for a separate synthetic staging database.
 - [ ] Verify database version, region, extensions, isolation and backup restoration before any production migration.
 
 ## Zeabur migration staging — 2026-11-10
@@ -406,3 +406,9 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Check three Investbot SQLite backup files for integrity and match their checksums against suspended source volumes; preserve the running Dazhi OCI image and verify its blobs.
 - [ ] Integrate request-scoped Prisma into the actual Dazhi application, verify authentication and all critical flows, and test restores in an approved isolated destination.
 - [ ] Qualify durable storage and safe staging for Investbot and Hermes; validate shared PostgreSQL consumers, credentials, final sync, rollback and costs before production cutover.
+
+## Always-on migration constraints — 2026-11-10
+- [x] Record the user requirement that Investbot and the selected Hermes service operate continuously; both source services are currently suspended.
+- [x] Estimate Cloudflare container scenarios using published pricing; actual memory needs, CPU and durable storage costs remain unverified.
+- [ ] Safely measure or otherwise qualify resource needs without triggering real jobs, trading or notifications; select durable storage that preserves Hermes hard links.
+- [ ] Confirm a workable always-on architecture and total recurring cost before activating paid infrastructure.

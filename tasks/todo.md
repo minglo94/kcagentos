@@ -479,3 +479,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Baseline all three Prisma migrations on a separate Neon rehearsal branch and verify deployment has no pending migrations.
 - [x] Compare all 77 business tables on the rehearsal branch against the quarantined parent using counts and per-table content fingerprints.
 - [ ] Qualify the final target with the same migration checks, business-data fingerprints and access controls after the last source sync.
+- [x] Verify shared class reads with the full synthetic role matrix after adding class-level checks.
+- [ ] Reconcile Dashboard changes with the isolated Worker configuration before uploading the tested build.

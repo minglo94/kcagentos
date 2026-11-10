@@ -425,7 +425,7 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Enable the user-approved Cloudflare Workers Paid plan after free-plan CPU-limit errors; the base cost is US$5/month and usage may add charges.
 - [x] Connect the protected Dazhi staging application to the approved synthetic Neon project using an isolated request-scoped Prisma prototype; create a synthetic teacher.
 - [x] Browser-test credential sign-in, teacher page, synthetic todo create/list/update/delete, eight concurrent reads, sign-out and post-sign-out denial.
-- [ ] Qualify request lifecycle cleanup, transaction isolation and broader app flows, evaluate costs, and obtain privacy approval before any real student-data transfer.
+- [ ] Qualify request lifecycle cleanup, transaction isolation and broader app flows; evaluate costs and privacy safeguards before exposing restored student data.
 - [ ] Complete Investbot's durable always-on staging and recovery qualification; production DNS and shared Zeabur database remain unchanged.
 
 ## Dazhi quarantine restore — 2026-11-10

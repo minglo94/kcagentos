@@ -481,3 +481,4 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Qualify the final target with the same migration checks, business-data fingerprints and access controls after the last source sync.
 - [x] Verify shared class reads with the full synthetic role matrix after adding class-level checks.
 - [ ] Reconcile Dashboard changes with the isolated Worker configuration before uploading the tested build.
+- [x] Capture a fresh Zeabur snapshot, restore it into an independent rehearsal database, compare every table, and repeat migration baselining.

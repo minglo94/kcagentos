@@ -461,5 +461,6 @@ Review: the new process tests execute the real worker core with synthetic blocke
 
 ## Dazhi staging Google sign-in — 2026-11-10
 - [x] Prepare the single-account Google sign-in gate and verify the local test suite, OpenNext build and Cloudflare dry run.
-- [ ] Rotate the staging OAuth client secret and confirm it is encrypted in Cloudflare. Preserve the staged bindings when deploying.
-- [ ] Verify Google callback, allowed and rejected identities, session role and synthetic database behavior in the deployed Worker.
+- [x] Confirm encrypted Google bindings and preserve them during the staging deployment.
+- [x] Retire the conflicting synthetic OAuth link and verify Google callback, student homepage, and the new active link.
+- [ ] Independently test a different Google identity and any separately approved teacher-role workflows.

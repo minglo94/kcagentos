@@ -464,3 +464,9 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Confirm encrypted Google bindings and preserve them during the staging deployment.
 - [x] Retire the conflicting synthetic OAuth link and verify Google callback, student homepage, and the new active link.
 - [ ] Independently test a different Google identity and any separately approved teacher-role workflows.
+
+## Dazhi role and restored-data acceptance
+- [x] Confirm the deployed Google student session is denied the teacher IT page and staff directory.
+- [x] Confirm the existing synthetic teacher can sign in and read both routes using the same source revision on a loopback-only server.
+- [x] Inspect the restored snapshot in a read-only SQL transaction and verify table and constraint coverage without displaying records.
+- [ ] Qualify a private acceptance endpoint with an independently tested read-only database login, separate authentication writes, and no access to restored credentials or outbound integrations.

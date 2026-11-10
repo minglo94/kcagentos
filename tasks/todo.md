@@ -471,3 +471,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Inspect the restored snapshot in a read-only SQL transaction and verify table and constraint coverage without displaying records.
 - [ ] Qualify a private acceptance endpoint with an independently tested read-only database login, separate authentication writes, and no access to restored credentials or outbound integrations.
 - [x] Create a no-login restored-data reviewer role and test its aggregate view, denied raw reads and denied writes.
+- [x] Map teacher class scope against the restored schema and identify class endpoints needing role-specific qualification.
+- [ ] Use synthetic fixtures to qualify owner, homeroom, timetable teacher, unrelated teacher, enrolled student, and unrelated student separately. Include direct API requests as well as navigation.

@@ -488,3 +488,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Extend private acceptance to approved administrator and teacher record views, verify per-class scope, and qualify outbound isolation before application data cutover.
 - [x] Verify a protected real-data teacher view includes exactly the restored class ownership and homeroom assignments and no student roster fields.
 - [ ] Provision an approved administrator identity with independently managed credentials before enabling real-data admin acceptance.
+- [x] Verify the full Dazhi application's selected admin and teacher read routes against the real restore on a loopback-only server.
+- [ ] Qualify actual sign-in on the private Worker for real-data administration using a separately approved identity or separately provisioned credential.

@@ -420,3 +420,10 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Connect the real Dazhi application to the isolated Neon staging database with request-safe Prisma; test synthetic sign-in and critical flows, then validate an approved real-data restore.
 - [ ] Build an isolated always-on Investbot staging deployment with durable storage, safely mocked external interactions, resource measurements, and restart/restore tests.
 - [ ] Validate full costs, production credentials, shared database consumers, final sync and rollback before considering any production DNS change.
+
+## Dazhi synthetic sign-in and data qualification — 2026-11-10
+- [x] Enable the user-approved Cloudflare Workers Paid plan after free-plan CPU-limit errors; the base cost is US$5/month and usage may add charges.
+- [x] Connect the protected Dazhi staging application to the approved synthetic Neon project using an isolated request-scoped Prisma prototype; create a synthetic teacher.
+- [x] Browser-test credential sign-in, teacher page, synthetic todo create/list/update/delete, eight concurrent reads, sign-out and post-sign-out denial.
+- [ ] Qualify request lifecycle cleanup, transaction isolation and broader app flows, evaluate costs, and obtain privacy approval before any real student-data transfer.
+- [ ] Complete Investbot's durable always-on staging and recovery qualification; production DNS and shared Zeabur database remain unchanged.

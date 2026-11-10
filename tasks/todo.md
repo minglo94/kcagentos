@@ -505,3 +505,4 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Obtain deployment access in the Cloudflare account that manages the school DNS zone and capture the existing record and routing configuration before any change.
 - [x] Deploy the original private administrator groups page and verify its minimized directory, class and group reads plus teacher denials.
 - [x] Inventory live Zeabur environment variable names without retrieving values for the release configuration review.
+- [x] Verify the original dashboard, exact Todo and calendar result sets, restricted event denial and test-row cleanup on the private Worker.

@@ -476,3 +476,6 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Verify synthetic administrator and teacher login and their different access to the administration groups API.
 - [x] Compare the Worker source Prisma schema with the isolated restore catalog and identify migration-history gaps.
 - [ ] Reconcile or baseline migration history on a disposable copy before the first deployment that runs Prisma migrations.
+- [x] Baseline all three Prisma migrations on a separate Neon rehearsal branch and verify deployment has no pending migrations.
+- [x] Compare all 77 business tables on the rehearsal branch against the quarantined parent using counts and per-table content fingerprints.
+- [ ] Qualify the final target with the same migration checks, business-data fingerprints and access controls after the last source sync.

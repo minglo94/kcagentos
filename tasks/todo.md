@@ -494,3 +494,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Restore and fingerprint a separate private application candidate, baseline Prisma, and verify normal administrator and teacher credential sign-in locally.
 - [x] Confirm the candidate disables the demo seed password and is unreachable by existing Worker database logins.
 - [ ] Set up the private candidate's live sign-in and route-specific data access without exposing restored OAuth or integration credentials.
+- [x] Deploy the private candidate with dedicated application credentials and verify the cloud login page and Access boundary.
+- [ ] Complete interactive administrator and teacher login on the deployed private candidate, then qualify the remaining application routes and final data sync.

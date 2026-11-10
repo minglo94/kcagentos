@@ -473,3 +473,4 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Create a no-login restored-data reviewer role and test its aggregate view, denied raw reads and denied writes.
 - [x] Map teacher class scope against the restored schema and identify class endpoints needing role-specific qualification.
 - [ ] Use synthetic fixtures to qualify owner, homeroom, timetable teacher, unrelated teacher, enrolled student, and unrelated student separately. Include direct API requests as well as navigation.
+- [x] Verify synthetic administrator and teacher login and their different access to the administration groups API.

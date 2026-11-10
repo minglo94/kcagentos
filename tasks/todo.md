@@ -503,3 +503,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Apply same-origin browser resource and request policy to the private candidate and verify login still renders.
 - [x] Confirm the production hostname and verify its current Zeabur mapping and fallback hostname.
 - [ ] Obtain deployment access in the Cloudflare account that manages the school DNS zone and capture the existing record and routing configuration before any change.
+- [x] Deploy the original private administrator groups page and verify its minimized directory, class and group reads plus teacher denials.
+- [x] Inventory live Zeabur environment variable names without retrieving values for the release configuration review.

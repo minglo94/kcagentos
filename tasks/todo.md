@@ -482,3 +482,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Verify shared class reads with the full synthetic role matrix after adding class-level checks.
 - [ ] Reconcile Dashboard changes with the isolated Worker configuration before uploading the tested build.
 - [x] Capture a fresh Zeabur snapshot, restore it into an independent rehearsal database, compare every table, and repeat migration baselining.
+- [x] Deploy an independent Cloudflare acceptance Worker with synthetic data and verify Worker-level Access on normal and version URLs.
+- [ ] Qualify the real-data candidate with a dedicated database login, no live integration credentials, restricted read routes, and fresh admin and teacher sessions before exposing it.

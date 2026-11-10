@@ -496,3 +496,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Set up the private candidate's live sign-in and route-specific data access without exposing restored OAuth or integration credentials.
 - [x] Deploy the private candidate with dedicated application credentials and verify the cloud login page and Access boundary.
 - [ ] Complete interactive administrator and teacher login on the deployed private candidate, then qualify the remaining application routes and final data sync.
+- [x] Rehearse candidate Todo create/read/update/delete with a temporary local-only writer and verify cleanup by table fingerprint.
+- [x] Verify the earlier private Worker version remains available without the candidate binding.

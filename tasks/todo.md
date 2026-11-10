@@ -510,3 +510,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Revalidate Google SSO in the school Cloudflare account with encrypted production credentials and an approved administrator mapping before cutover.
 - [x] Rehearse private Worker rollback and restoration with the current session secret and verify the Access and database boundaries during both switches.
 - [x] Build and dry-run a production Worker bundle with no public preview or hostname routes and verify the application on a synthetic loopback Cloudflare runtime.
+- [x] Verify source after-school activity and test scheduler retries and deduplication with synthetic fixtures.
+- [ ] Identify the existing external scheduler operator and coordinate the single scheduler activation with the final database sync.

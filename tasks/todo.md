@@ -508,3 +508,4 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Verify the original dashboard, exact Todo and calendar result sets, restricted event denial and test-row cleanup on the private Worker.
 - [x] Verify the live source and tested staging use the same Google OAuth client, canonical callback host, and matching test teacher account link.
 - [ ] Revalidate Google SSO in the school Cloudflare account with encrypted production credentials and an approved administrator mapping before cutover.
+- [x] Rehearse private Worker rollback and restoration with the current session secret and verify the Access and database boundaries during both switches.

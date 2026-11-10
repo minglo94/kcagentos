@@ -434,3 +434,12 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Test synthetic common-free-slots page and busy timetable logic; run 52 local blackboard and after-school tests.
 - [ ] Qualify the network access, independent database credentials, least privilege, live-service integrations, privacy authorization and backup freshness before exposing restored school data through any application.
 - [ ] Compare and migrate database roles/grants, secure credential configuration, files and shared-service dependencies; conduct final synchronization, broader functional tests and rollback before any cutover.
+
+## Dazhi access and backup qualification — 2026-11-10
+- [x] Rotate the quarantine branch database password and verify the former synthetic-site credential is refused, the new quarantine credential works and the synthetic site still connects.
+- [x] Create a non-admin synthetic application role with read/write grants scoped to its database schema; verify transactional test write and denial against the quarantine branch, deploy it and re-test login, CRUD and concurrency.
+- [x] Take fresh Dazhi and three other shared PostgreSQL database archives plus role definitions without passwords; verify all archive decodes. Restore the 14:52 HKT Dazhi snapshot separately and match counts and content fingerprints across 78 tables.
+- [x] Back up two linked administrative PDFs to restricted local storage and verify PDF readability and hashes.
+- [x] Fix Cloudflare template access in staging, validate synthetic quotation and activity ZIP document contents, plus announcement draft CRUD with no recipients. Verify two staging cron endpoints reject execution without configured secrets.
+- [ ] Fully qualify real-data permissions, network isolation, egress enforcement, external integrations and all attachment sources; test all critical workflows before exposing real data or making any cutover.
+- [ ] Preserve credentials securely, validate roles and grants, and perform final coordinated incremental backup/sync and restore validation at cutover time.

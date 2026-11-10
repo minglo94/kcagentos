@@ -427,3 +427,10 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Browser-test credential sign-in, teacher page, synthetic todo create/list/update/delete, eight concurrent reads, sign-out and post-sign-out denial.
 - [ ] Qualify request lifecycle cleanup, transaction isolation and broader app flows, evaluate costs, and obtain privacy approval before any real student-data transfer.
 - [ ] Complete Investbot's durable always-on staging and recovery qualification; production DNS and shared Zeabur database remain unchanged.
+
+## Dazhi quarantine restore — 2026-11-10
+- [x] Obtain explicit authorization to restore actual school data to the approved Singapore Neon test project; isolate the restore from the synthetic application on a separate branch and database.
+- [x] Restore the 9 November Dazhi PostgreSQL archive with owner and privilege restoration intentionally excluded; match row counts and content fingerprints for all 78 tables, verify 635 valid constraints and required extensions.
+- [x] Test synthetic common-free-slots page and busy timetable logic; run 52 local blackboard and after-school tests.
+- [ ] Qualify the network access, independent database credentials, least privilege, live-service integrations, privacy authorization and backup freshness before exposing restored school data through any application.
+- [ ] Compare and migrate database roles/grants, secure credential configuration, files and shared-service dependencies; conduct final synchronization, broader functional tests and rollback before any cutover.

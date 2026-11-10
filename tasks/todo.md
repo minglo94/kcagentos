@@ -491,3 +491,6 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Verify the full Dazhi application's selected admin and teacher read routes against the real restore on a loopback-only server.
 - [ ] Qualify actual sign-in on the private Worker for real-data administration using a separately approved identity or separately provisioned credential.
 - [x] Run the original Dazhi class-detail handler on the private Worker against the real snapshot with verified teacher assignment and read-only database permissions.
+- [x] Restore and fingerprint a separate private application candidate, baseline Prisma, and verify normal administrator and teacher credential sign-in locally.
+- [x] Confirm the candidate disables the demo seed password and is unreachable by existing Worker database logins.
+- [ ] Set up the private candidate's live sign-in and route-specific data access without exposing restored OAuth or integration credentials.

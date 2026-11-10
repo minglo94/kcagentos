@@ -501,3 +501,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Verify the earlier private Worker version remains available without the candidate binding.
 - [x] Render the original teacher and administrator pages against the real candidate with temporary read grants and verify role separation.
 - [x] Apply same-origin browser resource and request policy to the private candidate and verify login still renders.
+- [x] Confirm the production hostname and verify its current Zeabur mapping and fallback hostname.
+- [ ] Obtain deployment access in the Cloudflare account that manages the school DNS zone and capture the existing record and routing configuration before any change.

@@ -456,3 +456,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Verify the deployed gate rejects announcement writes, cron, Google OAuth and unknown writes, including encoded-path probes; synthetic login and todo create/read/delete continue working.
 - [ ] Evaluate all read paths and downstream outbound channels; request-layer blocking is not proof of deny-by-default network egress. Review and address draft notification semantics before any real-data use.
 - [ ] Diagnose one observed intermittent synthetic login navigation timeout, and qualify remaining roles, integrations, attachment restoration and final sync.
+
+- [x] Restore authenticated staging assets for encoded Next.js chunks, logo and favicon. Browser verified IT committee loads.

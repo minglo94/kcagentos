@@ -443,3 +443,10 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Fix Cloudflare template access in staging, validate synthetic quotation and activity ZIP document contents, plus announcement draft CRUD with no recipients. Verify two staging cron endpoints reject execution without configured secrets.
 - [ ] Fully qualify real-data permissions, network isolation, egress enforcement, external integrations and all attachment sources; test all critical workflows before exposing real data or making any cutover.
 - [ ] Preserve credentials securely, validate roles and grants, and perform final coordinated incremental backup/sync and restore validation at cutover time.
+
+## Dazhi linked-resource and transaction testing — 2026-11-10
+- [x] Scan archived database COPY data for Drive and Docs references without printing row content; inventory two linked folders recursively and save a private structural manifest.
+- [x] Save and validate a linked XLSX, two administrative PDFs, a folder PDF, eleven native Sheet XLSX exports and twelve Form HTML/CSV ZIP exports in restricted local storage.
+- [x] Test actual staging BlackboardSchedule create/update interactive transactions and stale-version rejection, verify final version, and remove only the isolated synthetic test account and schedule.
+- [ ] Establish whether native Forms can be reconstructed with settings and all live responses; match response Sheets and compare snapshots to their live sources. XLSX exports do not preserve every native feature.
+- [ ] Establish deny-by-default external egress and notification isolation, test remaining roles and business flows, and qualify independent real-data access before connecting the quarantine database.

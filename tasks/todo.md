@@ -412,3 +412,11 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Estimate Cloudflare container scenarios using published pricing; actual memory needs, CPU and durable storage costs remain unverified.
 - [ ] Safely measure or otherwise qualify resource needs without triggering real jobs, trading or notifications; select durable storage that preserves Hermes hard links.
 - [ ] Confirm a workable always-on architecture and total recurring cost before activating paid infrastructure.
+
+## Dazhi and Investbot priority — 2026-11-10
+- [x] Defer Hermes at the user's request. Fix Dazhi staging static asset routing behind authentication and verify desktop/mobile login page rendering.
+- [x] Configure a separate staging authentication secret; verify the unauthenticated session endpoint and synthetic database diagnostics return successfully in the protected browser session.
+- [x] Restore Investbot volume to a private local directory and check all three SQLite databases; verify the isolated dashboard and run offline scheduler, storage and paper-portfolio tests.
+- [ ] Connect the real Dazhi application to the isolated Neon staging database with request-safe Prisma; test synthetic sign-in and critical flows, then validate an approved real-data restore.
+- [ ] Build an isolated always-on Investbot staging deployment with durable storage, safely mocked external interactions, resource measurements, and restart/restore tests.
+- [ ] Validate full costs, production credentials, shared database consumers, final sync and rollback before considering any production DNS change.

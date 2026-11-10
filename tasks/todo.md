@@ -450,3 +450,9 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Test actual staging BlackboardSchedule create/update interactive transactions and stale-version rejection, verify final version, and remove only the isolated synthetic test account and schedule.
 - [ ] Establish whether native Forms can be reconstructed with settings and all live responses; match response Sheets and compare snapshots to their live sources. XLSX exports do not preserve every native feature.
 - [ ] Establish deny-by-default external egress and notification isolation, test remaining roles and business flows, and qualify independent real-data access before connecting the quarantine database.
+
+## Dazhi staging request isolation — 2026-11-10
+- [x] Add and deploy a staging-only default-deny policy for unreviewed mutations, OAuth callbacks and cron endpoints; restrict encoded paths and preserve vetted synthetic workflows.
+- [x] Verify the deployed gate rejects announcement writes, cron, Google OAuth and unknown writes, including encoded-path probes; synthetic login and todo create/read/delete continue working.
+- [ ] Evaluate all read paths and downstream outbound channels; request-layer blocking is not proof of deny-by-default network egress. Review and address draft notification semantics before any real-data use.
+- [ ] Diagnose one observed intermittent synthetic login navigation timeout, and qualify remaining roles, integrations, attachment restoration and final sync.

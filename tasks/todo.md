@@ -506,3 +506,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Deploy the original private administrator groups page and verify its minimized directory, class and group reads plus teacher denials.
 - [x] Inventory live Zeabur environment variable names without retrieving values for the release configuration review.
 - [x] Verify the original dashboard, exact Todo and calendar result sets, restricted event denial and test-row cleanup on the private Worker.
+- [x] Verify the live source and tested staging use the same Google OAuth client, canonical callback host, and matching test teacher account link.
+- [ ] Revalidate Google SSO in the school Cloudflare account with encrypted production credentials and an approved administrator mapping before cutover.

@@ -498,3 +498,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Complete interactive administrator and teacher login on the deployed private candidate, then qualify the remaining application routes and final data sync.
 - [x] Rehearse candidate Todo create/read/update/delete with a temporary local-only writer and verify cleanup by table fingerprint.
 - [x] Verify the earlier private Worker version remains available without the candidate binding.
+- [x] Render the original teacher and administrator pages against the real candidate with temporary read grants and verify role separation.
+- [x] Apply same-origin browser resource and request policy to the private candidate and verify login still renders.

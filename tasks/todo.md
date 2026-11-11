@@ -514,3 +514,4 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Identify the existing external scheduler operator and coordinate the single scheduler activation with the final database sync.
 - [x] Rehearse post-write backup and rollback import with the Zeabur PostgreSQL and extension versions, verify all tables, and clean the fixture.
 - [ ] Confirm the school-domain routing rollback and schedule an exclusive writer handoff for the final synchronization.
+- [x] Rehearse the production Worker against the verified real-data rollback copy and confirm the temporary login and database writes are fully removed.

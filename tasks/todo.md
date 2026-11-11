@@ -515,3 +515,13 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Rehearse post-write backup and rollback import with the Zeabur PostgreSQL and extension versions, verify all tables, and clean the fixture.
 - [ ] Confirm the school-domain routing rollback and schedule an exclusive writer handoff for the final synchronization.
 - [x] Rehearse the production Worker against the verified real-data rollback copy and confirm the temporary login and database writes are fully removed.
+
+## Dazhi school-account Worker acceptance — 2026-11-11
+- [x] Confirm school Cloudflare CLI access and preserve the existing `teacher.keichi.edu.hk` proxied A record without changing DNS.
+- [x] Deploy/inspect the school-account `dazhi-production` Worker on its `workers.dev` hostname; verify Google SSO for the approved teacher identity.
+- [x] Load teacher dashboard, activities, announcements, todos, classroom, and November calendar data from the isolated Neon rehearsal candidate.
+- [x] Create and delete one temporary calendar activity through the application; verify the candidate has no remaining row and November count returned to 53.
+- [x] Grant the candidate application role CRUD access across its 78 public tables and sequence permissions after route failures; scope changes to the rehearsal database only.
+- [ ] Provision an approved admin test identity; `admin@demo.hk` has no password or linked Google identity, so administrator login remains unqualified.
+- [ ] Rotate exposed integration credentials at their issuing services and configure encrypted release bindings before any production hostname use.
+- [ ] Complete remaining route, permissions, outbound integration, final-sync, and rollback acceptance. Keep Zeabur active and do not change DNS until all release gates pass.

@@ -1,3 +1,9 @@
+# Dazhi Cloudflare school-account acceptance — 2026-11-11
+
+The school Cloudflare account is accessible through the authorized `cf` CLI profile. Worker `dazhi-production` is reachable on its `workers.dev` hostname. The teacher Google SSO session and teacher dashboard, activities, announcements, todos, classroom, and November calendar pages loaded against the isolated Neon rehearsal candidate. November returned 53 events. One temporary calendar activity was created and deleted through the app; its title is absent from the candidate and the count returned to 53. The candidate role now has CRUD on its 78 public tables; these grants apply only to the rehearsal database.
+
+The school DNS record `teacher.keichi.edu.hk` remains a proxied A record; no DNS or Zeabur changes were made. Admin acceptance is blocked because `admin@demo.hk` has neither a password nor a linked Google identity. Remaining gates: rotate exposed integration credentials at their issuers, establish an approved admin test identity, qualify remaining routes and outbound integrations, and complete final sync/rollback acceptance. This is staging acceptance, not migration completion or authorization to cut over.
+
 ## Branch integration — updated 22 October 2026
 
 Portal PR5 is merged at 83239e457f7e77beda26e2d77b5d92d5c244f5ec. Every inventoried Portal remote branch is an ancestor of main. Exact-head GitHub CI passed both runs, including isolated PostgreSQL migration, restore, API and container checks; 63 local tests and production build passed. Two reviewed fixes preserve support-case identity and unsaved report edits.

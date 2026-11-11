@@ -8,6 +8,8 @@
 - 未完成/風險：Neon branch 約 82 MB；用戶同意取消 expiry，讀回確認 `expires_at` 已 unset。保護 branch 因現有 plan 已達上限而失敗，branch 仍未受保護。不要 upgrade 或改其他 branch，除非另獲授權。staging Worker 再驗證：`/login`、provider、DB health 均 200，78 tables；TODO 總數 24、smoke row 0。現有 admin role 工作階段曾讀到管理頁，但以舊 demo admin 地址和用戶提供密碼 fresh login 被拒；唯讀 DB 查詢只找到 demo ADMIN，未找到指定校方地址。用戶拒絕改 account mapping；未作任何帳戶資料更新。正式 Worker 只核對過機密 binding 名稱；其 secret values 和 DB 連線目標未讀取/未驗證。仍需明確 admin sign-in、latest source sync、其餘路由/整合服務、已曝露憑證輪替完成證據、正式資料回退演練。這些未合格前不能切 DNS。
 - 生產保護：Zeabur 繼續運行；production Worker、teacher.keichi.edu.hk DNS/custom-hostname routing 未變更。此前報告的真實學校資料只在隔離 Neon candidate，不能把 staging 通過說成正式遷移完成。
 - 根 repo 本次只更新接續文件並推送 GitHub；migration code commit 仍留在上述本地 branch。
+- Security incident：一次唯讀 `cf workers get` 意外把 `dazhi-production` preview base config 的明文機密值帶入工具輸出，包括資料庫及第三方整合憑證。全部視為 compromised；不要再讀取、重複或使用那些值。本次沒有改 Cloudflare、Zeabur、issuer 或 DNS。用戶先前已授權逐項輪替並維持 Zeabur/DNS；下一步須按變數消費者盤點 issuer，安全替換所需值，避免未批准的正式部署/restart。
+- 用戶選擇暫不驗證管理員密碼；保留舊 demo 管理員帳戶，沒有修改 mapping 或帳戶資料。
 
 ## Active Portal teacher-entry handover — 13 October 2026
 

@@ -618,3 +618,5 @@ stage: demo
 - [ ] Obtain a separate Google OAuth client for staging; install only on staging and reverify teacher SSO.
 - [ ] Complete staging feature/data acceptance after SSO is restored; administrator verification remains deferred by user choice.
 - [ ] Keep Zeabur and DNS unchanged. Exposed credentials still used by Zeabur remain active; do not revoke until a coordinated replacement is authorized.
+- [x] Recheck production Worker secret binding names and public login/provider endpoints without reading values; production DB destination remains unproven because the diagnostic route returns 404.
+- [ ] Obtain the separate staging OAuth client JSON; restore fresh teacher SSO and rerun staging data reads/writes before cutover consideration.

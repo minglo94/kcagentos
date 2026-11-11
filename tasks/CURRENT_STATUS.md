@@ -1,5 +1,13 @@
 # Dazhi Cloudflare school-account acceptance — 2026-11-11
 
+## Latest security incident and staging credential update — 2026-11-11
+
+A sanitized `cf workers versions list` inspection used an incorrect JSON filter and emitted plaintext preview configuration into tool output. Treat all exposed values as compromised, including database credentials, a Google service-account key, Auth/cron values, and AI, mail, and push integration credentials. No values were copied into repository files. The user authorized changes to Cloudflare staging only and explicitly declined Zeabur configuration changes; Zeabur and DNS were not modified in this continuation. This leaves any exposed values still consumed by Zeabur active until a separate coordinated rotation is authorized.
+
+Rotated the staging Worker's `AUTH_SECRET` to a newly generated random value through the Cloudflare bulk-secrets API. The staging deployment list shows the resulting version serving 100% of staging traffic. Read-only checks after the update returned `/login` 200, Auth.js providers `google` and `credentials`, and database health 200 (PostgreSQL 18, 78 tables). Staging sessions signed with the previous `AUTH_SECRET` are invalidated. No other staging secret, Worker code, Zeabur setting, or DNS record was changed.
+
+Fresh staging Google SSO is not requalified: the staging Google client secret must be replaced with a new client credential; the private secret handoff file is empty, and the downloaded OAuth client file must not be reused until its relationship to the exposed value is resolved. Obtain a separate staging OAuth client/secret, register the staging callback, and install it only on the staging Worker before repeating teacher sign-in and feature/data acceptance. The user chose to defer administrator login; preserve all account data.
+
 ## Latest staging verification — 2026-11-11 (supersedes earlier status below)
 
 The separate staging Worker `https://dazhi-migration-spike.kcadmin.workers.dev` is gated by Basic Auth; use the private access file `/Users/cmlo/Downloads/Zeabur-Migration-Backups/dazhi-stage-access-20261111-rotated.txt` and its `Browser username` / `Browser password` fields. Do not paste credentials into chat. The user-saved Google redirect URI was confirmed, the downloaded OAuth client credentials were installed as staging secrets, and `/api/auth/providers` lists Google. A fresh Google sign-in succeeded and rendered the teacher dashboard.

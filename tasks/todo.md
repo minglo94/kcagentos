@@ -608,7 +608,13 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] User approved removing expiry only; update branch `expires_at` to unset and read back. Protected-branch limit blocked enabling protection; branch remains unprotected. Do not upgrade or change other branches without separate approval.
 - [x] Recheck staging `/login`, Google provider and PostgreSQL health after the branch change; verify TODO aggregate remains 24 with zero smoke-test rows.
 - [x] Inspect the staging admin identity read-only; preserve existing demo ADMIN record after the user declined changing its email mapping. No account data was modified.
-- [x] Record user's choice to defer administrator verification; preserve the demo account with no changes.
-- [ ] Fresh administrator credential login remains unqualified; revisit only if user asks to resume it.
-- [x] Record accidental plaintext preview-config exposure from read-only Cloudflare Worker details; do not repeat/reuse values, and do not alter Worker/Zeabur/DNS during inspection.
-- [ ] Map affected preview-credential issuers and consumers, then perform the previously authorized issuer-by-issuer rotation while preserving Zeabur and DNS. No rotation has yet occurred.
+- [ ] Fresh administrator credential login is not qualified: existing demo ADMIN credential attempt was rejected, and the requested school-admin email is absent from the candidate. Revisit only if the user supplies an authorized existing account or asks to change the mapping.
+production: kei
+stage: demo
+
+## Dazhi staging security follow-up — 2026-11-11
+- [x] Record the plaintext preview-config exposure without retaining credential values in Git; user chose staging-only changes.
+- [x] Rotate staging `AUTH_SECRET`; verify the staging login, Google provider listing, and Neon PostgreSQL health.
+- [ ] Obtain a separate Google OAuth client for staging; install only on staging and reverify teacher SSO.
+- [ ] Complete staging feature/data acceptance after SSO is restored; administrator verification remains deferred by user choice.
+- [ ] Keep Zeabur and DNS unchanged. Exposed credentials still used by Zeabur remain active; do not revoke until a coordinated replacement is authorized.

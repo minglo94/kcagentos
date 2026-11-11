@@ -1,3 +1,14 @@
+# 最新交接 — Dazhi Cloudflare staging — 2026-11-11
+
+- 工作目標：先完成 `dazhi-migration-spike` 的 staging 驗收；保留 Zeabur 回退能力，未核准完整驗收前不可改正式 DNS 或停 Zeabur。
+- 已完成：Cloudflare staging Basic Auth 輪替（新值在 Downloads 私有 `dazhi-stage-access-20261111-rotated.txt`，0600）；目前 Worker 版本 `b099dcc6-f2a8-4c0f-92c0-4f21f16c04e6`；登入頁及 providers endpoint 200；DB health 顯示 PostgreSQL 18、78 張 public tables；所有 31 個 migration tests 通過；Wrangler dry-run 通過。
+- 已知限制：providers 只有 credentials，Google SSO 未設；應用層真實資料讀寫未測。`current_database()` 在 Neon/Prisma runtime 回 P2010，健康端點已改用連線、版本與表數查詢。Google callback 是否已儲存尚未核實；新 OAuth secret 尚未存入私有 handoff 檔。
+- 本地 migration worktree：`Documents/Codex/2026-11-07/referenced-chatgpt-conversation-this-is-an-2/work/dazhi-cloudflare-spike`，分支 `codex/dazhi-cloudflare-neon-staging`，有多個未提交/未追蹤檔案及既有變更。先完整檢查 diff，不要覆蓋或提交未審閱內容。
+- 下一步：確認 callback URI 已加到 Authorized redirect URIs；用戶重設 OAuth secret 並放入 Downloads 的 `dazhi-google-oauth-secret-20261111.txt`（不要貼聊天）；只更新 staging secret，再驗證 Teacher SSO、隔離資料讀寫及臨時記錄刪除。接續 admin、整合服務、最新同步及回退驗收。
+- 生產狀態：Zeabur 維持運行；school DNS、`dazhi-production` Worker 及 production secret 未改。不得切換 DNS 或停服務。
+- 測試：`node --test migration-tests/*.test.mjs` 31/31 通過；`wrangler deploy --dry-run --config wrangler.jsonc --keep-vars` 通過。OpenNext 產物仍有上游 `=== -0` 警告。
+- Git：根 `/Users/cmlo/Documents/KeiChi` 原先乾淨；本次只同步文件。migration worktree 變更尚未提交。
+
 ## Active Portal teacher-entry handover — 13 October 2026
 
 AgentOS and isolated Portal C:/Users/CMLO/keichi-portal-bridge use codex/portal-teacher-entry. Portal incorporates P0–P3 e7aee17; original checkout untouched. Task1 c53c910 committed; root fixes and Task2 await final acceptance/commit. Native PostgreSQL paired acceptance and AgentOS52 tests/current typechecks/lints passed. Teacher AgentOS browser denial verified. Ed25519 keys are separate from HMAC; only Portal receives private key. Both active user mappings must be explicitly provisioned.

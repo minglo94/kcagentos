@@ -1,5 +1,17 @@
 # 任務清單
 
+## Dazhi Cloudflare staging acceptance — 2026-11-11
+- [x] Deploy the staging-only auth/DB scope and guarded assets; protect the workers.dev preview with Basic Auth.
+- [x] Rotate staging Basic Auth and save the new credential outside Git with mode 0600.
+- [x] Verify protected `/login` and `/api/auth/providers` return 200; verify PostgreSQL 18 / 78-table health metadata.
+- [x] Run all 31 migration tests and Wrangler dry-run successfully.
+- [ ] Verify the user saved `https://dazhi-migration-spike.kcadmin.workers.dev/api/auth/callback/google` in Google's authorized redirect URI list.
+- [ ] Receive the newly rotated Google client secret through the private local handoff file; update staging bindings only.
+- [ ] Verify Teacher Google SSO, isolated candidate data reads, and disposable create/read/delete through the app.
+- [ ] Complete admin test identity, outbound integration, latest-source sync, and rollback checks before cutover consideration.
+
+Current constraints: providers list credentials only; SSO and app-level real-data read/write are unverified. Zeabur remains running; no production Worker or school DNS changes. See the latest status in `tasks/CURRENT_STATUS.md` and handover below.
+
 ## Merge and protected Vercel deployment — 2026-10-13
 User explicitly requested merge to main, Vercel deployment and post-deployment testing.
 - [ ] Reconcile both PRs with latest base branches and finish Portal dependency repair/CI.

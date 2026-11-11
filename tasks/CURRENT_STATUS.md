@@ -1,5 +1,13 @@
 # Dazhi Cloudflare school-account acceptance — 2026-11-11
 
+## Latest staging verification — 2026-11-11
+
+The isolated staging Worker is deployed as version `b099dcc6-f2a8-4c0f-92c0-4f21f16c04e6` at `https://dazhi-migration-spike.kcadmin.workers.dev`. Its private Basic Auth credential was rotated in the staging binding only and saved mode 0600 as `Downloads/Zeabur-Migration-Backups/dazhi-stage-access-20261111-rotated.txt`; older access files no longer pass. No Google secret, production Worker, Zeabur service, or DNS record was changed.
+
+The authenticated login page and provider endpoint return 200. Providers currently list credentials only; Google SSO is not yet configured. The protected DB health probe returns PostgreSQL 18 and 78 public tables. `SELECT 1` and the version query pass; `current_database()` causes Prisma P2010 through this runtime and was removed from the health check. This confirms connection/metadata access, not successful teacher/admin sessions or app-level real-data read/write. All 31 migration tests pass and Wrangler dry-run succeeds; generated upstream bundle still warns about `=== -0`.
+
+The current migration worktree remains uncommitted and contains both staging changes and pre-existing local changes; preserve and review the full diff before any commit. The exact staging Google callback still needs verification in Google Console, and the rotated Google OAuth secret is not yet available in the private handoff file. Next: verify the user's saved callback, install the new staging-only Google credentials, test Teacher SSO and app-level read/write/delete on the isolated candidate, then continue release gates. Zeabur remains running and the school DNS/production Worker are unchanged.
+
 ## Latest staging deployment and rollback — 2026-11-11
 
 The user chose to add the exact staging Google redirect URI themselves; the URI is still unverified in Google Cloud Console. No OAuth credential was reset and no consumer credential was updated.

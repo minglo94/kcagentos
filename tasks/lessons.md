@@ -88,3 +88,7 @@ Sorting and aggregating row JSON into one table hash can produce a false mismatc
 ## 2026-11-11 — Inspect existing browser context before UI automation
 
 - A computer-use snapshot of an already-open browser tab can expose full plaintext configuration fields. Before reading UI state, check the active page/context; if a secrets or variables page is open, navigate away without capturing its contents and inspect only the intended destination. Treat any values already emitted as compromised and record only sanitized facts.
+
+## 2026-11-11 — Keep staging database health probes compatible
+
+For the isolated Dazhi staging Neon connection, `SELECT 1` and PostgreSQL version metadata succeed, while `current_database()` returns Prisma P2010. Keep the health probe to minimal read-only checks supported by the deployed adapter; verify destination identity separately through the scoped application connection and non-sensitive evidence.

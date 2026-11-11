@@ -661,3 +661,13 @@ stage: demo
 - [ ] Keep Zeabur and DNS unchanged. Exposed credentials still used by Zeabur remain active; do not revoke until a coordinated replacement is authorized.
 - [x] Recheck production Worker secret binding names and public login/provider endpoints without reading values; production DB destination remains unproven because the diagnostic route returns 404.
 - [ ] Obtain the separate staging OAuth client JSON; restore fresh teacher SSO and rerun staging data reads/writes before cutover consideration.
+# Dazhi Ask Keida / device push — 2026-11-12
+
+- [x] 修正 Ask Keida 的 provider key 檢查與 Worker charter 載入；正式網址收到合成問題完整回覆。
+- [x] 回退出現 1102 的版本，以可用資產上傳設定重新建置、部署並驗證登入與教師首頁。
+- [x] 加入配對 VAPID 公鑰；通知鈴顯示裝置啟用選項，Mac 與 iPhone 的合成 Web Push 均獲推送服務 201 接收。
+- [x] 推送 `minglo94/keichi` 分支 `codex/dazhi-cloudflare-neon-staging` 至 `80d9e50`；未合併 main。
+- [ ] Mac 測試未見彈窗；待使用者確認 iPhone 是否顯示。若仍沒有，核對目標裝置的網站權限、主畫面安裝及訂閱。
+- [ ] 管理員在廣播頁選「指定教師」單一測試收件人，驗證廣播到通知鈴及裝置；教師帳戶無權使用該頁。
+- [ ] 補齊 Pusher 前端公開 key/cluster 的建置設定，驗證即時通知；現有 60 秒輪詢仍可讀取資料。
+- [ ] 完成管理員登入、排程及 Zeabur 回退登入等餘下正式切換驗收。

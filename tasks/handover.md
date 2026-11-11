@@ -492,3 +492,10 @@ The user confirmed the private acceptance site works. A school DNS zone is now v
 - School-account `cf` inspection by binding names only confirms `dazhi-production` has `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `AUTH_SECRET`, `AUTH_URL`, `DATABASE_URL`, `DAZHI_RELEASE_HOSTNAME`, and `OPENROUTER_API_KEY`; values were not retrieved.
 - Public read-only requests: `/login` 200; `/api/auth/providers` 200 and lists Google plus credentials; `/__migration/db-health` 404. The health route result does not establish that production is disconnected; the production database target and authenticated data reads remain unverified.
 - Staging remains connected to the isolated Neon release candidate and its post-secret-rotation DB health is 200 (PostgreSQL 18, 78 tables). The replacement Google OAuth client JSON requested for staging is not present at the requested path. No production Worker, Zeabur, or DNS setting was changed.
+# Dazhi Cloudflare handover — 2026-11-12 (latest)
+
+已完成：`minglo94/keichi` 分支 `codex/dazhi-cloudflare-neon-staging` commit `80d9e50` 已推 GitHub（未合併）。正式 Worker 部署 `a0debbbf-1ee4-4ba2-b346-2ef751e6e77e` 服務版本 `e0608796-0c20-46b2-9b8e-c65a24ad7480`。Ask Keida 的 OpenRouter 設定檢查與六份 charter 打包已修正；正式教師頁合成問題取得完整串流答覆。登入頁及教師首頁均可載入。VAPID 公鑰已加入 build/runtime，推送開關出現；Mac Chrome 與 iPhone Safari 的單條合成推送各獲 push service 201。Zeabur、DNS 未改。
+
+進行中／限制：Mac 的 201 推送未在使用者裝置彈出；iPhone 的實機結果待回覆。ADMIN 廣播頁對 TEACHER 帳戶拒絕，未做廣播 UI 實測。前端 Pusher key/cluster 缺少建置設定，通知鈴現靠初次載入／60 秒輪詢。先前版本因 build 所需的資產設定直接用於 upload 出現 1102；詳見 Dazhi 分支 `migration-staging/README.md`，build 使用 `wrangler.release-build.jsonc`，upload 使用 `wrangler.release.jsonc`。正式站其餘功能、管理員登入、排程及 Zeabur 回退登入未驗收。
+
+測試：Dazhi `pnpm exec tsc --noEmit` 通過；7 項 release/static routing tests 通過；OpenNext build 通過；正式網站瀏覽器登入頁、教師首頁、Ask Keida 合成問題及推送開關可見。下一步由管理員在廣播頁選單一測試教師，並在目標裝置核對權限、訂閱和彈窗；不要全體廣播。之後才補 Pusher 前端公開設定並核對即時更新。GitHub main 未合併此分支。

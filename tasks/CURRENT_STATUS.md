@@ -152,3 +152,10 @@ Protected Vercel test deployments are READY. AgentOS: https://kcagentos-test.ver
 The dashboard/API is deployed; the persistent Worker and local models require a local/Spark host. Cloud verification uses individual controlled local Worker cycles against a separate synthetic AgentOS DB. Google OAuth, broad multi-worker concurrency, real student data/eClass/mail, full Pixel Agents animation and business cron remain pending. Portal remains authoritative for content/send approval; no sending tool is enabled by this integration.
 
 Credentials and test screenshots/results are ignored local artifacts; never publish them to GitHub. Test credentials are in .test-artifacts/test-login.txt. Read the protected-deployment guide for access instructions and test limits.
+# Dazhi Ask Keida and device push — 2026-11-12 (latest)
+
+`teacher.keichi.edu.hk` 仍指向校方 Cloudflare 的 `dazhi-production` Worker；本次沒有改 DNS 或 Zeabur。Ask Keida 的 503 來自聊天 API 硬檢查 Anthropic key，但現有設定選用 OpenRouter；修正後又發現 Worker 無法以 runtime `fs` 讀取六份 Agent charter，已改為靜態打包。一次新版本因資產處理設定令登入及教師頁出現 Cloudflare 1102，已回退並以原先可用的上傳設定重新部署。正式版現為 `e0608796-0c20-46b2-9b8e-c65a24ad7480`（deployment `a0debbbf-1ee4-4ba2-b346-2ef751e6e77e`）：登入頁、已登入教師首頁及 Ask Keida 合成問題的完整串流回覆均實測可用。
+
+正式 Worker 原本缺少 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`，通知鈴顯示「伺服器尚未設定推送通知」。從現有 VAPID 私鑰推導配對公鑰，只將公鑰加入 build 與 Worker binding；舊私鑰及其他 binding 保留。正式站現顯示「啟用此裝置的推送通知」。本人有 Mac Chrome 與 iPhone Safari 兩筆訂閱；先向 Mac 訂閱發送合成 Web Push，推送服務回覆 201，但使用者沒有看到彈窗；再向 iPhone 訂閱發送，Apple 推送服務亦回覆 201，實機顯示待回覆。201 只證明推送服務接收，不證明裝置顯示。Pusher 的前端 build-time key/cluster 仍缺，頁面會提示即時更新停用；通知鈴透過載入及 60 秒輪詢顯示資料。廣播頁只許 ADMIN，且排除發送者；目前登入的 TEACHER 帳戶被導回首頁，所以未在廣播 UI 發送。不要以全體教職員為測試目標。
+
+程式與可重建部署說明已推至公開 GitHub `minglo94/keichi` 的 `codex/dazhi-cloudflare-neon-staging` 分支，commit `80d9e50`；尚未合併 main。型別檢查及 7 項針對性 migration tests 通過，OpenNext build 通過。未聲稱所有學校業務功能、正式管理員、排程、Zeabur 回退登入或裝置可見彈窗已驗收；仍應保持 Zeabur 可用。

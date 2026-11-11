@@ -1,3 +1,11 @@
+# Dazhi school hostname cutover — 2026-11-11 (latest)
+
+使用者明確要求把 `teacher.keichi.edu.hk` 切至 Cloudflare Worker，並表示計劃自行停止 Zeabur。已在校方 active zone 把該網址設為 `dazhi-production` 的 Worker Custom Domain；Cloudflare 自動建立 proxied AAAA 記錄，原 Zeabur A 記錄已先存入 Downloads 私密 0600 快照，之後移除。過渡 Worker route 已刪除，現無同名 route。正式部署 `1cc5b7c1-1732-4941-9895-86f8c65e7baf` 以 100% 流量使用版本 `495b20b4-4c73-4e9a-a291-b7d4f2dcd33c`，其 `AUTH_URL`／`DAZHI_RELEASE_HOSTNAME` 已對準學校網址，Neon `DATABASE_URL` 及其餘 binding 名稱／類型保持。初次 route 接入因舊 canonical hostname guard 回 503，當即撤回並恢復 Zeabur 200；修正兩個 hostname secrets 後重新接入，`/login` 及 provider API 均回 200，Google callback host 正確。Custom Domain 建立、移除 route 後再核對仍為 200。
+
+實測學校 Google 教師登入成功，`/teacher` 首頁與 `/teacher/todos` 均讀到已還原資料。正式 Worker 的 hostname guard 現會拒絕舊 `workers.dev` 網址；對使用者應提供學校網址。受限 Neon app role 在交易中更新一筆 Todo 並 `ROLLBACK`，證實資料庫寫入權限，沒有永久改動；正式網站的應用層新增／儲存仍未驗收。切換後再次從仍在線的 Zeabur PostgreSQL 取得可讀的 0600 備份，與切換前快照逐表比較，78 表／18,215 行無差異。這是當刻一致性，不是持續同步。
+
+**停止 Zeabur 尚未驗收。** 正式 Worker 無 Cloudflare Cron triggers，程式亦以 `DAZHI_ENABLE_SCHEDULED_JOBS` 預設阻止 `/api/cron`，所以不能聲稱後台排程已遷移。正式管理員 fresh login 仍依使用者之前決定暫不驗證，其他業務／對外整合未全數驗收。此前 Zeabur Google 回退登入仍有 `Configuration` 錯誤；一旦停止 Zeabur，回退能力會進一步喪失。建議保持 Zeabur 在線，先完成正式站的應用層讀寫、排程／整合及回退測試，再決定停用。
+
 # Dazhi formal Worker connected to Neon — 2026-11-11 (latest)
 
 按使用者要求，已把校方帳戶的 `dazhi-production` Worker 接到獨立 Neon 資料庫 `dazhi_release_20261111_fresh`（project `patient-unit-24808093`，branch `dazhi-current-release-20261111`），使用已驗證的受限應用角色及 pooled connection。該庫由 Zeabur 新鮮 custom-format 備份以單一交易還原；還原後重新匯出並逐表比較 COPY 列的 SHA-256 多重集合：78 表、18,215 行，與來源快照一致，無差異。私密來源及驗證備份存於 `Downloads/Zeabur-Migration-Backups`，均為 0600，未入 Git。這是備份當刻的比對，Zeabur 仍可繼續產生新資料，尚非持續同步。

@@ -1,5 +1,14 @@
 # 任務清單
 
+## Dazhi 學校網址切換後續 — 2026-11-11（最新）
+- [x] 核對 Zeabur 最後有效備份與 Neon 還原快照一致；切換後再取 Zeabur 備份，78 表／18,215 行逐表無差異。
+- [x] 更新正式 Worker canonical hostname，建立 `teacher.keichi.edu.hk` Worker Custom Domain；移除 Zeabur A 記錄與過渡 route。
+- [x] 驗證正式網址 HTTPS、登入/provider、學校 Google 教師登入、首頁及待辦資料讀取；受限 Neon 角色交易性寫入後回滾通過。
+- [ ] 在正式網站完成應用層新增／儲存／重載驗收，避免把資料庫權限測試當作完整功能驗收。
+- [ ] 檢查並遷移真正需要持續運作的 Dazhi 排程與整合；目前正式 Worker 無 Cron triggers，排程 API 被預設阻止。
+- [ ] 修復或另行驗證 Zeabur 登入回退；目前 Google 回調出現 `Configuration`，使用者此前禁止更新 Zeabur 機密。
+- [ ] 依既有決定，管理員 fresh login 暫不驗證；停用 Zeabur 前須明確處理此缺口與最新資料備份。
+
 ## Dazhi 正式 Worker 接入 Neon — 2026-11-11（最新）
 - [x] 把新鮮 Zeabur PostgreSQL 快照以單一交易還原至獨立 Neon 資料庫；78 表、18,215 行逐表指紋與備份一致。
 - [x] 驗證受限應用角色連線，建立並部署正式 Worker 的 Neon `DATABASE_URL` 版本至 `workers.dev` 100% 流量。

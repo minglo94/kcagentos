@@ -1,5 +1,12 @@
 # 任務清單
 
+## Dazhi 新 OAuth 與最新來源差異 — 2026-11-11
+- [x] 確認新 OAuth JSON 的 secret 與舊檔不同，收緊私密檔權限為 0600，並更新 staging 的 Google secret；登入/provider/DB health 回 200。
+- [x] 建立及部署正式 Worker 的新 OAuth secret 版本；在 `workers.dev` 完成 Google 教師登入與首頁資料讀取。
+- [x] 從 Zeabur PostgreSQL 唯讀取得新 custom-format 備份，驗證可讀；比較舊副本的 78 表指紋，確認只增加兩筆 `Account` 記錄。
+- [ ] 確認正式 Worker 的資料庫目標，安全同步來源新增資料到擬使用的 Neon 庫，並重做完整指紋與應用讀寫驗收。
+- [ ] 驗證可回退的學校網域 Worker route，之後才切換；目前 DNS/route 未改。
+
 ## Dazhi 正式切換前置查核 — 2026-11-11
 - [x] 以校方 `cf` CLI 確認正式 zone 為 active、`teacher` 為代理 A 記錄，並確認私密回退快照與現況一致；沒有修改 DNS／Worker／Zeabur。
 - [x] 即時檢查正式 Worker `workers.dev` 登入與 provider API（200）、資料庫健康端點（404），以及學校網域登入/provider（404）。

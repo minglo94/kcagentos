@@ -1,3 +1,10 @@
+# Dazhi OAuth deployment / fresh-source delta — 2026-11-11
+
+- User supplied a newer OAuth JSON download. Its client ID matches the prior file, its secret differs, and it includes the school and production Worker redirect URIs. Tightened file mode to 0600 without printing the secret. Updated staging `AUTH_GOOGLE_SECRET`; protected login, provider discovery, and DB health all returned 200.
+- Cloudflare rejected a direct production secret patch because an unpublished newer version existed. Wrangler created secret-only version `f96413a0-6917-4c93-be99-502b6c895cfe`; `cf` deployed it at 100%. The production `workers.dev` login/provider endpoints return 200. A fresh Google teacher sign-in reached the dashboard and displayed schedule data. The DB health endpoint remains 404, so the production DB target is unverified. The user-deferred administrator test was not attempted.
+- Took a fresh read-only Zeabur PostgreSQL 18.6 custom dump in a mode-0600 private file (`dazhi-full-postgresql-20261111-precutover-fresh.dump`); local `pg_restore -l` and all 78 COPY sections decode. The 16:02 source snapshot has 18,213 rows; this new source snapshot has 18,215. Only `Account` changed from 233 to 235. Neon `dazhi_current_release_latest` has 233 Account rows, so it is behind the source snapshot. No restored database was overwritten and no source database write was performed.
+- School DNS and route remain unchanged. Cutover is pending exact production DB target, synchronized/fingerprinted data, production app read/write acceptance, and route rollback verification. Preserve Zeabur and the existing DNS record. Root handover and todo are saved in the same documentation commit; Dazhi source worktree is unchanged.
+
 # Dazhi formal Worker / school-domain cutover preflight — 2026-11-11
 
 - User explicitly requested the formal Worker/domain cutover. I performed read-only checks only; no production Worker, school DNS, or Zeabur settings were changed.

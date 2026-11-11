@@ -1,3 +1,11 @@
+# Dazhi OAuth deployment and fresh-source check — 2026-11-11
+
+使用者提供 Downloads 中的新 Google OAuth JSON；它與先前下載檔使用相同 client ID，但 secret 不同，並包含學校網域與正式 Worker 回調。檔案權限已改為 0600，沒有在工具輸出或 Git 顯示 secret。已更新 staging `AUTH_GOOGLE_SECRET`，受保護的登入、provider 和 DB health 均回 200。Cloudflare 因正式 Worker 有未部署較新版本而拒絕直接改 secret；改用 Wrangler 建立只含新 secret 的版本 `f96413a0-6917-4c93-be99-502b6c895cfe`，再以 `cf` 明確部署至正式 Worker 100% 流量。其 `workers.dev` 登入/provider 回 200；真實 Google 教師登入成功並載入教師首頁和行程。正式 Worker `/__migration/db-health` 仍為 404，資料庫目標未證實。
+
+透過 Zeabur CLI 唯讀取得新的 PostgreSQL custom-format 備份，私密檔為 `/Users/cmlo/Downloads/Zeabur-Migration-Backups/dazhi-full-postgresql-20261111-precutover-fresh.dump`（0600）。PostgreSQL 18.6 `pg_restore -l` 可讀；與 16:02 備份比較，78 個 COPY 表均存在，總行數由 18,213 增至 18,215，只有 `Account` 表變動（233→235）。Neon `dazhi_current_release_latest` 的 `Account` 仍是 233 行。因此最新來源資料未全部同步到既有 Neon 候選庫。沒有對正式資料庫或 Zeabur 作寫入／設定變更，也沒有做正式 Worker 資料寫入測試。
+
+學校正式 zone 仍無 Worker route，`teacher.keichi.edu.hk` 仍指向原代理 A 記錄；本次沒有改 DNS。接續先確認正式 Worker 的 DB 目標，安全同步新來源的差異並以完整表指紋驗證，完成教師資料讀寫及回退演練，才把學校網址接入正式 Worker。管理員登入依使用者之前決定暫不驗證；不動 Zeabur 機密設定。
+
 # Dazhi production cutover preflight — 2026-11-11
 
 使用者已明確要求切換正式 Worker／學校網域；目前仍未改正式 Worker、DNS 或 Zeabur，因必要驗收未通過。以校方 Cloudflare CLI profile 唯讀核實：校方 `keichi.edu.hk` zone 為 `active`，`teacher.keichi.edu.hk` 是代理 A 記錄；私密切換前 DNS 快照與現值一致。校方正式 zone 沒有 Worker route；同名 `initializing` zone 屬個人帳戶，不能用作正式路由。

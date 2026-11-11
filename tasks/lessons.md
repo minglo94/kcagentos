@@ -84,3 +84,7 @@ Cloudflare version listings can include plaintext values for `plain_text` and JS
 ## 2026-11-11 — Compare restored PostgreSQL rows independent of collation
 
 Sorting and aggregating row JSON into one table hash can produce a false mismatch when source and target use different collations. Compare each row's canonical JSON hash as a multiset per table, alongside the table inventory and row counts; this verifies identical rows without emitting private values. During a live-source migration, take a newer snapshot if a post-backup comparison reveals writes after capture.
+
+## 2026-11-11 — Inspect existing browser context before UI automation
+
+- A computer-use snapshot of an already-open browser tab can expose full plaintext configuration fields. Before reading UI state, check the active page/context; if a secrets or variables page is open, navigate away without capturing its contents and inspect only the intended destination. Treat any values already emitted as compromised and record only sanitized facts.

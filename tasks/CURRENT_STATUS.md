@@ -1,5 +1,13 @@
 # Dazhi Cloudflare school-account acceptance — 2026-11-11
 
+## Latest route and exposure recheck — 2026-11-11
+
+The authorized school Cloudflare Dashboard shows `dazhi-production` has its public `workers.dev` URL enabled and lists no custom domain or zone route. This confirms the production Worker is not currently attached to `teacher.keichi.edu.hk`; it does not establish the current DNS record value. No route, DNS, Worker, or Zeabur setting was changed.
+
+During read-only browser inspection, Chrome was still displaying the Zeabur Dazhi variables page and the interface exposed plaintext credentials in the computer-use result. Treat every displayed value as compromised. Do not repeat or reuse them. No credential was changed or rotated. Rotation approval remains unresolved; the user has only confirmed the Mac is unlocked.
+
+Next: obtain explicit approval for issuer-by-issuer credential rotation with Zeabur kept online; rotate exposed values at their issuing services and update only intended encrypted staging bindings. Then validate staging login and limited data read/write/delete. Separately plan school-domain routing only after DNS zone and Worker route prerequisites are verified. Keep Zeabur and DNS unchanged until all release gates pass.
+
 ## Latest current-state recheck — 2026-11-11
 
 The active school-account deployment has encrypted Auth.js, Google OAuth, and `DATABASE_URL` bindings; version 12 serves 100% of traffic. Their values and exact database destination remain unverified. A fresh Google sign-in on `workers.dev` returned `OAuthAccountNotLinked`, so current SSO acceptance fails.

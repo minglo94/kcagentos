@@ -551,3 +551,11 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Resolve the intended Google identity/account mapping through a secure, approved path; preserve Auth.js's account-link protection.
 - [ ] Verify the active Worker is connected to the approved release database, then pass fresh Google/admin sign-in and disposable data read/write/delete checks on `workers.dev`.
 - [ ] Keep Zeabur active and school DNS unchanged until all data, credential, login, feature, and rollback gates pass.
+
+## Dazhi Cloudflare route and credential exposure follow-up — 2026-11-11
+- [x] Read-only inspect the school-account `dazhi-production` Domains page; confirm public `workers.dev` is enabled and no custom domain or zone route is attached.
+- [x] Record that this Worker page does not establish the current DNS record value and make no routing/DNS changes.
+- [x] Record the additional browser exposure of plaintext Zeabur variables without copying values into Git.
+- [ ] Obtain explicit approval for issuer-by-issuer credential rotation while preserving Zeabur service; approval has not yet been given.
+- [ ] Rotate exposed credentials at their issuers and replace only the intended encrypted staging bindings; verify service health without changing DNS.
+- [ ] Re-test staging authentication and scoped data read/write/delete after credential rotation.

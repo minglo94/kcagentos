@@ -530,11 +530,11 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Inspect secret binding names only; confirm Google/Auth.js/database binding names exist on the school Worker without retrieving their secret values.
 - [x] Verify `workers.dev` login/providers/session endpoints, Google SSO callback, teacher dashboard, and restored-data reads; sign out after the browser check.
 - [x] Reconcile the supplied admin identity against the rehearsal candidate and confirm the current Worker browser session reaches `/teacher/admin/settings`; establish a secure repeatable sign-in path separately.
-- [ ] Verify the database URL resolves to the intended current release dataset and complete a fresh source-to-candidate sync/fingerprint check. Current acceptance evidence is for the restored rehearsal candidate, not proof of the latest live source state.
+- [ ] Verify the active Worker's `DATABASE_URL` target without revealing the value; point the staging Worker at the latest fingerprint-verified candidate. The Worker is not yet proven to use that candidate.
 - [ ] Rotate plaintext preview integration credentials at their issuers after identifying all consumers; update bindings without interrupting Zeabur, then verify preview values are no longer exposed.
 - [x] Verify the current browser session reaches the Worker admin area; keep repeatable sign-in and final-dataset read/write verification open, and keep DNS unchanged until all gates pass.
 - [x] Establish read-only Zeabur CLI access for source inspection.
-- [ ] Compare the full latest live-source data fingerprints with the Neon rehearsal candidate before treating the candidate as the final database.
+- [x] Restore the latest Zeabur PostgreSQL snapshot to a new isolated Neon release candidate; verify all 78 public tables and compare row hashes for all 18,213 rows across 56 populated tables with zero differences.
 - [x] Use the authorized Zeabur CLI to locate the current Dazhi/PostgreSQL source and compare the requested admin identity state without printing account or password data.
 - [x] Synchronize only the user-requested ADMIN address mapping and existing credential verifier to the Neon rehearsal candidate; leave the live Zeabur account unchanged.
 - [ ] Establish and document the repeatable secure admin sign-in flow for `workers.dev`; current browser session is authenticated in the admin area, but the successful credential path was not observed.
@@ -543,10 +543,11 @@ Review: the new process tests execute the real worker core with synthetic blocke
 ## Dazhi active Worker current-state recheck — 2026-11-11
 - [x] Verify encrypted Auth.js, Google OAuth and database secret binding names on the active school Worker version; secret values and exact database target remain unverified.
 - [x] Re-run Google SSO from a fresh `workers.dev` session; callback returns `OAuthAccountNotLinked`, so current SSO acceptance fails.
-- [x] Compare bounded live-source and Neon-rehearsal core table counts; they differ, so the rehearsal database is not yet proven current.
+- [x] Confirm the earlier rehearsal branch had bounded table-count differences; superseded by the newer backup restore and full row-hash comparison recorded below.
 - [x] Confirm the Google-linked identity maps to a Teacher account and the target ADMIN identity has no Google link; do not auto-link or elevate access.
 - [ ] Obtain/review an approved, staged rotation plan for credentials exposed in Cloudflare version output and the open Zeabur variable page; no values are recorded in Git.
-- [ ] Restore a fresh current source backup to an isolated Neon release candidate and compare full schema/table fingerprints without overwriting existing branches.
+- [x] Create two validated, mode-0600 local PostgreSQL backups and restore the newer snapshot into a new Neon branch/database without overwriting earlier candidates; verify all 78 table names and all 18,213 row fingerprints (56 populated tables) against the source.
+- [ ] Verify the active staging Worker's `DATABASE_URL` target without revealing the value, then point the staging Worker to the approved latest candidate only after the user's staged credential-rotation and account-link decisions are clear.
 - [ ] Resolve the intended Google identity/account mapping through a secure, approved path; preserve Auth.js's account-link protection.
 - [ ] Verify the active Worker is connected to the approved release database, then pass fresh Google/admin sign-in and disposable data read/write/delete checks on `workers.dev`.
 - [ ] Keep Zeabur active and school DNS unchanged until all data, credential, login, feature, and rollback gates pass.

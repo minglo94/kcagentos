@@ -80,3 +80,7 @@ An earlier demo ADMIN record is not evidence that the later supplied school admi
 ## 2026-11-11 — Sanitize deployment and variable output
 
 Cloudflare version listings can include plaintext values for `plain_text` and JSON bindings, even when secret bindings are separately listed as `secret_text`. Zeabur's variable UI and CLI can also return complete values. Never print raw version/variable output; capture it locally and allowlist only binding names, types, and non-sensitive metadata. Treat any values already displayed as compromised and rotate at their issuing services before relying on them.
+
+## 2026-11-11 — Compare restored PostgreSQL rows independent of collation
+
+Sorting and aggregating row JSON into one table hash can produce a false mismatch when source and target use different collations. Compare each row's canonical JSON hash as a multiset per table, alongside the table inventory and row counts; this verifies identical rows without emitting private values. During a live-source migration, take a newer snapshot if a post-backup comparison reveals writes after capture.

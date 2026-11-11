@@ -1,5 +1,15 @@
 # Dazhi Cloudflare school-account acceptance — 2026-11-11
 
+## Current staging Worker and SSO gap — 2026-11-11
+
+The user's current premise is partly corrected by live checks: the separate `dazhi-migration-spike.kcadmin.workers.dev` staging Worker already has encrypted `AUTH_SECRET`, `STAGING_BASIC_AUTH`, and `STAGING_DATABASE_URL` bindings and reaches the isolated latest Neon candidate. Authenticated health checks returned PostgreSQL 18, 78 tables, and 830 users; `/login` returns 200 behind Basic Auth and 401 without it. These checks establish connectivity and page availability, not user-session or application write acceptance.
+
+`/api/auth/providers` currently lists only `credentials`. The staging Worker has no Google OAuth bindings, and its source policy keeps OAuth callbacks blocked unless the exact staging Google configuration is present. The Google client in project `agents-os` has the Zeabur and older Worker callback URIs but not the current `dazhi-migration-spike.kcadmin.workers.dev` callback. The user said the change was done; after reload the exact URI was still absent from the authorized redirect list, so it is not verified as saved. Asked whether I should add that exact URI or the user will save it.
+
+The user approved issuer-by-issuer rotation while keeping Zeabur and DNS. Google documents that resetting the compromised OAuth secret immediately invalidates the old secret and causes a temporary login outage until consumers are updated. The reset must be performed by the user in Google Cloud Console; do not request the secret in chat. An empty mode-0600 handoff file is ready at `/Users/cmlo/Downloads/Zeabur-Migration-Backups/dazhi-google-oauth-secret-20261111.txt`. No new secret, production binding, or Zeabur variable has been changed yet.
+
+Staging-only code changes are local and undeployed: the Cloudflare config declares Google secret bindings, and the staging policy denies all unconfigured provider sign-in paths while allowing only Google POST sign-in and GET callback when the exact config exists. The staging test suite passes 12/12; `cf build` completes with one warning in generated upstream output. Cloudflare school-account CLI access now works using the `school` profile plus explicit school account ID. Zeabur Dazhi is currently `RUNNING`; its public login page returns 200. No production route or DNS change.
+
 ## Latest route and exposure recheck — 2026-11-11
 
 The authorized school Cloudflare Dashboard shows `dazhi-production` has its public `workers.dev` URL enabled and lists no custom domain or zone route. This confirms the production Worker is not currently attached to `teacher.keichi.edu.hk`; it does not establish the current DNS record value. No route, DNS, Worker, or Zeabur setting was changed.

@@ -556,6 +556,17 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Read-only inspect the school-account `dazhi-production` Domains page; confirm public `workers.dev` is enabled and no custom domain or zone route is attached.
 - [x] Record that this Worker page does not establish the current DNS record value and make no routing/DNS changes.
 - [x] Record the additional browser exposure of plaintext Zeabur variables without copying values into Git.
-- [ ] Obtain explicit approval for issuer-by-issuer credential rotation while preserving Zeabur service; approval has not yet been given.
+- [x] Obtain explicit approval for issuer-by-issuer credential rotation while preserving Zeabur service; user approved this turn.
 - [ ] Rotate exposed credentials at their issuers and replace only the intended encrypted staging bindings; verify service health without changing DNS.
 - [ ] Re-test staging authentication and scoped data read/write/delete after credential rotation.
+
+## Dazhi staging OAuth and app acceptance — 2026-11-11
+- [x] Re-authenticate the `school` Cloudflare CLI profile; explicitly select the school account and inspect Worker secret names only.
+- [x] Verify current staging `workers.dev` page gate and Neon connection: authenticated `/login` 200, unauthenticated `/login` 401, PostgreSQL 18, 78 tables, Prisma User count 830.
+- [x] Confirm staging providers currently include credentials only; no staging Google OAuth secret bindings are present.
+- [x] Add staging-only Google binding declarations and deny unconfigured Auth.js sign-in providers; allow only configured Google POST sign-in and GET callback. Tests pass 12/12; local `cf build` passes with one generated-bundle warning. Not deployed.
+- [x] Obtain user approval to rotate compromised credentials while preserving Zeabur and DNS.
+- [ ] Obtain action-time approval to add exactly `https://dazhi-migration-spike.kcadmin.workers.dev/api/auth/callback/google` to the existing Google OAuth client; preserve all existing redirect URIs.
+- [ ] User resets the Google OAuth client secret in Google Cloud Console and stores it only in the private mode-0600 handoff file; never request it in chat.
+- [ ] Update intended Zeabur and Cloudflare consumers with the rotated Auth.js/Google values, preserve Zeabur service health, then enable Google only on the isolated staging Worker.
+- [ ] Pass fresh teacher Google SSO, role check, real-data reads, and a disposable app-level write/read/delete on the staging Worker. Keep custom domain, production DNS, and Zeabur routing unchanged.

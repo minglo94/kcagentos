@@ -607,3 +607,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Obtain user approval to remove expiry and protect the Neon candidate; Neon rejected protection because the current plan's protected-branch limit is reached, and read-back confirmed no change.
 - [x] User approved removing expiry only; update branch `expires_at` to unset and read back. Protected-branch limit blocked enabling protection; branch remains unprotected. Do not upgrade or change other branches without separate approval.
 - [x] Recheck staging `/login`, Google provider and PostgreSQL health after the branch change; verify TODO aggregate remains 24 with zero smoke-test rows.
+- [x] Inspect the staging admin identity read-only; preserve existing demo ADMIN record after the user declined changing its email mapping. No account data was modified.
+- [ ] Fresh administrator credential login is not qualified: existing demo ADMIN credential attempt was rejected, and the requested school-admin email is absent from the candidate. Revisit only if the user supplies an authorized existing account or asks to change the mapping.

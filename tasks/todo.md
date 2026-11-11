@@ -533,3 +533,4 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Verify the database URL resolves to the intended current release dataset and complete a fresh source-to-candidate sync/fingerprint check. Current acceptance evidence is for the restored rehearsal candidate, not proof of the latest live source state.
 - [ ] Rotate plaintext preview integration credentials at their issuers after identifying all consumers; update bindings without interrupting Zeabur, then verify preview values are no longer exposed.
 - [ ] Retest admin and teacher login plus safe read/write flows on `workers.dev`; keep DNS unchanged until all gates pass.
+- [ ] Establish authorized read-only access to the current Zeabur source (CLI/SSH or fresh verified backup) and compare the latest account state and data fingerprints with the Neon rehearsal candidate.

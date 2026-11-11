@@ -10,6 +10,8 @@ Read-only Cloudflare inspection confirms the Worker has secret bindings for Goog
 
 The supplied administrator identity is absent from the rehearsal candidate. Its existing placeholder ADMIN record has no local password or Google account link; the attempted login was rejected. No credential or database account was changed. A Cloudflare settings response also returned plaintext preview integrations, including a service-account private key, into diagnostic output. Treat those preview credentials as exposed; inventory consumers and rotate at issuers before production use, without disrupting Zeabur. Keep the school DNS unchanged.
 
+The Mac has no Zeabur CLI installed and no SSH host alias configured, so a live Zeabur identity/freshness comparison was not available in this pass. The Neon rehearsal candidate must not be treated as the final production database until a current source backup or read-only source connection is verified.
+
 ## Branch integration — updated 22 October 2026
 
 Portal PR5 is merged at 83239e457f7e77beda26e2d77b5d92d5c244f5ec. Every inventoried Portal remote branch is an ancestor of main. Exact-head GitHub CI passed both runs, including isolated PostgreSQL migration, restore, API and container checks; 63 local tests and production build passed. Two reviewed fixes preserve support-case identity and unsaved report edits.

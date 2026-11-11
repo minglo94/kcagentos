@@ -512,3 +512,5 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Build and dry-run a production Worker bundle with no public preview or hostname routes and verify the application on a synthetic loopback Cloudflare runtime.
 - [x] Verify source after-school activity and test scheduler retries and deduplication with synthetic fixtures.
 - [ ] Identify the existing external scheduler operator and coordinate the single scheduler activation with the final database sync.
+- [x] Rehearse post-write backup and rollback import with the Zeabur PostgreSQL and extension versions, verify all tables, and clean the fixture.
+- [ ] Confirm the school-domain routing rollback and schedule an exclusive writer handoff for the final synchronization.

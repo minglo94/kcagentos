@@ -602,3 +602,6 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Replace the expiring 2026-11-18 Neon branch with an approved durable production database and verify the latest source sync before any production use.
 - [ ] Qualify administrator login, remaining application routes/integrations, complete credential rotation evidence, and final rollback rehearsal.
 - [ ] Keep Zeabur active and school DNS/production Worker unchanged until every release gate passes and a separate cutover decision is made.
+- [x] Revalidate current Worker bindings by name only; confirm production names exist but values/database destination remain unverified, and staging runtime still completes fresh Google SSO plus DB health.
+- [x] Repeat synthetic TODO persistence test on staging: create, reload/read, invoke app delete, reload, and restricted-role query (24 total TODOs, zero test rows); deletion timing relative to the irreversible confirmation dialog remains uncertain.
+- [ ] Get user decision before extending/removing expiry or protecting the Neon release-candidate branch; doing so continues to retain the restored school dataset beyond 2026-11-18.

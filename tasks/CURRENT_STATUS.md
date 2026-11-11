@@ -1,5 +1,13 @@
 # Dazhi Cloudflare school-account acceptance — 2026-11-11
 
+## Latest staging deployment and rollback — 2026-11-11
+
+The user chose to add the exact staging Google redirect URI themselves; the URI is still unverified in Google Cloud Console. No OAuth credential was reset and no consumer credential was updated.
+
+Staging code checks: 12/12 policy/guard/static-routing tests passed. OpenNext production build completed after setting Next.js standalone output; the generated bundle has an upstream `-0` comparison warning. `cf deploy --dry-run` could not produce Cloudflare Build Output for this OpenNext project. A Wrangler dry-run passed, but the first upload omitted the prior asset binding behavior and authenticated requests failed. I rolled staging back to its previous version. The old gated `/login` and `/api/auth/providers` now return 200 with the private access file; providers remain `credentials` only. Database and Prisma health requests timed out, so database availability is not currently re-verified. The secret names remain present; no values were read.
+
+The local migration worktree has uncommitted staging changes, including `next.config.mjs`, `pnpm-workspace.yaml`, and `cloudflare.config.ts`; preserve its unrelated edits. Do not deploy that bundle again until its `ASSETS` binding and `runWorkerFirst` behavior match the verified version and authenticated health endpoints pass locally and in a dry run. Zeabur remains running; production Worker, school DNS, and domain routes were not changed. Next: verify the user's saved Google callback, recover a passing DB health check, then complete secret rotation and staging SSO/read-write acceptance before any cutover.
+
 ## Current staging Worker and SSO gap — 2026-11-11
 
 The user's current premise is partly corrected by live checks: the separate `dazhi-migration-spike.kcadmin.workers.dev` staging Worker already has encrypted `AUTH_SECRET`, `STAGING_BASIC_AUTH`, and `STAGING_DATABASE_URL` bindings and reaches the isolated latest Neon candidate. Authenticated health checks returned PostgreSQL 18, 78 tables, and 830 users; `/login` returns 200 behind Basic Auth and 401 without it. These checks establish connectivity and page availability, not user-session or application write acceptance.

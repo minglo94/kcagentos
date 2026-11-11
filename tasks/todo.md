@@ -566,7 +566,17 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Confirm staging providers currently include credentials only; no staging Google OAuth secret bindings are present.
 - [x] Add staging-only Google binding declarations and deny unconfigured Auth.js sign-in providers; allow only configured Google POST sign-in and GET callback. Tests pass 12/12; local `cf build` passes with one generated-bundle warning. Not deployed.
 - [x] Obtain user approval to rotate compromised credentials while preserving Zeabur and DNS.
-- [ ] Obtain action-time approval to add exactly `https://dazhi-migration-spike.kcadmin.workers.dev/api/auth/callback/google` to the existing Google OAuth client; preserve all existing redirect URIs.
+- [x] Record the user's choice to add the exact staging callback themselves; actual saved URI still requires verification.
 - [ ] User resets the Google OAuth client secret in Google Cloud Console and stores it only in the private mode-0600 handoff file; never request it in chat.
 - [ ] Update intended Zeabur and Cloudflare consumers with the rotated Auth.js/Google values, preserve Zeabur service health, then enable Google only on the isolated staging Worker.
 - [ ] Pass fresh teacher Google SSO, role check, real-data reads, and a disposable app-level write/read/delete on the staging Worker. Keep custom domain, production DNS, and Zeabur routing unchanged.
+
+## Latest staging deployment and rollback — 2026-11-11
+- [x] Re-run the 12 staging policy/guard/static-routing tests; all pass.
+- [x] Build the Next.js/OpenNext staging bundle; record upstream build warnings and the Cloudflare CLI Build Output limitation.
+- [x] Roll back the staging Worker after the first Wrangler upload failed authenticated requests; confirm `/login` and provider discovery recover on the prior version.
+- [ ] Restore passing authenticated DB and Prisma health checks; both timed out after rollback in the latest probe.
+- [ ] Verify the user-saved Google redirect URI in the authorized redirect list.
+- [ ] Correctly preserve the existing `ASSETS` binding and `runWorkerFirst` behavior in the deployment path, then dry-run and deploy only staging.
+- [ ] Complete user-managed Google secret reset, update approved consumers, and verify teacher SSO plus app-level data read/write/delete.
+- [ ] Keep Zeabur, production Worker, custom domain, and DNS unchanged until all acceptance and rollback gates pass.

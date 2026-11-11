@@ -1,13 +1,13 @@
 # 最新交接 — Dazhi Cloudflare staging — 2026-11-11
 
-- 工作目標：先完成 `dazhi-migration-spike` 的 staging 驗收；保留 Zeabur 回退能力，未核准完整驗收前不可改正式 DNS 或停 Zeabur。
-- 已完成：Cloudflare staging Basic Auth 輪替（新值在 Downloads 私有 `dazhi-stage-access-20261111-rotated.txt`，0600）；目前 Worker 版本 `b099dcc6-f2a8-4c0f-92c0-4f21f16c04e6`；登入頁及 providers endpoint 200；DB health 顯示 PostgreSQL 18、78 張 public tables；所有 31 個 migration tests 通過；Wrangler dry-run 通過。
-- 已知限制：providers 只有 credentials，Google SSO 未設；應用層真實資料讀寫未測。`current_database()` 在 Neon/Prisma runtime 回 P2010，健康端點已改用連線、版本與表數查詢。Google callback 是否已儲存尚未核實；新 OAuth secret 尚未存入私有 handoff 檔。
-- 本地 migration worktree：`Documents/Codex/2026-11-07/referenced-chatgpt-conversation-this-is-an-2/work/dazhi-cloudflare-spike`，分支 `codex/dazhi-cloudflare-neon-staging`，有多個未提交/未追蹤檔案及既有變更。先完整檢查 diff，不要覆蓋或提交未審閱內容。
-- 下一步：確認 callback URI 已加到 Authorized redirect URIs；用戶重設 OAuth secret 並放入 Downloads 的 `dazhi-google-oauth-secret-20261111.txt`（不要貼聊天）；只更新 staging secret，再驗證 Teacher SSO、隔離資料讀寫及臨時記錄刪除。接續 admin、整合服務、最新同步及回退驗收。
-- 生產狀態：Zeabur 維持運行；school DNS、`dazhi-production` Worker 及 production secret 未改。不得切換 DNS 或停服務。
-- 測試：`node --test migration-tests/*.test.mjs` 31/31 通過；`wrangler deploy --dry-run --config wrangler.jsonc --keep-vars` 通過。OpenNext 產物仍有上游 `=== -0` 警告。
-- Git：根 `/Users/cmlo/Documents/KeiChi` 原先乾淨；本次只同步文件。migration worktree 變更尚未提交。
+- 目標：完成 `dazhi-migration-spike` staging 驗收；保留 Zeabur 回退能力。學校 DNS、正式 Worker、自訂網域及 Zeabur 不可在所有發布門檻完成前切換或停用。
+- 已完成：用私有檔 `/Users/cmlo/Downloads/Zeabur-Migration-Backups/dazhi-stage-access-20261111-rotated.txt` 的 Browser username/password 登入 staging；使用者已儲存 staging Google callback，staging OAuth secrets 已設定，fresh Google SSO 成功並載入 Teacher dashboard。不要把任何密碼貼在聊天。
+- 資料驗收：Worker 的 `STAGING_DATABASE_URL` 指向隔離 Neon PostgreSQL 18 `dazhi_current_release_latest`、branch `dazhi-current-release-20261111`，受限 app role。DB health：78 tables；Prisma User aggregate：830。Teacher TODO 合成測試經 app 建立、reload 讀回、刪除、再次 reload 確認清除；最後 todos 數回到 24，無剩餘 smoke row。
+- 測試：`node --test migration-tests/*.test.mjs` 31/31；Wrangler dry-run 通過。生成 bundle 留有 upstream `=== -0` warning。
+- 來源碼：Dazhi worktree `/Users/cmlo/Documents/Codex/2026-11-07/referenced-chatgpt-conversation-this-is-an-2/work/dazhi-cloudflare-spike`，branch `codex/dazhi-cloudflare-neon-staging`，commit `641c2fb`。其 `origin` 是本機 checkout path，不是 GitHub；尚未推送。
+- 未完成/風險：Neon branch 將於 2026-11-18 到期，不可當永久正式 DB。仍需 durable DB、latest source sync、ADMIN 登入、其餘路由/整合服務、已曝露憑證輪替完成證據、正式資料回退演練。這些未合格前不能切 DNS。
+- 生產保護：Zeabur 繼續運行；production Worker、teacher.keichi.edu.hk DNS/custom-hostname routing 未變更。此前報告的真實學校資料只在隔離 Neon candidate，不能把 staging 通過說成正式遷移完成。
+- 根 repo 本次只更新接續文件並推送 GitHub；migration code commit 仍留在上述本地 branch。
 
 ## Active Portal teacher-entry handover — 13 October 2026
 

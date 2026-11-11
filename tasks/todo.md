@@ -592,3 +592,13 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Correctly preserve the existing `ASSETS` binding and `runWorkerFirst` behavior in the deployment path, then dry-run and deploy only staging.
 - [ ] Complete user-managed Google secret reset, update approved consumers, and verify teacher SSO plus app-level data read/write/delete.
 - [ ] Keep Zeabur, production Worker, custom domain, and DNS unchanged until all acceptance and rollback gates pass.
+
+## Dazhi staging login and data round-trip — 2026-11-11
+- [x] Verify the user-saved staging Google redirect URI and install OAuth credentials only on the isolated staging Worker.
+- [x] Confirm Google appears in staging Auth.js providers and complete a fresh Google sign-in to the teacher dashboard.
+- [x] Confirm staging database health against the restricted-role Neon candidate: PostgreSQL 18, 78 tables, and 830 users.
+- [x] Through the teacher app, create a synthetic temporary TODO, reload and read it, delete it, reload again, and verify cleanup (TODO aggregate returned to 24; zero remaining smoke rows).
+- [x] Re-run migration tests (31/31) and Wrangler dry-run; record upstream generated bundle warning.
+- [ ] Replace the expiring 2026-11-18 Neon branch with an approved durable production database and verify the latest source sync before any production use.
+- [ ] Qualify administrator login, remaining application routes/integrations, complete credential rotation evidence, and final rollback rehearsal.
+- [ ] Keep Zeabur active and school DNS/production Worker unchanged until every release gate passes and a separate cutover decision is made.

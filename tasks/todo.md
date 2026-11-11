@@ -539,3 +539,14 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [x] Synchronize only the user-requested ADMIN address mapping and existing credential verifier to the Neon rehearsal candidate; leave the live Zeabur account unchanged.
 - [ ] Establish and document the repeatable secure admin sign-in flow for `workers.dev`; current browser session is authenticated in the admin area, but the successful credential path was not observed.
 - [ ] Rotate the credentials exposed by both Cloudflare preview settings and the Zeabur variable listing, after mapping all live consumers and preparing replacement bindings that do not interrupt Zeabur.
+
+## Dazhi active Worker current-state recheck — 2026-11-11
+- [x] Verify encrypted Auth.js, Google OAuth and database secret binding names on the active school Worker version; secret values and exact database target remain unverified.
+- [x] Re-run Google SSO from a fresh `workers.dev` session; callback returns `OAuthAccountNotLinked`, so current SSO acceptance fails.
+- [x] Compare bounded live-source and Neon-rehearsal core table counts; they differ, so the rehearsal database is not yet proven current.
+- [x] Confirm the Google-linked identity maps to a Teacher account and the target ADMIN identity has no Google link; do not auto-link or elevate access.
+- [ ] Obtain/review an approved, staged rotation plan for credentials exposed in Cloudflare version output and the open Zeabur variable page; no values are recorded in Git.
+- [ ] Restore a fresh current source backup to an isolated Neon release candidate and compare full schema/table fingerprints without overwriting existing branches.
+- [ ] Resolve the intended Google identity/account mapping through a secure, approved path; preserve Auth.js's account-link protection.
+- [ ] Verify the active Worker is connected to the approved release database, then pass fresh Google/admin sign-in and disposable data read/write/delete checks on `workers.dev`.
+- [ ] Keep Zeabur active and school DNS unchanged until all data, credential, login, feature, and rollback gates pass.

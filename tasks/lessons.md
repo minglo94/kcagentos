@@ -76,3 +76,7 @@ User permits read-only online Teacher Portal PostgreSQL vector queries while pro
 ## 2026-11-11 — Verify the current administrator identity
 
 An earlier demo ADMIN record is not evidence that the later supplied school administrator identity exists or is provisioned. Check the exact target database with a minimal read-only identity/role/credential-presence query before attempting login; never put passwords or hashes in source, logs, or handover notes.
+
+## 2026-11-11 — Sanitize deployment and variable output
+
+Cloudflare version listings can include plaintext values for `plain_text` and JSON bindings, even when secret bindings are separately listed as `secret_text`. Zeabur's variable UI and CLI can also return complete values. Never print raw version/variable output; capture it locally and allowlist only binding names, types, and non-sensitive metadata. Treat any values already displayed as compromised and rotate at their issuing services before relying on them.

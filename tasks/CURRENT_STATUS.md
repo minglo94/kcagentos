@@ -1,5 +1,15 @@
 # Dazhi Cloudflare school-account acceptance — 2026-11-11
 
+## Latest current-state recheck — 2026-11-11
+
+The active school-account deployment has the required Auth.js, Google OAuth, and `DATABASE_URL` bindings as encrypted secret bindings; the latest active traffic is on version 12. This corrects the assumption that these bindings were wholly absent. Their values and exact database target remain unverified. A fresh Google sign-in on `workers.dev` returned `OAuthAccountNotLinked`; current SSO acceptance therefore fails, and no authenticated data read/write was performed in this fresh session.
+
+Read-only comparison found the live Zeabur source and Neon rehearsal candidate no longer have matching counts across the checked core tables. This was only a bounded count check, not a full table fingerprint or a current backup restore. Do not treat the rehearsal branch as the final release dataset yet. The existing SSO identity is linked to a Teacher account while the separate target ADMIN identity has no Google link; do not auto-link or grant ADMIN access without a deliberate secure account-mapping step.
+
+Security incident: an unfiltered Cloudflare Worker version listing and the already-open Zeabur variable page exposed plaintext integration credentials, including database and third-party service credentials. Treat every displayed value as compromised and rotate at its issuing service, then update consumers in a staged plan. No rotation, secret update, database sync, Worker deploy, Zeabur restart, or DNS change was performed.
+
+The account remains accessible with the authorized `cf` CLI school profile. Continue by preparing the credential-issuer rotation plan and safe replacements; then refresh the isolated Neon target from a verified current source backup, compare full table fingerprints, resolve SSO identity mapping without weakening Auth.js linking protections, and rerun login plus a disposable data write/read/delete on `workers.dev`. Keep Zeabur and school DNS unchanged until these gates pass.
+
 The school Cloudflare account is accessible through the authorized `cf` CLI profile. Worker `dazhi-production` is reachable on its `workers.dev` hostname. The teacher Google SSO session and teacher dashboard, activities, announcements, todos, classroom, and November calendar pages loaded against the isolated Neon rehearsal candidate. November returned 53 events. One temporary calendar activity was created and deleted through the app; its title is absent from the candidate and the count returned to 53. The candidate role now has CRUD on its 78 public tables; these grants apply only to the rehearsal database.
 
 The school DNS record `teacher.keichi.edu.hk` remains a proxied A record; no DNS or Zeabur changes were made. Admin acceptance is blocked because `admin@demo.hk` has neither a password nor a linked Google identity. Remaining gates: rotate exposed integration credentials at their issuers, establish an approved admin test identity, qualify remaining routes and outbound integrations, and complete final sync/rollback acceptance. This is staging acceptance, not migration completion or authorization to cut over.

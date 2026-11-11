@@ -1,3 +1,11 @@
+# Dazhi production cutover preflight — 2026-11-11
+
+使用者已明確要求切換正式 Worker／學校網域；目前仍未改正式 Worker、DNS 或 Zeabur，因必要驗收未通過。以校方 Cloudflare CLI profile 唯讀核實：校方 `keichi.edu.hk` zone 為 `active`，`teacher.keichi.edu.hk` 是代理 A 記錄；私密切換前 DNS 快照與現值一致。校方正式 zone 沒有 Worker route；同名 `initializing` zone 屬個人帳戶，不能用作正式路由。
+
+即時 HTTP 檢查：`dazhi-production.kcadmin.workers.dev/login` 與 `/api/auth/providers` 為 200，`/__migration/db-health` 為 404，故正式 Worker 的資料庫目標／連通性尚未證實。`teacher.keichi.edu.hk/login` 和 `/api/auth/providers` 現為 404，回應帶有 Zeabur request header；目前學校網址未服務出可驗收登入頁。staging 曾通過獨立 Neon 健康檢查及教師流程，但該證據不能替代正式 Worker 的新鮮 Google SSO、正式資料庫目標、資料讀寫與功能驗收。新的 OAuth JSON 私密檔目前不存在；不重用先前下載或外洩關聯未釐清的憑證。管理員登入仍依使用者決定暫不驗證。
+
+因此此刻切換會把已知的學校網域 404 換成正式 Worker 的未知 DB 狀態與未驗證 SSO；維持 Zeabur 和 DNS 原狀。接續先解決正式 OAuth 機密／憑證輪替授權範圍、核實正式 Worker 的資料庫與最新備份，並通過教師 SSO、資料讀寫及必要業務流程；再設置可回退的正式路由並驗證後，才切流。不要設定 Worker IP；Workers 網域接駁使用受支援的 route/custom-domain 機制。
+
 # Dazhi Cloudflare school-account acceptance — 2026-11-11
 
 ## Latest security incident and staging credential update — 2026-11-11

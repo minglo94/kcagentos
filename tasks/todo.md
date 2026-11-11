@@ -1,5 +1,12 @@
 # 任務清單
 
+## Dazhi 正式切換前置查核 — 2026-11-11
+- [x] 以校方 `cf` CLI 確認正式 zone 為 active、`teacher` 為代理 A 記錄，並確認私密回退快照與現況一致；沒有修改 DNS／Worker／Zeabur。
+- [x] 即時檢查正式 Worker `workers.dev` 登入與 provider API（200）、資料庫健康端點（404），以及學校網域登入/provider（404）。
+- [x] 確認校方 zone 尚無 Worker route；排除個人帳戶中同名 initializing zone 作為正式設定目標。
+- [ ] 不切流，直至正式 DB 目標與最新備份核實、教師 Google SSO 及資料讀寫通過，並完成可回退路由驗證。
+- [ ] 取得可安全使用的新 OAuth 憑證並釐清只改 staging 的既有限制；不要在聊天或 Git 放置密鑰。
+
 ## Dazhi Cloudflare staging acceptance — 2026-11-11
 - [x] Deploy the staging-only auth/DB scope and guarded assets; protect the workers.dev preview with Basic Auth.
 - [x] Rotate staging Basic Auth and save the new credential outside Git with mode 0600.

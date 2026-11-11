@@ -1,3 +1,13 @@
+# Dazhi formal Worker / school-domain cutover preflight — 2026-11-11
+
+- User explicitly requested the formal Worker/domain cutover. I performed read-only checks only; no production Worker, school DNS, or Zeabur settings were changed.
+- School-account `cf` profile is authenticated. The active `keichi.edu.hk` zone has one proxied A record for `teacher.keichi.edu.hk`; a private mode-0600 pre-cutover snapshot matches the live record. The active school zone has no Worker route. The same-name `initializing` zone belongs to the personal account and is not the public zone.
+- Live checks: production `workers.dev` `/login` and `/api/auth/providers` return 200, while `/__migration/db-health` returns 404; this does not prove the production database target or connectivity. The school hostname `/login` and `/api/auth/providers` return 404 with a Zeabur request header. Thus neither current domain availability nor production application readiness passes acceptance.
+- The private replacement OAuth JSON file is absent. Do not reuse the earlier OAuth download whose relationship to exposed credentials is unresolved. The user previously restricted credential changes to staging and declined Zeabur updates; clarify that boundary before any production credential rotation. The user deferred fresh admin-login verification; do not attempt it.
+- Staging Neon checks are not production evidence. Before route cutover, verify production DB target and current backup, obtain a safe OAuth credential path, pass fresh teacher SSO and read/write/business checks, and rehearse route rollback. Do not point DNS at a supposed Worker IP; use Cloudflare Worker routing/custom-domain support. Keep Zeabur running.
+- No automated test suite was run in this preflight; only read-only Cloudflare queries and public HTTP status checks were used.
+- Documentation and todo are saved together in this root-repository commit; Dazhi source worktree remains clean at `641c2fb`.
+
 # 最新交接 — Dazhi Cloudflare staging — 2026-11-11
 
 - 目標：完成 `dazhi-migration-spike` staging 驗收；保留 Zeabur 回退能力。學校 DNS、正式 Worker、自訂網域及 Zeabur 不可在所有發布門檻完成前切換或停用。

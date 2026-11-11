@@ -1,3 +1,7 @@
+# Dazhi production DB target recheck — 2026-11-11
+
+依使用者「確認正式 Worker 資料庫目標後改 DNS」要求，再唯讀查核：校方帳戶目前部署的正式 Worker 版本把 `DATABASE_URL` 列為受保護 binding，Cloudflare 版本 API 不提供值；Worker 的 preview base config 沒有 `DATABASE_URL`，不能用來推斷目前正式版本的資料庫目標。Neon 候選 branch 的查詢日誌沒有可用記錄，`pg_stat_statements` 未啟用，無法將正式 Worker 的讀取請求與該分支對上。現有 Google 教師登入／首頁讀取證明 Worker 可用，但不足以辨認它連到 Zeabur 或 Neon。Neon 候選庫仍少於最新 Zeabur 備份兩筆 `Account`；Zeabur Google 回退登入仍未通過，而使用者明確不允許改其機密。學校 DNS 和 Worker route 未變；正式資料庫目標、資料同步及回退門檻尚未通過。
+
 # Dazhi rollback gate — 2026-11-11
 
 再次唯讀查核時，Zeabur 備用網址及 `teacher.keichi.edu.hk/login` 均回 200；此前學校網址的 404 不是穩定現況。實際從 Zeabur 備用網址執行 Google 登入時，回調使用學校網域並落在 `/api/auth/error?error=Configuration`，因此 Google 登入回退未通過。使用者在知悉結果後明確維持「不更新 Zeabur」的決定；不可更新其 OAuth secret。正式 Worker 的 Google 教師登入已通過，但 Neon 候選庫仍比最新 Zeabur 備份少兩筆 `Account`，且正式 Worker 的 DB 目標未證實。學校 DNS／Worker route 保持原狀；這些門檻未通過前不可聲稱完成切換。

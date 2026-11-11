@@ -1,3 +1,10 @@
+# Dazhi production database target audit — 2026-11-11
+
+- User requested DNS cutover after the production Worker database target is confirmed. Read-only Cloudflare inspection shows `DATABASE_URL` as a protected binding on the deployed version; its value is unavailable through the version API. The Worker's preview base config does not include `DATABASE_URL`, so it cannot establish the deployed target. No connection string was printed or copied.
+- The Neon release-candidate branch returned no usable query logs, and `pg_stat_statements` is not enabled. Existing teacher Google sign-in/dashboard reads demonstrate functioning Worker database access but cannot identify which database it used. The latest Zeabur snapshot remains two `Account` rows ahead of the Neon candidate.
+- The user continues to prohibit Zeabur secret updates, and the previously tested Zeabur Google rollback flow ends in `Configuration`. No production DNS or school Worker route was changed. Before cutover, obtain runtime DB-target proof with a controlled reversible probe, synchronize the chosen target, and establish a working rollback login.
+- This audit updates current status, todo and handover together; Dazhi code and Zeabur settings are unchanged.
+
 # Dazhi rollback-login blocker — 2026-11-11
 
 - Subsequent read-only HTTP checks returned 200 for both Zeabur fallback login pages and the school hostname login page; the earlier 404 is not the stable current state.

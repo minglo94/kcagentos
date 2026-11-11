@@ -1,5 +1,10 @@
 # 任務清單
 
+## Dazhi 正式 Worker DB 目標查核 — 2026-11-11
+- [x] 唯讀檢查正式版本的受保護 DB binding 與 preview 設定；兩者均不能顯示目前連線目標，沒有讀出或記錄連線字串。
+- [x] 檢查 Neon 候選 branch 的查詢觀測能力；沒有可用日誌，亦未啟用 `pg_stat_statements`，暫不能用唯讀請求關聯正式 Worker。
+- [ ] 以受控、可回復的執行期方法證實正式 Worker 的資料庫目標，完成最新資料同步與回退登入驗收後才接學校網域。
+
 ## Dazhi 回退登入門檻 — 2026-11-11
 - [x] 再檢查 Zeabur 備用網址及學校網域登入頁，均回 200；實際 Zeabur Google 登入回調落在 `Configuration` 錯誤。
 - [x] 記錄使用者維持不更新 Zeabur 機密值的決定；未作任何 Zeabur 設定變更。

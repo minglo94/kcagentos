@@ -1,5 +1,13 @@
 # 任務清單
 
+## Dazhi 正式 Worker 接入 Neon — 2026-11-11（最新）
+- [x] 把新鮮 Zeabur PostgreSQL 快照以單一交易還原至獨立 Neon 資料庫；78 表、18,215 行逐表指紋與備份一致。
+- [x] 驗證受限應用角色連線，建立並部署正式 Worker 的 Neon `DATABASE_URL` 版本至 `workers.dev` 100% 流量。
+- [x] 在正式 Worker 完成學校 Google 教師登入，核對教師首頁公告與行程可讀；學校 DNS、route 和 Zeabur 未改。
+- [ ] 在切學校網域前重核 Zeabur 即時資料差異並同步；完成正式 Worker 應用層寫入／讀回和必要功能驗收。
+- [ ] 驗證 Zeabur 回退登入及路由回退演練；目前 Google 回調出現 `Configuration`，使用者不允許更新 Zeabur 機密，故不可切 DNS。
+- [ ] 依使用者之前決定，管理員 fresh login 暫不驗證；正式切換門檻須另行處理。
+
 ## Dazhi 正式 Worker DB 目標查核 — 2026-11-11
 - [x] 唯讀檢查正式版本的受保護 DB binding 與 preview 設定；兩者均不能顯示目前連線目標，沒有讀出或記錄連線字串。
 - [x] 檢查 Neon 候選 branch 的查詢觀測能力；沒有可用日誌，亦未啟用 `pg_stat_statements`，暫不能用唯讀請求關聯正式 Worker。

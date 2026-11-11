@@ -1,3 +1,11 @@
+# Dazhi formal Worker connected to Neon — 2026-11-11 (latest)
+
+按使用者要求，已把校方帳戶的 `dazhi-production` Worker 接到獨立 Neon 資料庫 `dazhi_release_20261111_fresh`（project `patient-unit-24808093`，branch `dazhi-current-release-20261111`），使用已驗證的受限應用角色及 pooled connection。該庫由 Zeabur 新鮮 custom-format 備份以單一交易還原；還原後重新匯出並逐表比較 COPY 列的 SHA-256 多重集合：78 表、18,215 行，與來源快照一致，無差異。私密來源及驗證備份存於 `Downloads/Zeabur-Migration-Backups`，均為 0600，未入 Git。這是備份當刻的比對，Zeabur 仍可繼續產生新資料，尚非持續同步。
+
+正式 Worker 新版本 `18b946d9-a7a2-47d7-bb8f-4bec3f3851ac` 只更新受保護的 `DATABASE_URL` binding，已在校方帳戶部署至 `workers.dev` 100% 流量（deployment `f1b1f373-15bb-48ec-8b4b-9e16c20d5107`）；版本的程式入口、資產、相容設定和 binding 名稱／類型與原版本核對一致。受限角色的 Neon 連線讀出 User 830、Account 235。部署後 `/login` 與 provider API 回 200；以學校 Google 帳戶完成新的教師登入，`/teacher` 首頁正常顯示已還原公告與行程。沒有做正式 Worker 的資料新增／修改驗收；管理員登入依使用者決定暫不驗證。
+
+學校 `teacher.keichi.edu.hk` DNS 和 Worker route 完全未改，仍指向 Zeabur；Zeabur 服務及機密值未改。此前實測 Zeabur 備用 Google 回調仍有 `Configuration` 錯誤，使用者明確拒絕更新 Zeabur 機密，因此目前不能聲稱登入回退可用。正式切換前仍須取得最近來源資料同步證據、應用層寫入／讀回及必要功能驗收、可用的 Zeabur 回退登入與路由回退演練。正式 Worker `/__migration/db-health` 不存在（404）；Neon 目標由本次受控 secret 更新及應用實際讀取證實，不以該端點為證據。
+
 # Dazhi production DB target recheck — 2026-11-11
 
 依使用者「確認正式 Worker 資料庫目標後改 DNS」要求，再唯讀查核：校方帳戶目前部署的正式 Worker 版本把 `DATABASE_URL` 列為受保護 binding，Cloudflare 版本 API 不提供值；Worker 的 preview base config 沒有 `DATABASE_URL`，不能用來推斷目前正式版本的資料庫目標。Neon 候選 branch 的查詢日誌沒有可用記錄，`pg_stat_statements` 未啟用，無法將正式 Worker 的讀取請求與該分支對上。現有 Google 教師登入／首頁讀取證明 Worker 可用，但不足以辨認它連到 Zeabur 或 Neon。Neon 候選庫仍少於最新 Zeabur 備份兩筆 `Account`；Zeabur Google 回退登入仍未通過，而使用者明確不允許改其機密。學校 DNS 和 Worker route 未變；正式資料庫目標、資料同步及回退門檻尚未通過。

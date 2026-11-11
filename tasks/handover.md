@@ -1,3 +1,11 @@
+# Dazhi Neon production Worker handover — 2026-11-11 (latest)
+
+- Completed: created independent Neon database `dazhi_release_20261111_fresh` on release branch `dazhi-current-release-20261111`; restored fresh Zeabur custom dump transactionally; exported the restored database and verified 78 public COPY tables / 18,215 rows against source with no per-table row-hash differences. The source and verification archives remain private, mode 0600, outside Git. This is a point-in-time snapshot, not live replication.
+- The restricted app role can connect through the pooled endpoint and read 830 User / 235 Account rows. Cloudflare school-account `dazhi-production` version `18b946d9-a7a2-47d7-bb8f-4bec3f3851ac` has the new protected `DATABASE_URL` and is deployed at 100% to `workers.dev` (deployment `f1b1f373-15bb-48ec-8b4b-9e16c20d5107`). No source-code or asset update was intended in that version; compatibility settings and binding metadata were compared to its predecessor.
+- Acceptance: `/login` and `/api/auth/providers` returned 200. A new school Google Teacher sign-in reached `/teacher`, showing restored announcements and schedule. Production app-level write/read was not tested. Admin fresh login remains deferred by user choice.
+- School `teacher.keichi.edu.hk` DNS and school Worker route were unchanged; Zeabur stayed online and its settings were untouched. Its Google rollback callback was previously tested and failed with `Configuration`; the user explicitly forbade a Zeabur secret update. Do not call rollback qualified or cut over the school hostname while this gate remains. Also recheck live-source deltas, qualify app writes and business features, and rehearse route rollback.
+- Dazhi source worktree unchanged. Root repo documents only; no credentials or private records belong in Git.
+
 # Dazhi production database target audit — 2026-11-11
 
 - User requested DNS cutover after the production Worker database target is confirmed. Read-only Cloudflare inspection shows `DATABASE_URL` as a protected binding on the deployed version; its value is unavailable through the version API. The Worker's preview base config does not include `DATABASE_URL`, so it cannot establish the deployed target. No connection string was printed or copied.

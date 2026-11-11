@@ -4,6 +4,12 @@ The school Cloudflare account is accessible through the authorized `cf` CLI prof
 
 The school DNS record `teacher.keichi.edu.hk` remains a proxied A record; no DNS or Zeabur changes were made. Admin acceptance is blocked because `admin@demo.hk` has neither a password nor a linked Google identity. Remaining gates: rotate exposed integration credentials at their issuers, establish an approved admin test identity, qualify remaining routes and outbound integrations, and complete final sync/rollback acceptance. This is staging acceptance, not migration completion or authorization to cut over.
 
+## Dazhi deployed Worker login/data follow-up — 2026-11-11
+
+Read-only Cloudflare inspection confirms the Worker has secret bindings for Google auth, Auth.js, the database URL, and release configuration. The `workers.dev` login/providers/session endpoints returned 200; Google OAuth completed its callback and rendered the teacher dashboard. The dashboard read real restored rehearsal data; the earlier app-level temporary event create/delete was verified clean. This confirms the deployment is not missing all auth/database bindings, but does not qualify the latest production database sync or administrator login.
+
+The supplied administrator identity is absent from the rehearsal candidate. Its existing placeholder ADMIN record has no local password or Google account link; the attempted login was rejected. No credential or database account was changed. A Cloudflare settings response also returned plaintext preview integrations, including a service-account private key, into diagnostic output. Treat those preview credentials as exposed; inventory consumers and rotate at issuers before production use, without disrupting Zeabur. Keep the school DNS unchanged.
+
 ## Branch integration — updated 22 October 2026
 
 Portal PR5 is merged at 83239e457f7e77beda26e2d77b5d92d5c244f5ec. Every inventoried Portal remote branch is an ancestor of main. Exact-head GitHub CI passed both runs, including isolated PostgreSQL migration, restore, API and container checks; 63 local tests and production build passed. Two reviewed fixes preserve support-case identity and unsaved report edits.

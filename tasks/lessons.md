@@ -72,3 +72,7 @@ User permits read-only online Teacher Portal PostgreSQL vector queries while pro
 - Adding a policy hash to existing jobs needs an explicit upgrade path that invalidates old approvals; never silently treat null as the current policy. Existing external operations must be reconciled before changing operation keys.
 - Persist accepted external receipts independently of later audit/authorization finalization, so revocation cannot roll back knowledge of an accepted effect.
 - Linux security guarantees must be tested using actual Linux Node/Prisma and a private Linux filesystem audit root. Plain WSL invocations can inherit Windows npm; assert process.platform and retain verification logs outside temporary snapshots.
+
+## 2026-11-11 — Verify the current administrator identity
+
+An earlier demo ADMIN record is not evidence that the later supplied school administrator identity exists or is provisioned. Check the exact target database with a minimal read-only identity/role/credential-presence query before attempting login; never put passwords or hashes in source, logs, or handover notes.

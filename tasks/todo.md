@@ -525,3 +525,11 @@ Review: the new process tests execute the real worker core with synthetic blocke
 - [ ] Provision an approved admin test identity; `admin@demo.hk` has no password or linked Google identity, so administrator login remains unqualified.
 - [ ] Rotate exposed integration credentials at their issuing services and configure encrypted release bindings before any production hostname use.
 - [ ] Complete remaining route, permissions, outbound integration, final-sync, and rollback acceptance. Keep Zeabur active and do not change DNS until all release gates pass.
+
+## Dazhi Worker credentials and database target — 2026-11-11
+- [x] Inspect secret binding names only; confirm Google/Auth.js/database binding names exist on the school Worker without retrieving their secret values.
+- [x] Verify `workers.dev` login/providers/session endpoints, Google SSO callback, teacher dashboard, and restored-data reads; sign out after the browser check.
+- [ ] Reconcile the supplied admin identity against the rehearsal candidate. The identity is absent and the existing placeholder ADMIN row has no password or Google link; do not claim admin login passed or change credentials without a secure provisioning path.
+- [ ] Verify the database URL resolves to the intended current release dataset and complete a fresh source-to-candidate sync/fingerprint check. Current acceptance evidence is for the restored rehearsal candidate, not proof of the latest live source state.
+- [ ] Rotate plaintext preview integration credentials at their issuers after identifying all consumers; update bindings without interrupting Zeabur, then verify preview values are no longer exposed.
+- [ ] Retest admin and teacher login plus safe read/write flows on `workers.dev`; keep DNS unchanged until all gates pass.

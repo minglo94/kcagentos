@@ -529,8 +529,13 @@ Review: the new process tests execute the real worker core with synthetic blocke
 ## Dazhi Worker credentials and database target — 2026-11-11
 - [x] Inspect secret binding names only; confirm Google/Auth.js/database binding names exist on the school Worker without retrieving their secret values.
 - [x] Verify `workers.dev` login/providers/session endpoints, Google SSO callback, teacher dashboard, and restored-data reads; sign out after the browser check.
-- [ ] Reconcile the supplied admin identity against the rehearsal candidate. The identity is absent and the existing placeholder ADMIN row has no password or Google link; do not claim admin login passed or change credentials without a secure provisioning path.
+- [x] Reconcile the supplied admin identity against the rehearsal candidate and confirm the current Worker browser session reaches `/teacher/admin/settings`; establish a secure repeatable sign-in path separately.
 - [ ] Verify the database URL resolves to the intended current release dataset and complete a fresh source-to-candidate sync/fingerprint check. Current acceptance evidence is for the restored rehearsal candidate, not proof of the latest live source state.
 - [ ] Rotate plaintext preview integration credentials at their issuers after identifying all consumers; update bindings without interrupting Zeabur, then verify preview values are no longer exposed.
-- [ ] Retest admin and teacher login plus safe read/write flows on `workers.dev`; keep DNS unchanged until all gates pass.
-- [ ] Establish authorized read-only access to the current Zeabur source (CLI/SSH or fresh verified backup) and compare the latest account state and data fingerprints with the Neon rehearsal candidate.
+- [x] Verify the current browser session reaches the Worker admin area; keep repeatable sign-in and final-dataset read/write verification open, and keep DNS unchanged until all gates pass.
+- [x] Establish read-only Zeabur CLI access for source inspection.
+- [ ] Compare the full latest live-source data fingerprints with the Neon rehearsal candidate before treating the candidate as the final database.
+- [x] Use the authorized Zeabur CLI to locate the current Dazhi/PostgreSQL source and compare the requested admin identity state without printing account or password data.
+- [x] Synchronize only the user-requested ADMIN address mapping and existing credential verifier to the Neon rehearsal candidate; leave the live Zeabur account unchanged.
+- [ ] Establish and document the repeatable secure admin sign-in flow for `workers.dev`; current browser session is authenticated in the admin area, but the successful credential path was not observed.
+- [ ] Rotate the credentials exposed by both Cloudflare preview settings and the Zeabur variable listing, after mapping all live consumers and preparing replacement bindings that do not interrupt Zeabur.

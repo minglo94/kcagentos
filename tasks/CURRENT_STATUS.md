@@ -10,7 +10,13 @@ Read-only Cloudflare inspection confirms the Worker has secret bindings for Goog
 
 The supplied administrator identity is absent from the rehearsal candidate. Its existing placeholder ADMIN record has no local password or Google account link; the attempted login was rejected. No credential or database account was changed. A Cloudflare settings response also returned plaintext preview integrations, including a service-account private key, into diagnostic output. Treat those preview credentials as exposed; inventory consumers and rotate at issuers before production use, without disrupting Zeabur. Keep the school DNS unchanged.
 
-The Mac has no Zeabur CLI installed and no SSH host alias configured, so a live Zeabur identity/freshness comparison was not available in this pass. The Neon rehearsal candidate must not be treated as the final production database until a current source backup or read-only source connection is verified.
+An initial local check found no globally installed Zeabur CLI or SSH host alias. The official `npx` CLI was subsequently authenticated and used for a minimal read-only identity check, but no full live-source freshness/fingerprint comparison was completed. The Neon rehearsal candidate must not be treated as the final production database until that comparison is verified.
+
+## Dazhi Zeabur source/admin follow-up — 2026-11-11
+
+The official Zeabur CLI was already authenticated and lists the source `dazhi` and PostgreSQL services in `untitled-1-flowse`. A read-only query found the requested school-admin identity absent from the live source; the existing placeholder ADMIN record has a password verifier but no Google link. On the user's explicit address-mapping instruction, that single ADMIN record and its existing verifier were synchronized to the isolated Neon candidate only; the Zeabur source account was not changed. The first `workers.dev` credential attempt was rejected. The latest browser state is authenticated at `/teacher/admin/settings` with a visible sign-out control, confirming entry to the Worker admin area; it does not prove which credential flow completed sign-in or qualify the live production database.
+
+Security incident update: the Zeabur CLI variable-list response included plaintext live database and integration values in diagnostic output. Treat affected values as exposed. Do not repeat or copy them. Rotation and binding replacement need a coordinated, no-outage plan that preserves Zeabur; no rotation, restart, or DNS change was performed.
 
 ## Branch integration — updated 22 October 2026
 

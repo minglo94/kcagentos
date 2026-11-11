@@ -1,5 +1,10 @@
 # 任務清單
 
+## Dazhi 回退登入門檻 — 2026-11-11
+- [x] 再檢查 Zeabur 備用網址及學校網域登入頁，均回 200；實際 Zeabur Google 登入回調落在 `Configuration` 錯誤。
+- [x] 記錄使用者維持不更新 Zeabur 機密值的決定；未作任何 Zeabur 設定變更。
+- [ ] 在不修改 Zeabur 機密的限制下，取得可驗證的回退登入方案，並完成最新資料同步／正式 Worker DB 目標與功能驗收後，才切學校路由。
+
 ## Dazhi 新 OAuth 與最新來源差異 — 2026-11-11
 - [x] 確認新 OAuth JSON 的 secret 與舊檔不同，收緊私密檔權限為 0600，並更新 staging 的 Google secret；登入/provider/DB health 回 200。
 - [x] 建立及部署正式 Worker 的新 OAuth secret 版本；在 `workers.dev` 完成 Google 教師登入與首頁資料讀取。

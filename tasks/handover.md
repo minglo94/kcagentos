@@ -1,3 +1,10 @@
+# Dazhi rollback-login blocker — 2026-11-11
+
+- Subsequent read-only HTTP checks returned 200 for both Zeabur fallback login pages and the school hostname login page; the earlier 404 is not the stable current state.
+- A fresh Google sign-in started at the Zeabur fallback used the canonical school callback and ended at `/api/auth/error?error=Configuration`. Google SSO rollback is therefore not accepted. The user was asked specifically about updating only Zeabur's Google OAuth secret and answered to keep the existing prohibition. No Zeabur setting was changed.
+- Production Worker teacher SSO on `workers.dev` passed, but its DB target remains unknown and Neon candidate Account count trails the fresh Zeabur source backup by two rows. DNS and school Worker routes remain unchanged. Do not cut over until rollback, target data, and production app acceptance are verified.
+- This update is saved with todo and current status in the same root-repository commit.
+
 # Dazhi OAuth deployment / fresh-source delta — 2026-11-11
 
 - User supplied a newer OAuth JSON download. Its client ID matches the prior file, its secret differs, and it includes the school and production Worker redirect URIs. Tightened file mode to 0600 without printing the secret. Updated staging `AUTH_GOOGLE_SECRET`; protected login, provider discovery, and DB health all returned 200.

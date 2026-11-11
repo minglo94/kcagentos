@@ -1,3 +1,7 @@
+# Dazhi rollback gate — 2026-11-11
+
+再次唯讀查核時，Zeabur 備用網址及 `teacher.keichi.edu.hk/login` 均回 200；此前學校網址的 404 不是穩定現況。實際從 Zeabur 備用網址執行 Google 登入時，回調使用學校網域並落在 `/api/auth/error?error=Configuration`，因此 Google 登入回退未通過。使用者在知悉結果後明確維持「不更新 Zeabur」的決定；不可更新其 OAuth secret。正式 Worker 的 Google 教師登入已通過，但 Neon 候選庫仍比最新 Zeabur 備份少兩筆 `Account`，且正式 Worker 的 DB 目標未證實。學校 DNS／Worker route 保持原狀；這些門檻未通過前不可聲稱完成切換。
+
 # Dazhi OAuth deployment and fresh-source check — 2026-11-11
 
 使用者提供 Downloads 中的新 Google OAuth JSON；它與先前下載檔使用相同 client ID，但 secret 不同，並包含學校網域與正式 Worker 回調。檔案權限已改為 0600，沒有在工具輸出或 Git 顯示 secret。已更新 staging `AUTH_GOOGLE_SECRET`，受保護的登入、provider 和 DB health 均回 200。Cloudflare 因正式 Worker 有未部署較新版本而拒絕直接改 secret；改用 Wrangler 建立只含新 secret 的版本 `f96413a0-6917-4c93-be99-502b6c895cfe`，再以 `cf` 明確部署至正式 Worker 100% 流量。其 `workers.dev` 登入/provider 回 200；真實 Google 教師登入成功並載入教師首頁和行程。正式 Worker `/__migration/db-health` 仍為 404，資料庫目標未證實。
